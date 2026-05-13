@@ -57,7 +57,7 @@
 <body>
 
 <!-- FIREBASE SETUP OVERLAY -->
-<div id="fb-overlay">
+<div id="fb-overlay" style="display:none!important">
   <div id="fb-box">
     <div style="text-align:center;margin-bottom:22px">
       <div style="font-size:30px;margin-bottom:6px">🔥</div>
@@ -337,12 +337,14 @@ function cancelUserEdit(){userEditId=null;renderTab();}
 function delUser(id){if(id===currentUser.id)return;if(confirm("Excluir?"))state.users=state.users.filter(u=>u.id!==id);save();renderTab();}
 
 // ── BOOT ─────────────────────────────────────────────────────────
-const savedCfg=getCfg();
-if(savedCfg){
-  ge("fb-apiKey").value=savedCfg.apiKey||"";ge("fb-authDomain").value=savedCfg.authDomain||"";
-  ge("fb-databaseURL").value=savedCfg.databaseURL||"";ge("fb-projectId").value=savedCfg.projectId||"";
-  initFb(savedCfg);
-}
+const EMBEDDED_CFG = {
+  apiKey: "AIzaSyBhR2WfPyje5M6IA-APrx3coOZV1SjW7oE",
+  authDomain: "sinal-sp.firebaseapp.com",
+  databaseURL: "https://sinal-sp-default-rtdb.firebaseio.com",
+  projectId: "sinal-sp"
+};
+localStorage.setItem('marc_fb_cfg', JSON.stringify(EMBEDDED_CFG));
+initFb(EMBEDDED_CFG);
 </script>
 </body>
 </html>

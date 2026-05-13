@@ -250,7 +250,7 @@
   </div>
   <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:flex-end">
     <div style="text-align:right">
-      <button onclick="importarDoCustos()" style="background:#2d2d2d;color:#000;border:none;padding:8px 14px;border-radius:6px;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit">
+      <button onclick="importarDoCustos()" style="background:#ffffff;color:#111111;border:1px solid #cccccc;padding:8px 14px;border-radius:6px;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit">
         ⟳ IMPORTAR DO SISTEMA DE CUSTOS
       </button>
       <div id="sync-status" style="font-size:10px;margin-top:3px;opacity:0.85"></div>
@@ -578,7 +578,7 @@
 </main>
 
 <!-- ============ FIREBASE CONFIG OVERLAY ============ -->
-<div id="fb-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px">
+<div id="fb-overlay" style="display:none!important" style="position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px">
   <div style="background:#fff;border:2px solid #2d2d2d;border-radius:16px;padding:32px;width:100%;max-width:500px">
     <div style="text-align:center;margin-bottom:22px">
       <div style="font-size:30px;margin-bottom:6px">🔥</div>
@@ -1403,15 +1403,14 @@ function iniciar() {
 }
 
 // Boot Firebase
-const fbCfg = getFbCfg();
-if (fbCfg) {
-  document.getElementById('fb-apiKey').value = fbCfg.apiKey || '';
-  document.getElementById('fb-authDomain').value = fbCfg.authDomain || '';
-  document.getElementById('fb-databaseURL').value = fbCfg.databaseURL || '';
-  document.getElementById('fb-projectId').value = fbCfg.projectId || '';
-  initFbOrc(fbCfg);
-}
-// If no config saved, overlay stays visible
+const EMBEDDED_CFG = {
+  apiKey: "AIzaSyBhR2WfPyje5M6IA-APrx3coOZV1SjW7oE",
+  authDomain: "sinal-sp.firebaseapp.com",
+  databaseURL: "https://sinal-sp-default-rtdb.firebaseio.com",
+  projectId: "sinal-sp"
+};
+localStorage.setItem('marc_fb_cfg', JSON.stringify(EMBEDDED_CFG));
+initFbOrc(EMBEDDED_CFG);
 </script>
 </body>
 </html>
