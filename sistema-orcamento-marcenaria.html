@@ -1,0 +1,1417 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<link href="https://fonts.googleapis.com/css2?family=Tenor+Sans&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sinal SP Marcenaria — Sistema de Orçamento</title>
+<style>
+  :root {
+    --wood-dark: #1a1a1a;
+    --wood: #2d2d2d;
+    --wood-light: #888888;
+    --cream: #f4f4f4;
+    --paper: #ffffff;
+    --ink: #1a1a1a;
+    --muted: #666666;
+    --line: #e0e0e0;
+    --ok: #2f7d32;
+    --warn: #c0392b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    font-size: 14px;
+  }
+  header {
+    background: linear-gradient(135deg, #111111, #2d2d2d);
+    color: #fff;
+    padding: 18px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  header h1 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: 0.3px; }
+  header .sub { font-size: 12px; opacity: 0.85; }
+  nav.tabs {
+    display: flex;
+    background: var(--wood-dark);
+    padding: 0 20px;
+    overflow-x: auto;
+  }
+  nav.tabs button {
+    background: transparent;
+    color: #f4f4f4cc;
+    border: none;
+    padding: 12px 20px;
+    font-size: 14px;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+    transition: all 0.15s;
+  }
+  nav.tabs button:hover { color: #fff; }
+  nav.tabs button.active {
+    color: #fff;
+    border-bottom-color: var(--wood-light);
+    background: rgba(255,255,255,0.06);
+  }
+  main { padding: 22px 28px 60px; max-width: 1200px; margin: 0 auto; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  h2 { color: var(--wood-dark); margin: 0 0 14px; font-size: 18px; }
+  h3 { color: var(--wood-dark); margin: 18px 0 10px; font-size: 15px; }
+  .card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin-bottom: 18px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; font-weight: 500; }
+  input[type="text"], input[type="number"], input[type="email"], input[type="tel"], input[type="date"], select, textarea {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    font-size: 14px;
+    font-family: inherit;
+    background: #fff;
+    color: var(--ink);
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--wood);
+    box-shadow: 0 0 0 2px rgba(139,90,43,0.15);
+  }
+  textarea { resize: vertical; min-height: 60px; }
+  .grid { display: grid; gap: 12px; }
+  .grid-2 { grid-template-columns: 1fr 1fr; }
+  .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .grid-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+  @media (max-width: 700px) {
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  }
+  button.btn {
+    background: var(--wood);
+    color: #fff;
+    border: none;
+    padding: 9px 16px;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.15s;
+  }
+  button.btn:hover { background: var(--wood-dark); }
+  button.btn.secondary { background: #fff; color: var(--wood-dark); border: 1px solid var(--wood); }
+  button.btn.secondary:hover { background: var(--cream); }
+  button.btn.danger { background: var(--warn); }
+  button.btn.danger:hover { background: #7a1f1f; }
+  button.btn.small { padding: 5px 10px; font-size: 12px; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    background: #fff;
+  }
+  table th, table td {
+    text-align: left;
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--line);
+    font-size: 13px;
+  }
+  table th {
+    background: var(--cream);
+    color: var(--wood-dark);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  table td.right, table th.right { text-align: right; }
+  table td.center, table th.center { text-align: center; }
+  .totals {
+    margin-top: 14px;
+    padding: 14px 18px;
+    background: var(--cream);
+    border-radius: 6px;
+    border: 1px solid var(--line);
+  }
+  .totals .line { display: flex; justify-content: space-between; padding: 4px 0; font-size: 14px; }
+  .totals .line.grand {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--wood-dark);
+    border-top: 2px solid var(--wood);
+    margin-top: 8px;
+    padding-top: 10px;
+  }
+  .row-actions { display: flex; gap: 6px; }
+  .empty {
+    padding: 30px;
+    text-align: center;
+    color: var(--muted);
+    font-style: italic;
+  }
+  .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+  .pill {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 11px;
+    font-size: 11px;
+    font-weight: 600;
+    background: var(--wood-light);
+    color: #fff;
+  }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .logo-preview {
+    max-height: 60px;
+    border: 1px dashed var(--line);
+    padding: 4px;
+    border-radius: 4px;
+    background: #fff;
+    display: block;
+    margin-top: 6px;
+  }
+
+  /* ============ ÁREA DE IMPRESSÃO DO ORÇAMENTO ============ */
+  #print-area {
+    display: none;
+  }
+  @media print {
+    body { background: #fff; }
+    header, nav.tabs, main { display: none !important; }
+    #print-area {
+      display: block !important;
+      padding: 24px 32px;
+      color: #000;
+      font-size: 12px;
+      font-family: 'Segoe UI', Arial, sans-serif;
+    }
+    #print-area .pa-header {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      border-bottom: 3px solid #1a1a1a;
+      padding-bottom: 14px;
+      margin-bottom: 16px;
+    }
+    #print-area .pa-header img { max-height: 72px; max-width: 140px; }
+    #print-area .pa-company h1 { font-size: 22px; color: #1a1a1a; margin: 0 0 4px; }
+    #print-area .pa-company .small { font-size: 11px; color: #444; line-height: 1.5; }
+    #print-area .pa-title {
+      font-size: 16px; color: #1a1a1a; font-weight: 700;
+      margin: 12px 0 8px; border-bottom: 1px solid #ccc; padding-bottom: 4px;
+    }
+    #print-area table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+    #print-area table th, #print-area table td {
+      border: 1px solid #999; padding: 5px 7px; font-size: 11.5px;
+    }
+    #print-area table th { background: #eeeeee; color: #222222; }
+    #print-area .pa-totals { margin-top: 14px; text-align: right; }
+    #print-area .pa-totals div { padding: 3px 0; }
+    #print-area .pa-totals .grand {
+      font-size: 16px; font-weight: 700; color: #1a1a1a;
+      border-top: 2px solid #1a1a1a; padding-top: 8px; margin-top: 6px;
+    }
+    #print-area .pa-block { margin-top: 14px; }
+    #print-area .pa-block .lab { font-weight: 700; color: #1a1a1a; }
+    #print-area .pa-foot {
+      margin-top: 40px; text-align: center; font-size: 11px; color: #444;
+      border-top: 1px solid #999; padding-top: 10px;
+    }
+    #print-area .pa-sign {
+      margin-top: 50px; display: flex; justify-content: space-around;
+    }
+    #print-area .pa-sign div { text-align: center; width: 45%; }
+    #print-area .pa-sign div span {
+      display: block; border-top: 1px solid #000; padding-top: 4px; font-size: 11px;
+    }
+    @page { margin: 14mm; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div style="display:flex;align-items:center;gap:16px">
+        <img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0iQ2FtYWRhXzEiIGRhdGEtbmFtZT0iQ2FtYWRhIDEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHZpZXdCb3g9IjAgMCA4NDIuMjUgNjA0LjA4Ij4KICA8ZGVmcz4KICAgIDxzdHlsZT4KICAgICAgLmNscy0xIHsKICAgICAgICBjbGlwLXBhdGg6IHVybCgjY2xpcHBhdGgtNCk7CiAgICAgIH0KCiAgICAgIC5jbHMtMiB7CiAgICAgICAgZmlsbDogI2ZmZjsKICAgICAgfQoKICAgICAgLmNscy0zIHsKICAgICAgICBmaWxsOiBub25lOwogICAgICB9CgogICAgICAuY2xzLTQgewogICAgICAgIGNsaXAtcGF0aDogdXJsKCNjbGlwcGF0aC0xKTsKICAgICAgfQoKICAgICAgLmNscy01IHsKICAgICAgICBpc29sYXRpb246IGlzb2xhdGU7CiAgICAgIH0KCiAgICAgIC5jbHMtNiB7CiAgICAgICAgY2xpcC1wYXRoOiB1cmwoI2NsaXBwYXRoLTMpOwogICAgICB9CgogICAgICAuY2xzLTcgewogICAgICAgIG9wYWNpdHk6IDA7CiAgICAgIH0KCiAgICAgIC5jbHMtOCB7CiAgICAgICAgZm9udC1zaXplOiAyNC40MnB4OwogICAgICB9CgogICAgICAuY2xzLTgsIC5jbHMtOSB7CiAgICAgICAgZm9udC1mYW1pbHk6IFRlbm9yU2FucywgJ1Rlbm9yIFNhbnMnOwogICAgICB9CgogICAgICAuY2xzLTkgewogICAgICAgIGZvbnQtc2l6ZTogODMuMTRweDsKICAgICAgfQoKICAgICAgLmNscy0xMCB7CiAgICAgICAgY2xpcC1wYXRoOiB1cmwoI2NsaXBwYXRoLTIpOwogICAgICB9CiAgICA8L3N0eWxlPgogICAgPGNsaXBQYXRoIGlkPSJjbGlwcGF0aC0xIj4KICAgICAgPHJlY3QgY2xhc3M9ImNscy0zIiB4PSIwIiB5PSI4LjU4IiB3aWR0aD0iODQyLjI1IiBoZWlnaHQ9IjU5NS41Ii8+CiAgICA8L2NsaXBQYXRoPgogICAgPGNsaXBQYXRoIGlkPSJjbGlwcGF0aC0yIj4KICAgICAgPHJlY3QgY2xhc3M9ImNscy0zIiB4PSIwIiB5PSI4LjU4IiB3aWR0aD0iODQyLjQiIGhlaWdodD0iNTk1LjY4Ii8+CiAgICA8L2NsaXBQYXRoPgogICAgPGNsaXBQYXRoIGlkPSJjbGlwcGF0aC0zIj4KICAgICAgPHJlY3QgY2xhc3M9ImNscy0zIiB4PSIwIiB5PSI4LjU4IiB3aWR0aD0iODQyLjU3IiBoZWlnaHQ9IjU5NS43MiIvPgogICAgPC9jbGlwUGF0aD4KICAgIDxjbGlwUGF0aCBpZD0iY2xpcHBhdGgtNCI+CiAgICAgIDxyZWN0IGNsYXNzPSJjbHMtMyIgeD0iNTQuNjQiIHk9IjIyNS41IiB3aWR0aD0iMTM0LjI2IiBoZWlnaHQ9IjE1Ni4wNiIvPgogICAgPC9jbGlwUGF0aD4KICA8L2RlZnM+CiAgPGcgY2xhc3M9ImNscy00Ij4KICAgIDxnIGNsYXNzPSJjbHMtNSI+CiAgICAgIDxnIGNsYXNzPSJjbHMtMTAiPgogICAgICAgIDxnIGNsYXNzPSJjbHMtNiI+CiAgICAgICAgICA8cmVjdCBjbGFzcz0iY2xzLTIiIHg9IjAiIHk9IjguNTgiIHdpZHRoPSI4NDIuNTciIGhlaWdodD0iNTk1LjcyIi8+CiAgICAgICAgPC9nPgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjI2LjcyIDMwMi43MSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5TPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy05IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyOTguNjMgMzAyLjcxKSI+PHRzcGFuIHg9IjAiIHk9IjAiPkk8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTkiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDM1Mi43NSAzMDIuNzEpIj48dHNwYW4geD0iMCIgeT0iMCI+TjwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDQzLjM3IDMwMi43MSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5BPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy05IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg1MjQuMTcgMzAyLjcxKSI+PHRzcGFuIHg9IjAiIHk9IjAiPkw8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTkiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDU5NC4xNyAzMDIuNzEpIj48dHNwYW4geD0iMCIgeT0iMCI+IDwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNjQzLjIyIDMwMi43MSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5TPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy05IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg3MTUuMTMgMzAyLjcxKSI+PHRzcGFuIHg9IjAiIHk9IjAiPlA8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8ZyBjbGFzcz0iY2xzLTEiPgogICAgICAgICAgPHBhdGggZD0iTTE4Mi4yNSwzMTAuNzdINjAuOTljMi4xMiwyLjEyLDQuMjMsNC4yMyw2LjM1LDYuMzR2LTI4Ljg1Yy0yLjExLDIuMTEtNC4yMyw0LjIzLTYuMzUsNi4zNWgxMjEuMjdjLTIuMTItMi4xMS00LjIzLTQuMjMtNi4zNS02LjM1djI4Ljg1YzAsOC4xOCwxMi42OSw4LjE4LDEyLjY5LDB2LTI4Ljg1YzAtMy40Ni0yLjg5LTYuMzUtNi4zNC02LjM1SDYwLjk5Yy0zLjQ2LDAtNi4zNSwyLjg5LTYuMzUsNi4zNXYyOC44NWMwLDMuNDYsMi44OSw2LjM1LDYuMzUsNi4zNWgxMjEuMjdjOC4xOCwwLDguMTgtMTIuNjksMC0xMi42OVoiLz4KICAgICAgICAgIDxwYXRoIGQ9Ik0xODIuMjUsMjU0LjM1SDYwLjk5YzIuMTIsMi4xMSw0LjIzLDQuMjMsNi4zNSw2LjM1di0yOC44NmMtMi4xMSwyLjEyLTQuMjMsNC4yMy02LjM1LDYuMzVoMTIxLjI3Yy0yLjEyLTIuMTEtNC4yMy00LjIzLTYuMzUtNi4zNXYyOC44NmMwLDguMTgsMTIuNjksOC4xOCwxMi42OSwwdi0yOC44NmMwLTMuNDYtMi44OS02LjM1LTYuMzQtNi4zNS00MC40MiwwLTgwLjg0LDAtMTIxLjI3LDAtMy40NiwwLTYuMzUsMi44OS02LjM1LDYuMzV2MjguODZjMCwzLjQ2LDIuODksNi4zNSw2LjM1LDYuMzVoMTIxLjI3YzguMTgsMCw4LjE4LTEyLjY5LDAtMTIuNjlaIi8+CiAgICAgICAgICA8cGF0aCBkPSJNMTgyLjI1LDM2OC42OEg2MC45OWMyLjEyLDIuMTIsNC4yMyw0LjIzLDYuMzUsNi4zNHYtMjguODVjLTIuMTEsMi4xMi00LjIzLDQuMjMtNi4zNSw2LjM1aDEyMS4yN2MtMi4xMi0yLjEyLTQuMjMtNC4yMy02LjM1LTYuMzV2MjguODVjMCw4LjE4LDEyLjY5LDguMTgsMTIuNjksMHYtMjguODVjMC0zLjQ2LTIuODktNi4zNC02LjM0LTYuMzRINjAuOTljLTMuNDYsMC02LjM1LDIuODktNi4zNSw2LjM0djI4Ljg1YzAsMy40NiwyLjg5LDYuMzUsNi4zNSw2LjM1aDEyMS4yN2M4LjE4LDAsOC4xOC0xMi42OSwwLTEyLjY5WiIvPgogICAgICAgIDwvZz4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDIyNi43MiAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+TTwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjU5Ljg0IDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5BPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyODUuNzcgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPlI8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDMxMS4zNyAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+QzwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMzM3Ljk2IDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5FPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzNjAuNzIgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPk48L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDM4OS41NCAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+QTwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDE1LjQ4IDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5SPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg0NDEuMDcgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPkk8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDQ1OS4xNyAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+QTwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDg1LjExIDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj4gPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg1MDguOTcgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPkM8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDUzNS41NiAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+TzwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNTY0Ljc1IDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5SPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg1OTAuMzQgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPlA8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDYxMy4zNyAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+TzwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNjQyLjU2IDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5SPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg2NjguMTUgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPkE8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDY5NC4wOSAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+VDwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNzE4LjQ0IDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5JPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg3MzYuNTMgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPlY8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDc2MS42MSAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+QTwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNzg3LjU2IDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj4gPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg4MDQuMTcgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPiA8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDIyNi43MiAzNzkuODUpIj48dHNwYW4geD0iMCIgeT0iMCI+RTwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjQ5LjQ4IDM3OS44NSkiPjx0c3BhbiB4PSIwIiB5PSIwIj4gPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyNjYuMDkgMzc5Ljg1KSI+PHRzcGFuIHg9IjAiIHk9IjAiPlI8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDI5MS42OSAzNzkuODUpIj48dHNwYW4geD0iMCIgeT0iMCI+RTwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMzE0LjQ1IDM3OS44NSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5TPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzMzcuNzcgMzc5Ljg1KSI+PHRzcGFuIHg9IjAiIHk9IjAiPkk8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDM1NS44NyAzNzkuODUpIj48dHNwYW4geD0iMCIgeT0iMCI+RDwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMzgyLjYxIDM3OS44NSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5FPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg0MDUuMzcgMzc5Ljg1KSI+PHRzcGFuIHg9IjAiIHk9IjAiPk48L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDQzNC4xOSAzNzkuODUpIj48dHNwYW4geD0iMCIgeT0iMCI+QzwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDYwLjc4IDM3OS44NSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5JPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg0NzguODggMzc5Ljg1KSI+PHRzcGFuIHg9IjAiIHk9IjAiPkE8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDUwNC44MiAzNzkuODUpIj48dHNwYW4geD0iMCIgeT0iMCI+TDwvdHNwYW4+PC90ZXh0PgogICAgICA8L2c+CiAgICA8L2c+CiAgPC9nPgogIDxyZWN0IGNsYXNzPSJjbHMtNyIgeD0iNTQuNjIiIHk9IjIxNi44MyIgd2lkdGg9IjEzMy45MiIgaGVpZ2h0PSIxNTUuODEiLz4KPC9zdmc+" style="height:44px;filter:invert(1)" alt="Sinal SP"/>
+    <div>
+      <h1><span style="font-family:'Tenor Sans','TenorSans',serif;font-weight:400;letter-spacing:2px">Sinal SP</span> — Sistema de Orçamento</h1>
+      <div class="sub" style="font-family:'Tenor Sans','TenorSans',serif;letter-spacing:1px">Marcenaria Corporativa e Residencial</div>
+      <div class="sub">Marcenaria Planejada · Cálculo por m² · Impressão para cliente</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:flex-end">
+    <div style="text-align:right">
+      <button onclick="importarDoCustos()" style="background:#2d2d2d;color:#000;border:none;padding:8px 14px;border-radius:6px;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit">
+        ⟳ IMPORTAR DO SISTEMA DE CUSTOS
+      </button>
+      <div id="sync-status" style="font-size:10px;margin-top:3px;opacity:0.85"></div>
+    </div>
+    <div class="sub" id="empresa-nome-header">Configure os dados da empresa</div>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button data-tab="orcamento" class="active">Novo Orçamento</button>
+  <button data-tab="salvos">Orçamentos Salvos</button>
+  <button data-tab="tipos">Tipos de Móveis (R$/m²)</button>
+  <button data-tab="itens">Itens Adicionais</button>
+  <button data-tab="empresa">Dados da Empresa</button>
+</nav>
+
+<main>
+  <!-- ============ ABA: NOVO ORÇAMENTO ============ -->
+  <section class="tab-content active" id="tab-orcamento">
+    <div class="card">
+      <h2>Dados do Cliente</h2>
+      <div class="grid grid-2">
+        <div>
+          <label>Nome do cliente</label>
+          <input type="text" id="cli-nome" placeholder="Ex.: João da Silva" />
+        </div>
+        <div>
+          <label>Telefone / WhatsApp</label>
+          <input type="tel" id="cli-tel" placeholder="(00) 00000-0000" />
+        </div>
+        <div>
+          <label>E-mail</label>
+          <input type="email" id="cli-email" placeholder="cliente@email.com" />
+        </div>
+        <div>
+          <label>Endereço da obra</label>
+          <input type="text" id="cli-end" placeholder="Rua, número, bairro, cidade" />
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Móveis (cálculo por m²)</h2>
+      <div class="grid grid-4">
+        <div>
+          <label>Tipo de móvel</label>
+          <select id="mov-tipo"></select>
+        </div>
+        <div>
+          <label>Ambiente / Descrição</label>
+          <input type="text" id="mov-desc" placeholder="Ex.: Cozinha principal" />
+        </div>
+        <div>
+          <label>Largura (m)</label>
+          <input type="number" id="mov-larg" step="0.01" min="0" placeholder="0,00" />
+        </div>
+        <div>
+          <label>Altura (m)</label>
+          <input type="number" id="mov-alt" step="0.01" min="0" placeholder="0,00" />
+        </div>
+      </div>
+      <div style="margin-top: 10px;">
+        <button class="btn" onclick="adicionarMovel()">+ Adicionar móvel</button>
+        <span class="hint">A área é calculada automaticamente (largura × altura) e multiplicada pelo R$/m² do tipo.</span>
+      </div>
+      <table id="tab-moveis">
+        <thead>
+          <tr>
+            <th>Tipo</th>
+            <th>Descrição</th>
+            <th class="center">L × A (m)</th>
+            <th class="right">Área (m²)</th>
+            <th class="right">R$/m²</th>
+            <th class="right">Subtotal</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>Itens Adicionais</h2>
+      <div class="grid grid-4">
+        <div>
+          <label>Item</label>
+          <select id="add-item"></select>
+        </div>
+        <div>
+          <label>Descrição (opcional)</label>
+          <input type="text" id="add-desc" placeholder="Detalhes do item" />
+        </div>
+        <div>
+          <label>Quantidade</label>
+          <input type="number" id="add-qtd" step="0.01" min="0" value="1" />
+        </div>
+        <div>
+          <label>Preço unit. (R$)</label>
+          <input type="number" id="add-preco" step="0.01" min="0" placeholder="0,00" />
+        </div>
+      </div>
+      <div style="margin-top: 10px;">
+        <button class="btn" onclick="adicionarItem()">+ Adicionar item</button>
+        <span class="hint">O preço é preenchido automaticamente conforme o cadastro, mas pode ser ajustado.</span>
+      </div>
+      <table id="tab-itens">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Descrição</th>
+            <th class="center">Unid.</th>
+            <th class="right">Qtd</th>
+            <th class="right">Preço</th>
+            <th class="right">Subtotal</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>Ajustes e Condições</h2>
+      <div class="grid grid-3">
+        <div>
+          <label>Desconto (%)</label>
+          <input type="number" id="orc-desc" step="0.01" min="0" value="0" />
+        </div>
+        <div>
+          <label>Acréscimo (%) — frete, taxas etc.</label>
+          <input type="number" id="orc-acresc" step="0.01" min="0" value="0" />
+        </div>
+        <div>
+          <label>Validade do orçamento (dias)</label>
+          <input type="number" id="orc-validade" min="1" value="15" />
+        </div>
+        <div>
+          <label>Prazo de entrega</label>
+          <input type="text" id="orc-prazo" placeholder="Ex.: 30 dias após assinatura" />
+        </div>
+        <div>
+          <label>Condições de pagamento</label>
+          <input type="text" id="orc-pagto" placeholder="Ex.: 50% entrada + 50% na entrega" />
+        </div>
+        <div>
+          <label>Data do orçamento</label>
+          <input type="date" id="orc-data" />
+        </div>
+      </div>
+      <div style="margin-top: 12px;">
+        <label>Observações</label>
+        <textarea id="orc-obs" placeholder="Materiais, acabamentos, garantia, observações adicionais..."></textarea>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="totals" id="totais"></div>
+      <div class="toolbar" style="margin-top: 14px;">
+        <button class="btn" onclick="salvarOrcamento()">💾 Salvar orçamento</button>
+        <button class="btn secondary" onclick="imprimirOrcamento()">🖨️ Imprimir / PDF</button>
+        <button class="btn secondary" onclick="limparOrcamento()">Limpar tudo</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ABA: ORÇAMENTOS SALVOS ============ -->
+  <section class="tab-content" id="tab-salvos">
+    <div class="card">
+      <h2>Orçamentos Salvos</h2>
+      <table id="tab-salvos-list">
+        <thead>
+          <tr>
+            <th>Nº</th>
+            <th>Data</th>
+            <th>Cliente</th>
+            <th class="right">Total</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ ABA: TIPOS DE MÓVEIS ============ -->
+  <section class="tab-content" id="tab-tipos">
+    <div class="card">
+      <h2>Cadastro de Tipos de Móveis (preço por m²)</h2>
+      <div class="grid grid-3">
+        <div>
+          <label>Categoria</label>
+          <select id="tipo-cat">
+            <option value="Cozinha">Cozinha</option>
+            <option value="Dormitório/Closet">Dormitório/Closet</option>
+            <option value="Banheiro/Lavanderia">Banheiro/Lavanderia</option>
+            <option value="Sala/Home/Comercial">Sala/Home/Comercial</option>
+            <option value="Outros">Outros</option>
+          </select>
+        </div>
+        <div>
+          <label>Nome do tipo de móvel</label>
+          <input type="text" id="tipo-nome" placeholder="Ex.: Armário superior MDF branco" />
+        </div>
+        <div>
+          <label>Preço por m² (R$)</label>
+          <input type="number" id="tipo-preco" step="0.01" min="0" placeholder="0,00" />
+        </div>
+      </div>
+      <div style="margin-top: 10px;">
+        <button class="btn" onclick="salvarTipo()">+ Adicionar tipo</button>
+        <button class="btn secondary" onclick="cancelarEdicaoTipo()" id="btn-cancelar-tipo" style="display:none">Cancelar</button>
+      </div>
+      <table id="tab-tipos-list">
+        <thead>
+          <tr>
+            <th>Categoria</th>
+            <th>Tipo de móvel</th>
+            <th class="right">R$/m²</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ ABA: ITENS ADICIONAIS ============ -->
+  <section class="tab-content" id="tab-itens-cad">
+    <div class="card">
+      <h2>Cadastro de Itens Adicionais</h2>
+      <div class="grid grid-4">
+        <div>
+          <label>Nome do item</label>
+          <input type="text" id="item-nome" placeholder="Ex.: Puxador alumínio 128mm" />
+        </div>
+        <div>
+          <label>Unidade</label>
+          <select id="item-un">
+            <option>un</option>
+            <option>m</option>
+            <option>m²</option>
+            <option>par</option>
+            <option>conj</option>
+            <option>h</option>
+            <option>kg</option>
+            <option>pç</option>
+          </select>
+        </div>
+        <div>
+          <label>Preço unitário (R$)</label>
+          <input type="number" id="item-preco" step="0.01" min="0" placeholder="0,00" />
+        </div>
+        <div>
+          <label>Categoria</label>
+          <select id="item-cat">
+            <option>Ferragens</option>
+            <option>Puxadores</option>
+            <option>Vidros/Espelhos</option>
+            <option>Iluminação</option>
+            <option>Acabamento</option>
+            <option>Instalação/Mão de obra</option>
+            <option>Outros</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-top: 10px;">
+        <button class="btn" onclick="salvarItemCad()">+ Adicionar item</button>
+        <button class="btn secondary" onclick="cancelarEdicaoItem()" id="btn-cancelar-item" style="display:none">Cancelar</button>
+      </div>
+      <table id="tab-itens-list">
+        <thead>
+          <tr>
+            <th>Categoria</th>
+            <th>Item</th>
+            <th class="center">Unid.</th>
+            <th class="right">Preço</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ ABA: EMPRESA ============ -->
+  <section class="tab-content" id="tab-empresa">
+    <div class="card">
+      <h2>Dados da Empresa (cabeçalho do orçamento)</h2>
+      <div class="grid grid-2">
+        <div>
+          <label>Razão social / Nome fantasia</label>
+          <input type="text" id="emp-nome" placeholder="Sinal SP Marcenaria Corporativa e Residencial" />
+        </div>
+        <div>
+          <label>CNPJ</label>
+          <input type="text" id="emp-cnpj" placeholder="00.000.000/0000-00" />
+        </div>
+        <div>
+          <label>Telefone</label>
+          <input type="tel" id="emp-tel" placeholder="(00) 0000-0000" />
+        </div>
+        <div>
+          <label>E-mail</label>
+          <input type="email" id="emp-email" placeholder="contato@empresa.com" />
+        </div>
+        <div style="grid-column: 1 / -1;">
+          <label>Endereço completo</label>
+          <input type="text" id="emp-end" placeholder="Rua, número, bairro, cidade - UF, CEP" />
+        </div>
+        <div style="grid-column: 1 / -1;">
+          <label>Logotipo (opcional) — clique para selecionar uma imagem</label>
+          <input type="file" id="emp-logo" accept="image/*" />
+          <img id="emp-logo-prev" class="logo-preview" style="display:none" />
+        </div>
+      </div>
+      <div style="margin-top: 12px;">
+        <button class="btn" onclick="salvarEmpresa()">Salvar dados da empresa</button>
+        <button class="btn secondary" onclick="exportarBackup()">⬇️ Exportar backup (JSON)</button>
+        <button class="btn secondary" onclick="resetFbOrc()">⚙ Reconfigurar Firebase</button>
+        <input type="file" id="import-file" accept="application/json" style="display:none" onchange="importarBackup(event)" />
+      </div>
+      <p class="hint">Os dados ficam salvos na nuvem (Firebase) e são compartilhados entre todos os usuários. Use os botões abaixo para fazer backup local ou restaurar dados.</p>
+    </div>
+  </section>
+</main>
+
+<!-- ============ FIREBASE CONFIG OVERLAY ============ -->
+<div id="fb-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#fff;border:2px solid #2d2d2d;border-radius:16px;padding:32px;width:100%;max-width:500px">
+    <div style="text-align:center;margin-bottom:22px">
+      <div style="font-size:30px;margin-bottom:6px">🔥</div>
+      <div style="color:#1a1a1a;font-weight:800;font-size:15px">CONFIGURAR FIREBASE</div>
+      <div style="color:#666666;font-size:12px;margin-top:8px;line-height:1.7">Cole as configurações do seu projeto Firebase.<br>Consulte o arquivo <strong style="color:#2d2d2d">COMO-CONFIGURAR.html</strong> para obter esses dados.</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div><label style="display:block;font-size:12px;color:#666666;margin-bottom:3px">API KEY</label><input id="fb-apiKey" placeholder="AIzaSy..." style="width:100%;padding:8px 10px;border:1px solid #e0e0e0;border-radius:5px;font-size:13px;font-family:inherit"/></div>
+      <div><label style="display:block;font-size:12px;color:#666666;margin-bottom:3px">AUTH DOMAIN</label><input id="fb-authDomain" placeholder="seu-projeto.firebaseapp.com" style="width:100%;padding:8px 10px;border:1px solid #e0e0e0;border-radius:5px;font-size:13px;font-family:inherit"/></div>
+      <div><label style="display:block;font-size:12px;color:#666666;margin-bottom:3px">DATABASE URL</label><input id="fb-databaseURL" placeholder="https://seu-projeto-default-rtdb.firebaseio.com" style="width:100%;padding:8px 10px;border:1px solid #e0e0e0;border-radius:5px;font-size:13px;font-family:inherit"/></div>
+      <div><label style="display:block;font-size:12px;color:#666666;margin-bottom:3px">PROJECT ID</label><input id="fb-projectId" placeholder="seu-projeto" style="width:100%;padding:8px 10px;border:1px solid #e0e0e0;border-radius:5px;font-size:13px;font-family:inherit"/></div>
+    </div>
+    <button onclick="conectarFirebaseOrc()" style="width:100%;margin-top:18px;padding:12px;background:#2d2d2d;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">CONECTAR →</button>
+    <div id="fb-err" style="color:#c0392b;font-size:12px;text-align:center;margin-top:10px;display:none"></div>
+  </div>
+</div>
+
+<!-- ============ ÁREA DE IMPRESSÃO ============ -->
+<div id="print-area"></div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<script>
+/* =====================================================
+   FIREBASE — ARMAZENAMENTO EM NUVEM
+   ===================================================== */
+const defaultData = {
+  empresa: { nome: 'Sinal SP Marcenaria Corporativa e Residencial', cnpj: '', tel: '', email: '', end: '', logo: 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0iQ2FtYWRhXzEiIGRhdGEtbmFtZT0iQ2FtYWRhIDEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHZpZXdCb3g9IjAgMCA4NDIuMjUgNjA0LjA4Ij4KICA8ZGVmcz4KICAgIDxzdHlsZT4KICAgICAgLmNscy0xIHsKICAgICAgICBjbGlwLXBhdGg6IHVybCgjY2xpcHBhdGgtNCk7CiAgICAgIH0KCiAgICAgIC5jbHMtMiB7CiAgICAgICAgZmlsbDogI2ZmZjsKICAgICAgfQoKICAgICAgLmNscy0zIHsKICAgICAgICBmaWxsOiBub25lOwogICAgICB9CgogICAgICAuY2xzLTQgewogICAgICAgIGNsaXAtcGF0aDogdXJsKCNjbGlwcGF0aC0xKTsKICAgICAgfQoKICAgICAgLmNscy01IHsKICAgICAgICBpc29sYXRpb246IGlzb2xhdGU7CiAgICAgIH0KCiAgICAgIC5jbHMtNiB7CiAgICAgICAgY2xpcC1wYXRoOiB1cmwoI2NsaXBwYXRoLTMpOwogICAgICB9CgogICAgICAuY2xzLTcgewogICAgICAgIG9wYWNpdHk6IDA7CiAgICAgIH0KCiAgICAgIC5jbHMtOCB7CiAgICAgICAgZm9udC1zaXplOiAyNC40MnB4OwogICAgICB9CgogICAgICAuY2xzLTgsIC5jbHMtOSB7CiAgICAgICAgZm9udC1mYW1pbHk6IFRlbm9yU2FucywgJ1Rlbm9yIFNhbnMnOwogICAgICB9CgogICAgICAuY2xzLTkgewogICAgICAgIGZvbnQtc2l6ZTogODMuMTRweDsKICAgICAgfQoKICAgICAgLmNscy0xMCB7CiAgICAgICAgY2xpcC1wYXRoOiB1cmwoI2NsaXBwYXRoLTIpOwogICAgICB9CiAgICA8L3N0eWxlPgogICAgPGNsaXBQYXRoIGlkPSJjbGlwcGF0aC0xIj4KICAgICAgPHJlY3QgY2xhc3M9ImNscy0zIiB4PSIwIiB5PSI4LjU4IiB3aWR0aD0iODQyLjI1IiBoZWlnaHQ9IjU5NS41Ii8+CiAgICA8L2NsaXBQYXRoPgogICAgPGNsaXBQYXRoIGlkPSJjbGlwcGF0aC0yIj4KICAgICAgPHJlY3QgY2xhc3M9ImNscy0zIiB4PSIwIiB5PSI4LjU4IiB3aWR0aD0iODQyLjQiIGhlaWdodD0iNTk1LjY4Ii8+CiAgICA8L2NsaXBQYXRoPgogICAgPGNsaXBQYXRoIGlkPSJjbGlwcGF0aC0zIj4KICAgICAgPHJlY3QgY2xhc3M9ImNscy0zIiB4PSIwIiB5PSI4LjU4IiB3aWR0aD0iODQyLjU3IiBoZWlnaHQ9IjU5NS43MiIvPgogICAgPC9jbGlwUGF0aD4KICAgIDxjbGlwUGF0aCBpZD0iY2xpcHBhdGgtNCI+CiAgICAgIDxyZWN0IGNsYXNzPSJjbHMtMyIgeD0iNTQuNjQiIHk9IjIyNS41IiB3aWR0aD0iMTM0LjI2IiBoZWlnaHQ9IjE1Ni4wNiIvPgogICAgPC9jbGlwUGF0aD4KICA8L2RlZnM+CiAgPGcgY2xhc3M9ImNscy00Ij4KICAgIDxnIGNsYXNzPSJjbHMtNSI+CiAgICAgIDxnIGNsYXNzPSJjbHMtMTAiPgogICAgICAgIDxnIGNsYXNzPSJjbHMtNiI+CiAgICAgICAgICA8cmVjdCBjbGFzcz0iY2xzLTIiIHg9IjAiIHk9IjguNTgiIHdpZHRoPSI4NDIuNTciIGhlaWdodD0iNTk1LjcyIi8+CiAgICAgICAgPC9nPgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjI2LjcyIDMwMi43MSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5TPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy05IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyOTguNjMgMzAyLjcxKSI+PHRzcGFuIHg9IjAiIHk9IjAiPkk8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTkiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDM1Mi43NSAzMDIuNzEpIj48dHNwYW4geD0iMCIgeT0iMCI+TjwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDQzLjM3IDMwMi43MSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5BPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy05IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg1MjQuMTcgMzAyLjcxKSI+PHRzcGFuIHg9IjAiIHk9IjAiPkw8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTkiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDU5NC4xNyAzMDIuNzEpIj48dHNwYW4geD0iMCIgeT0iMCI+IDwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNjQzLjIyIDMwMi43MSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5TPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy05IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg3MTUuMTMgMzAyLjcxKSI+PHRzcGFuIHg9IjAiIHk9IjAiPlA8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8ZyBjbGFzcz0iY2xzLTEiPgogICAgICAgICAgPHBhdGggZD0iTTE4Mi4yNSwzMTAuNzdINjAuOTljMi4xMiwyLjEyLDQuMjMsNC4yMyw2LjM1LDYuMzR2LTI4Ljg1Yy0yLjExLDIuMTEtNC4yMyw0LjIzLTYuMzUsNi4zNWgxMjEuMjdjLTIuMTItMi4xMS00LjIzLTQuMjMtNi4zNS02LjM1djI4Ljg1YzAsOC4xOCwxMi42OSw4LjE4LDEyLjY5LDB2LTI4Ljg1YzAtMy40Ni0yLjg5LTYuMzUtNi4zNC02LjM1SDYwLjk5Yy0zLjQ2LDAtNi4zNSwyLjg5LTYuMzUsNi4zNXYyOC44NWMwLDMuNDYsMi44OSw2LjM1LDYuMzUsNi4zNWgxMjEuMjdjOC4xOCwwLDguMTgtMTIuNjksMC0xMi42OVoiLz4KICAgICAgICAgIDxwYXRoIGQ9Ik0xODIuMjUsMjU0LjM1SDYwLjk5YzIuMTIsMi4xMSw0LjIzLDQuMjMsNi4zNSw2LjM1di0yOC44NmMtMi4xMSwyLjEyLTQuMjMsNC4yMy02LjM1LDYuMzVoMTIxLjI3Yy0yLjEyLTIuMTEtNC4yMy00LjIzLTYuMzUtNi4zNXYyOC44NmMwLDguMTgsMTIuNjksOC4xOCwxMi42OSwwdi0yOC44NmMwLTMuNDYtMi44OS02LjM1LTYuMzQtNi4zNS00MC40MiwwLTgwLjg0LDAtMTIxLjI3LDAtMy40NiwwLTYuMzUsMi44OS02LjM1LDYuMzV2MjguODZjMCwzLjQ2LDIuODksNi4zNSw2LjM1LDYuMzVoMTIxLjI3YzguMTgsMCw4LjE4LTEyLjY5LDAtMTIuNjlaIi8+CiAgICAgICAgICA8cGF0aCBkPSJNMTgyLjI1LDM2OC42OEg2MC45OWMyLjEyLDIuMTIsNC4yMyw0LjIzLDYuMzUsNi4zNHYtMjguODVjLTIuMTEsMi4xMi00LjIzLDQuMjMtNi4zNSw2LjM1aDEyMS4yN2MtMi4xMi0yLjEyLTQuMjMtNC4yMy02LjM1LTYuMzV2MjguODVjMCw4LjE4LDEyLjY5LDguMTgsMTIuNjksMHYtMjguODVjMC0zLjQ2LTIuODktNi4zNC02LjM0LTYuMzRINjAuOTljLTMuNDYsMC02LjM1LDIuODktNi4zNSw2LjM0djI4Ljg1YzAsMy40NiwyLjg5LDYuMzUsNi4zNSw2LjM1aDEyMS4yN2M4LjE4LDAsOC4xOC0xMi42OSwwLTEyLjY5WiIvPgogICAgICAgIDwvZz4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDIyNi43MiAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+TTwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjU5Ljg0IDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5BPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyODUuNzcgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPlI8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDMxMS4zNyAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+QzwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMzM3Ljk2IDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5FPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzNjAuNzIgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPk48L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDM4OS41NCAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+QTwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDE1LjQ4IDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5SPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg0NDEuMDcgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPkk8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDQ1OS4xNyAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+QTwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDg1LjExIDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj4gPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg1MDguOTcgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPkM8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDUzNS41NiAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+TzwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNTY0Ljc1IDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5SPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg1OTAuMzQgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPlA8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDYxMy4zNyAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+TzwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNjQyLjU2IDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5SPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg2NjguMTUgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPkE8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDY5NC4wOSAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+VDwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNzE4LjQ0IDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5JPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg3MzYuNTMgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPlY8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDc2MS42MSAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+QTwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNzg3LjU2IDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj4gPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg4MDQuMTcgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPiA8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDIyNi43MiAzNzkuODUpIj48dHNwYW4geD0iMCIgeT0iMCI+RTwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjQ5LjQ4IDM3OS44NSkiPjx0c3BhbiB4PSIwIiB5PSIwIj4gPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyNjYuMDkgMzc5Ljg1KSI+PHRzcGFuIHg9IjAiIHk9IjAiPlI8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDI5MS42OSAzNzkuODUpIj48dHNwYW4geD0iMCIgeT0iMCI+RTwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMzE0LjQ1IDM3OS44NSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5TPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzMzcuNzcgMzc5Ljg1KSI+PHRzcGFuIHg9IjAiIHk9IjAiPkk8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDM1NS44NyAzNzkuODUpIj48dHNwYW4geD0iMCIgeT0iMCI+RDwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMzgyLjYxIDM3OS44NSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5FPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg0MDUuMzcgMzc5Ljg1KSI+PHRzcGFuIHg9IjAiIHk9IjAiPk48L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDQzNC4xOSAzNzkuODUpIj48dHNwYW4geD0iMCIgeT0iMCI+QzwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDYwLjc4IDM3OS44NSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5JPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg0NzguODggMzc5Ljg1KSI+PHRzcGFuIHg9IjAiIHk9IjAiPkE8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDUwNC44MiAzNzkuODUpIj48dHNwYW4geD0iMCIgeT0iMCI+TDwvdHNwYW4+PC90ZXh0PgogICAgICA8L2c+CiAgICA8L2c+CiAgPC9nPgogIDxyZWN0IGNsYXNzPSJjbHMtNyIgeD0iNTQuNjIiIHk9IjIxNi44MyIgd2lkdGg9IjEzMy45MiIgaGVpZ2h0PSIxNTUuODEiLz4KPC9zdmc+' },
+  tipos: [
+    { id: 't1', cat: 'Cozinha', nome: 'Cozinha planejada padrão MDF branco', preco: 1800 },
+    { id: 't2', cat: 'Cozinha', nome: 'Cozinha planejada MDF madeirado', preco: 2200 },
+    { id: 't3', cat: 'Cozinha', nome: 'Cozinha planejada com laca', preco: 2800 },
+    { id: 't4', cat: 'Dormitório/Closet', nome: 'Guarda-roupa MDF branco', preco: 1500 },
+    { id: 't5', cat: 'Dormitório/Closet', nome: 'Closet com gavetas e cabideiros', preco: 1900 },
+    { id: 't6', cat: 'Banheiro/Lavanderia', nome: 'Gabinete de banheiro MDF', preco: 1700 },
+    { id: 't7', cat: 'Banheiro/Lavanderia', nome: 'Armário de lavanderia MDF', preco: 1400 },
+    { id: 't8', cat: 'Sala/Home/Comercial', nome: 'Painel de TV / home theater', preco: 1600 },
+    { id: 't9', cat: 'Sala/Home/Comercial', nome: 'Estante de sala MDF', preco: 1500 },
+    { id: 't10', cat: 'Sala/Home/Comercial', nome: 'Balcão/Recepção comercial', preco: 2000 }
+  ],
+  itens: [
+    { id: 'i1', cat: 'Puxadores', nome: 'Puxador alumínio 128mm', un: 'un', preco: 18 },
+    { id: 'i2', cat: 'Puxadores', nome: 'Puxador perfil tipo cava', un: 'm', preco: 45 },
+    { id: 'i3', cat: 'Ferragens', nome: 'Dobradiça caneco com amortecedor', un: 'un', preco: 12 },
+    { id: 'i4', cat: 'Ferragens', nome: 'Corrediça telescópica 45cm', un: 'par', preco: 38 },
+    { id: 'i5', cat: 'Iluminação', nome: 'Fita LED 5m com fonte', un: 'conj', preco: 120 },
+    { id: 'i6', cat: 'Vidros/Espelhos', nome: 'Espelho cristal 4mm', un: 'm²', preco: 280 },
+    { id: 'i7', cat: 'Vidros/Espelhos', nome: 'Vidro temperado 8mm', un: 'm²', preco: 420 },
+    { id: 'i8', cat: 'Instalação/Mão de obra', nome: 'Montagem e instalação', un: 'h', preco: 90 },
+    { id: 'i9', cat: 'Acabamento', nome: 'Fita de borda PVC', un: 'm', preco: 4 }
+  ],
+  orcamentos: [],
+  contador: 1
+};
+
+let db = null;
+let data = JSON.parse(JSON.stringify(defaultData));
+let saveTimer = null;
+let ignoreRemote = false;
+
+function getFbCfg() { try { return JSON.parse(localStorage.getItem('marc_fb_cfg')); } catch(e) { return null; } }
+function resetFbOrc() { localStorage.removeItem('marc_fb_cfg'); location.reload(); }
+
+function conectarFirebaseOrc() {
+  const cfg = {
+    apiKey: document.getElementById('fb-apiKey').value.trim(),
+    authDomain: document.getElementById('fb-authDomain').value.trim(),
+    databaseURL: document.getElementById('fb-databaseURL').value.trim(),
+    projectId: document.getElementById('fb-projectId').value.trim()
+  };
+  if (!cfg.apiKey || !cfg.databaseURL || !cfg.projectId) { showFbErrOrc('Preencha todos os campos.'); return; }
+  localStorage.setItem('marc_fb_cfg', JSON.stringify(cfg));
+  initFbOrc(cfg);
+}
+function showFbErrOrc(msg) { const el = document.getElementById('fb-err'); el.textContent = msg; el.style.display = 'block'; }
+
+function initFbOrc(cfg) {
+  try {
+    if (firebase.apps.length) firebase.app().delete().catch(() => {});
+    firebase.initializeApp(cfg);
+    db = firebase.database();
+    db.ref('marc_orc').once('value').then(snap => {
+      if (snap.exists()) { data = Object.assign(JSON.parse(JSON.stringify(defaultData)), snap.val()); }
+      else { db.ref('marc_orc').set(data); }
+      document.getElementById('fb-overlay').style.display = 'none';
+      // live sync from other users
+      db.ref('marc_orc').on('value', snap => {
+        if (!snap.exists() || ignoreRemote) return;
+        data = Object.assign(JSON.parse(JSON.stringify(defaultData)), snap.val());
+        renderSalvos();
+        renderTipos();
+        renderItensCad();
+      });
+      // listen for cost system sync
+      db.ref('marc_prices').on('value', snap => {
+        if (snap.exists()) {
+          document.getElementById('sync-status').style.color = '#c0392b';
+          document.getElementById('sync-status').textContent = '● Novos dados do Sistema de Custos disponíveis — clique em Importar';
+        }
+      });
+      iniciar();
+    }).catch(err => { showFbErrOrc('Erro de conexão: ' + err.message); });
+  } catch(err) { showFbErrOrc('Config inválida: ' + err.message); }
+}
+
+function salvar() {
+  if (!db) return;
+  ignoreRemote = true;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    db.ref('marc_orc').set(data).then(() => {
+      setTimeout(() => { ignoreRemote = false; }, 500);
+    }).catch(() => { ignoreRemote = false; });
+  }, 500);
+}
+
+/* =====================================================
+   UTILITÁRIOS
+   ===================================================== */
+const fmt = v => 'R$ ' + (Number(v)||0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmtNum = v => (Number(v)||0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const uid = () => Math.random().toString(36).slice(2, 10);
+
+/* =====================================================
+   NAVEGAÇÃO DE ABAS
+   ===================================================== */
+document.querySelectorAll('nav.tabs button').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('nav.tabs button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    const tab = btn.dataset.tab;
+    const map = {
+      orcamento: 'tab-orcamento',
+      salvos: 'tab-salvos',
+      tipos: 'tab-tipos',
+      itens: 'tab-itens-cad',
+      empresa: 'tab-empresa'
+    };
+    document.getElementById(map[tab]).classList.add('active');
+    if (tab === 'salvos') renderSalvos();
+  };
+});
+
+/* =====================================================
+   DADOS DA EMPRESA
+   ===================================================== */
+function renderEmpresa() {
+  const e = data.empresa;
+  document.getElementById('emp-nome').value = e.nome || '';
+  document.getElementById('emp-cnpj').value = e.cnpj || '';
+  document.getElementById('emp-tel').value = e.tel || '';
+  document.getElementById('emp-email').value = e.email || '';
+  document.getElementById('emp-end').value = e.end || '';
+  if (e.logo) {
+    const img = document.getElementById('emp-logo-prev');
+    img.src = e.logo;
+    img.style.display = 'block';
+  }
+  document.getElementById('empresa-nome-header').textContent = e.nome || 'Configure os dados da empresa';
+}
+function salvarEmpresa() {
+  data.empresa.nome = document.getElementById('emp-nome').value.trim();
+  data.empresa.cnpj = document.getElementById('emp-cnpj').value.trim();
+  data.empresa.tel = document.getElementById('emp-tel').value.trim();
+  data.empresa.email = document.getElementById('emp-email').value.trim();
+  data.empresa.end = document.getElementById('emp-end').value.trim();
+  salvar();
+  renderEmpresa();
+  alert('Dados da empresa salvos!');
+}
+document.getElementById('emp-logo').addEventListener('change', evt => {
+  const file = evt.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    data.empresa.logo = e.target.result;
+    salvar();
+    renderEmpresa();
+  };
+  reader.readAsDataURL(file);
+});
+
+/* =====================================================
+   TIPOS DE MÓVEIS (R$/m²)
+   ===================================================== */
+let editandoTipo = null;
+function renderTipos() {
+  const tbody = document.querySelector('#tab-tipos-list tbody');
+  tbody.innerHTML = '';
+  if (!data.tipos.length) {
+    tbody.innerHTML = '<tr><td colspan="4" class="empty">Nenhum tipo cadastrado.</td></tr>';
+  } else {
+    data.tipos.forEach(t => {
+      const tr = document.createElement('tr');
+      const badge = t._fromCustos
+        ? '<span style="margin-left:6px;font-size:10px;background:#f0f0f0;color:#2d2d2d;border:1px solid #2d2d2d;border-radius:4px;padding:1px 6px;font-weight:700">⚙ Custos</span>'
+        : '';
+      tr.innerHTML = `
+        <td><span class="pill">${t.cat}</span></td>
+        <td>${t.nome}${badge}</td>
+        <td class="right">${fmt(t.preco)}</td>
+        <td class="row-actions">
+          <button class="btn small secondary" onclick="editarTipo('${t.id}')">Editar</button>
+          <button class="btn small danger" onclick="excluirTipo('${t.id}')">Excluir</button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+  }
+  // atualizar combo no orçamento
+  const sel = document.getElementById('mov-tipo');
+  sel.innerHTML = '<option value="">— Selecione —</option>';
+  // agrupado por categoria
+  const cats = [...new Set(data.tipos.map(t => t.cat))];
+  cats.forEach(cat => {
+    const og = document.createElement('optgroup');
+    og.label = cat;
+    data.tipos.filter(t => t.cat === cat).forEach(t => {
+      const o = document.createElement('option');
+      o.value = t.id;
+      o.textContent = `${t.nome} — ${fmt(t.preco)}/m²`;
+      og.appendChild(o);
+    });
+    sel.appendChild(og);
+  });
+}
+function salvarTipo() {
+  const cat = document.getElementById('tipo-cat').value;
+  const nome = document.getElementById('tipo-nome').value.trim();
+  const preco = parseFloat(document.getElementById('tipo-preco').value);
+  if (!nome || !preco || preco <= 0) { alert('Preencha nome e preço (>0).'); return; }
+  if (editandoTipo) {
+    const t = data.tipos.find(x => x.id === editandoTipo);
+    t.cat = cat; t.nome = nome; t.preco = preco;
+    editandoTipo = null;
+    document.getElementById('btn-cancelar-tipo').style.display = 'none';
+  } else {
+    data.tipos.push({ id: uid(), cat, nome, preco });
+  }
+  document.getElementById('tipo-nome').value = '';
+  document.getElementById('tipo-preco').value = '';
+  salvar();
+  renderTipos();
+}
+function editarTipo(id) {
+  const t = data.tipos.find(x => x.id === id);
+  if (!t) return;
+  document.getElementById('tipo-cat').value = t.cat;
+  document.getElementById('tipo-nome').value = t.nome;
+  document.getElementById('tipo-preco').value = t.preco;
+  editandoTipo = id;
+  document.getElementById('btn-cancelar-tipo').style.display = 'inline-block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function cancelarEdicaoTipo() {
+  editandoTipo = null;
+  document.getElementById('tipo-nome').value = '';
+  document.getElementById('tipo-preco').value = '';
+  document.getElementById('btn-cancelar-tipo').style.display = 'none';
+}
+function excluirTipo(id) {
+  if (!confirm('Excluir este tipo de móvel?')) return;
+  data.tipos = data.tipos.filter(x => x.id !== id);
+  salvar();
+  renderTipos();
+}
+
+/* =====================================================
+   ITENS ADICIONAIS (cadastro)
+   ===================================================== */
+let editandoItem = null;
+function renderItensCad() {
+  const tbody = document.querySelector('#tab-itens-list tbody');
+  tbody.innerHTML = '';
+  if (!data.itens.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty">Nenhum item cadastrado.</td></tr>';
+  } else {
+    data.itens.forEach(i => {
+      const tr = document.createElement('tr');
+      const badge = i._fromCustos
+        ? '<span style="margin-left:6px;font-size:10px;background:#f0f0f0;color:#2d2d2d;border:1px solid #2d2d2d;border-radius:4px;padding:1px 6px;font-weight:700">⚙ Custos</span>'
+        : '';
+      tr.innerHTML = `
+        <td><span class="pill">${i.cat}</span></td>
+        <td>${i.nome}${badge}</td>
+        <td class="center">${i.un}</td>
+        <td class="right">${fmt(i.preco)}</td>
+        <td class="row-actions">
+          <button class="btn small secondary" onclick="editarItem('${i.id}')">Editar</button>
+          <button class="btn small danger" onclick="excluirItem('${i.id}')">Excluir</button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+  }
+  // combo no orçamento
+  const sel = document.getElementById('add-item');
+  sel.innerHTML = '<option value="">— Selecione —</option>';
+  const cats = [...new Set(data.itens.map(t => t.cat))];
+  cats.forEach(cat => {
+    const og = document.createElement('optgroup');
+    og.label = cat;
+    data.itens.filter(t => t.cat === cat).forEach(t => {
+      const o = document.createElement('option');
+      o.value = t.id;
+      o.textContent = `${t.nome} (${t.un}) — ${fmt(t.preco)}`;
+      og.appendChild(o);
+    });
+    sel.appendChild(og);
+  });
+}
+function salvarItemCad() {
+  const cat = document.getElementById('item-cat').value;
+  const nome = document.getElementById('item-nome').value.trim();
+  const un = document.getElementById('item-un').value;
+  const preco = parseFloat(document.getElementById('item-preco').value);
+  if (!nome || preco === undefined || isNaN(preco) || preco < 0) { alert('Preencha nome e preço.'); return; }
+  if (editandoItem) {
+    const t = data.itens.find(x => x.id === editandoItem);
+    t.cat = cat; t.nome = nome; t.un = un; t.preco = preco;
+    editandoItem = null;
+    document.getElementById('btn-cancelar-item').style.display = 'none';
+  } else {
+    data.itens.push({ id: uid(), cat, nome, un, preco });
+  }
+  document.getElementById('item-nome').value = '';
+  document.getElementById('item-preco').value = '';
+  salvar();
+  renderItensCad();
+}
+function editarItem(id) {
+  const t = data.itens.find(x => x.id === id);
+  if (!t) return;
+  document.getElementById('item-cat').value = t.cat;
+  document.getElementById('item-nome').value = t.nome;
+  document.getElementById('item-un').value = t.un;
+  document.getElementById('item-preco').value = t.preco;
+  editandoItem = id;
+  document.getElementById('btn-cancelar-item').style.display = 'inline-block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function cancelarEdicaoItem() {
+  editandoItem = null;
+  document.getElementById('item-nome').value = '';
+  document.getElementById('item-preco').value = '';
+  document.getElementById('btn-cancelar-item').style.display = 'none';
+}
+function excluirItem(id) {
+  if (!confirm('Excluir este item?')) return;
+  data.itens = data.itens.filter(x => x.id !== id);
+  salvar();
+  renderItensCad();
+}
+
+/* =====================================================
+   ORÇAMENTO ATUAL
+   ===================================================== */
+let orcamentoAtual = {
+  moveis: [],
+  adicionais: []
+};
+
+function adicionarMovel() {
+  const tipoId = document.getElementById('mov-tipo').value;
+  const desc = document.getElementById('mov-desc').value.trim();
+  const larg = parseFloat(document.getElementById('mov-larg').value);
+  const alt = parseFloat(document.getElementById('mov-alt').value);
+  if (!tipoId) { alert('Selecione o tipo de móvel.'); return; }
+  if (!larg || !alt || larg <= 0 || alt <= 0) { alert('Informe largura e altura.'); return; }
+  const tipo = data.tipos.find(t => t.id === tipoId);
+  orcamentoAtual.moveis.push({
+    id: uid(),
+    tipoNome: tipo.nome,
+    cat: tipo.cat,
+    desc,
+    larg, alt,
+    area: larg * alt,
+    precoM2: tipo.preco,
+    subtotal: larg * alt * tipo.preco
+  });
+  document.getElementById('mov-desc').value = '';
+  document.getElementById('mov-larg').value = '';
+  document.getElementById('mov-alt').value = '';
+  renderMoveis();
+}
+function removerMovel(id) {
+  orcamentoAtual.moveis = orcamentoAtual.moveis.filter(m => m.id !== id);
+  renderMoveis();
+}
+function renderMoveis() {
+  const tbody = document.querySelector('#tab-moveis tbody');
+  tbody.innerHTML = '';
+  if (!orcamentoAtual.moveis.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty">Nenhum móvel adicionado.</td></tr>';
+  } else {
+    orcamentoAtual.moveis.forEach(m => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${m.tipoNome}<div class="hint">${m.cat}</div></td>
+        <td>${m.desc || '—'}</td>
+        <td class="center">${fmtNum(m.larg)} × ${fmtNum(m.alt)}</td>
+        <td class="right">${fmtNum(m.area)}</td>
+        <td class="right">${fmt(m.precoM2)}</td>
+        <td class="right"><strong>${fmt(m.subtotal)}</strong></td>
+        <td><button class="btn small danger" onclick="removerMovel('${m.id}')">×</button></td>`;
+      tbody.appendChild(tr);
+    });
+  }
+  atualizarTotais();
+}
+
+// Preencher preço automaticamente ao selecionar item
+document.getElementById('add-item').addEventListener('change', e => {
+  const id = e.target.value;
+  if (!id) return;
+  const it = data.itens.find(x => x.id === id);
+  if (it) document.getElementById('add-preco').value = it.preco;
+});
+
+function adicionarItem() {
+  const itemId = document.getElementById('add-item').value;
+  const desc = document.getElementById('add-desc').value.trim();
+  const qtd = parseFloat(document.getElementById('add-qtd').value);
+  const preco = parseFloat(document.getElementById('add-preco').value);
+  if (!itemId) { alert('Selecione o item.'); return; }
+  if (!qtd || qtd <= 0) { alert('Informe a quantidade.'); return; }
+  if (preco === undefined || isNaN(preco) || preco < 0) { alert('Informe o preço.'); return; }
+  const it = data.itens.find(x => x.id === itemId);
+  orcamentoAtual.adicionais.push({
+    id: uid(),
+    nome: it.nome,
+    cat: it.cat,
+    un: it.un,
+    desc,
+    qtd, preco,
+    subtotal: qtd * preco
+  });
+  document.getElementById('add-desc').value = '';
+  document.getElementById('add-qtd').value = 1;
+  document.getElementById('add-preco').value = '';
+  renderAdicionais();
+}
+function removerAdicional(id) {
+  orcamentoAtual.adicionais = orcamentoAtual.adicionais.filter(m => m.id !== id);
+  renderAdicionais();
+}
+function renderAdicionais() {
+  const tbody = document.querySelector('#tab-itens tbody');
+  tbody.innerHTML = '';
+  if (!orcamentoAtual.adicionais.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty">Nenhum item adicionado.</td></tr>';
+  } else {
+    orcamentoAtual.adicionais.forEach(it => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${it.nome}<div class="hint">${it.cat}</div></td>
+        <td>${it.desc || '—'}</td>
+        <td class="center">${it.un}</td>
+        <td class="right">${fmtNum(it.qtd)}</td>
+        <td class="right">${fmt(it.preco)}</td>
+        <td class="right"><strong>${fmt(it.subtotal)}</strong></td>
+        <td><button class="btn small danger" onclick="removerAdicional('${it.id}')">×</button></td>`;
+      tbody.appendChild(tr);
+    });
+  }
+  atualizarTotais();
+}
+
+function atualizarTotais() {
+  const subMov = orcamentoAtual.moveis.reduce((s,m) => s + m.subtotal, 0);
+  const subAdc = orcamentoAtual.adicionais.reduce((s,m) => s + m.subtotal, 0);
+  const sub = subMov + subAdc;
+  const descPct = parseFloat(document.getElementById('orc-desc').value) || 0;
+  const acrPct = parseFloat(document.getElementById('orc-acresc').value) || 0;
+  const descV = sub * descPct / 100;
+  const acrV = sub * acrPct / 100;
+  const total = sub - descV + acrV;
+  const areaTotal = orcamentoAtual.moveis.reduce((s,m) => s + m.area, 0);
+
+  document.getElementById('totais').innerHTML = `
+    <div class="line"><span>Subtotal móveis (${fmtNum(areaTotal)} m²)</span><span>${fmt(subMov)}</span></div>
+    <div class="line"><span>Subtotal itens adicionais</span><span>${fmt(subAdc)}</span></div>
+    <div class="line"><span>Subtotal geral</span><span><strong>${fmt(sub)}</strong></span></div>
+    ${descPct > 0 ? `<div class="line" style="color:#2f7d32"><span>Desconto (${fmtNum(descPct)}%)</span><span>− ${fmt(descV)}</span></div>` : ''}
+    ${acrPct > 0 ? `<div class="line" style="color:#c0392b"><span>Acréscimo (${fmtNum(acrPct)}%)</span><span>+ ${fmt(acrV)}</span></div>` : ''}
+    <div class="line grand"><span>TOTAL</span><span>${fmt(total)}</span></div>`;
+}
+
+['orc-desc','orc-acresc'].forEach(id => {
+  document.getElementById(id).addEventListener('input', atualizarTotais);
+});
+
+function limparOrcamento() {
+  if (!confirm('Limpar todo o orçamento atual?')) return;
+  orcamentoAtual = { moveis: [], adicionais: [] };
+  ['cli-nome','cli-tel','cli-email','cli-end','orc-prazo','orc-pagto','orc-obs'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('orc-desc').value = 0;
+  document.getElementById('orc-acresc').value = 0;
+  document.getElementById('orc-validade').value = 15;
+  document.getElementById('orc-data').valueAsDate = new Date();
+  renderMoveis();
+  renderAdicionais();
+}
+
+/* =====================================================
+   SALVAR / LISTAR ORÇAMENTOS
+   ===================================================== */
+function coletarOrcamento() {
+  const sub = orcamentoAtual.moveis.reduce((s,m) => s + m.subtotal, 0)
+            + orcamentoAtual.adicionais.reduce((s,m) => s + m.subtotal, 0);
+  const descPct = parseFloat(document.getElementById('orc-desc').value) || 0;
+  const acrPct = parseFloat(document.getElementById('orc-acresc').value) || 0;
+  const total = sub * (1 - descPct/100 + acrPct/100);
+  return {
+    numero: 0, // será setado ao salvar
+    data: document.getElementById('orc-data').value || new Date().toISOString().slice(0,10),
+    cliente: {
+      nome: document.getElementById('cli-nome').value.trim(),
+      tel: document.getElementById('cli-tel').value.trim(),
+      email: document.getElementById('cli-email').value.trim(),
+      end: document.getElementById('cli-end').value.trim()
+    },
+    moveis: JSON.parse(JSON.stringify(orcamentoAtual.moveis)),
+    adicionais: JSON.parse(JSON.stringify(orcamentoAtual.adicionais)),
+    descPct, acrPct,
+    subtotal: sub,
+    total,
+    validade: parseInt(document.getElementById('orc-validade').value) || 15,
+    prazo: document.getElementById('orc-prazo').value.trim(),
+    pagto: document.getElementById('orc-pagto').value.trim(),
+    obs: document.getElementById('orc-obs').value.trim()
+  };
+}
+function salvarOrcamento() {
+  const o = coletarOrcamento();
+  if (!o.cliente.nome) { alert('Preencha o nome do cliente.'); return; }
+  if (!o.moveis.length && !o.adicionais.length) { alert('Adicione ao menos um móvel ou item.'); return; }
+  o.numero = data.contador++;
+  o.id = uid();
+  data.orcamentos.unshift(o);
+  salvar();
+  alert(`Orçamento Nº ${String(o.numero).padStart(4,'0')} salvo!`);
+  renderSalvos();
+}
+function renderSalvos() {
+  const tbody = document.querySelector('#tab-salvos-list tbody');
+  tbody.innerHTML = '';
+  if (!data.orcamentos.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty">Nenhum orçamento salvo ainda.</td></tr>';
+    return;
+  }
+  data.orcamentos.forEach(o => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>Nº ${String(o.numero).padStart(4,'0')}</strong></td>
+      <td>${formatarData(o.data)}</td>
+      <td>${o.cliente.nome}<div class="hint">${o.cliente.tel || ''}</div></td>
+      <td class="right"><strong>${fmt(o.total)}</strong></td>
+      <td class="row-actions">
+        <button class="btn small" onclick="reimprimir('${o.id}')">🖨️ Imprimir</button>
+        <button class="btn small secondary" onclick="carregarOrcamento('${o.id}')">Carregar</button>
+        <button class="btn small danger" onclick="excluirOrcamento('${o.id}')">Excluir</button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+}
+function carregarOrcamento(id) {
+  const o = data.orcamentos.find(x => x.id === id);
+  if (!o) return;
+  document.querySelector('nav.tabs button[data-tab="orcamento"]').click();
+  document.getElementById('cli-nome').value = o.cliente.nome;
+  document.getElementById('cli-tel').value = o.cliente.tel;
+  document.getElementById('cli-email').value = o.cliente.email;
+  document.getElementById('cli-end').value = o.cliente.end;
+  document.getElementById('orc-data').value = o.data;
+  document.getElementById('orc-desc').value = o.descPct;
+  document.getElementById('orc-acresc').value = o.acrPct;
+  document.getElementById('orc-validade').value = o.validade;
+  document.getElementById('orc-prazo').value = o.prazo;
+  document.getElementById('orc-pagto').value = o.pagto;
+  document.getElementById('orc-obs').value = o.obs;
+  orcamentoAtual.moveis = JSON.parse(JSON.stringify(o.moveis));
+  orcamentoAtual.adicionais = JSON.parse(JSON.stringify(o.adicionais));
+  renderMoveis();
+  renderAdicionais();
+}
+function excluirOrcamento(id) {
+  if (!confirm('Excluir este orçamento?')) return;
+  data.orcamentos = data.orcamentos.filter(x => x.id !== id);
+  salvar();
+  renderSalvos();
+}
+function reimprimir(id) {
+  const o = data.orcamentos.find(x => x.id === id);
+  if (!o) return;
+  montarImpressao(o);
+  window.print();
+}
+function formatarData(s) {
+  if (!s) return '';
+  const [y,m,d] = s.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+/* =====================================================
+   IMPRESSÃO
+   ===================================================== */
+function imprimirOrcamento() {
+  const o = coletarOrcamento();
+  if (!o.cliente.nome) { alert('Preencha o nome do cliente antes de imprimir.'); return; }
+  if (!o.moveis.length && !o.adicionais.length) { alert('Adicione ao menos um móvel ou item.'); return; }
+  // se ainda não tem número, mostra com "RASCUNHO"
+  if (!o.numero) o.numero = '—';
+  montarImpressao(o);
+  window.print();
+}
+function montarImpressao(o) {
+  const e = data.empresa;
+  const sub = o.subtotal;
+  const descV = sub * o.descPct / 100;
+  const acrV = sub * o.acrPct / 100;
+
+  let html = `<div class="pa-header">`;
+  if (e.logo) html += `<img src="${e.logo}" alt="logo">`;
+  html += `<div class="pa-company">
+    <h1>${e.nome || 'Marcenaria'}</h1>
+    <div class="small">
+      ${e.cnpj ? 'CNPJ: ' + e.cnpj + '<br>' : ''}
+      ${e.end ? e.end + '<br>' : ''}
+      ${e.tel ? 'Tel: ' + e.tel + '   ' : ''}
+      ${e.email ? '· ' + e.email : ''}
+    </div>
+  </div></div>`;
+
+  html += `<div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:6px;">
+    <div><strong>ORÇAMENTO Nº ${typeof o.numero === 'number' ? String(o.numero).padStart(4,'0') : o.numero}</strong></div>
+    <div>Data: ${formatarData(o.data)} · Validade: ${o.validade} dias</div>
+  </div>`;
+
+  html += `<div class="pa-title">CLIENTE</div>
+    <div><strong>${o.cliente.nome}</strong></div>
+    <div style="font-size:11px;">
+      ${o.cliente.tel ? 'Tel: ' + o.cliente.tel + ' · ' : ''}
+      ${o.cliente.email ? o.cliente.email : ''}
+    </div>
+    ${o.cliente.end ? `<div style="font-size:11px;">Endereço: ${o.cliente.end}</div>` : ''}`;
+
+  if (o.moveis.length) {
+    html += `<div class="pa-title">MÓVEIS</div>
+      <table><thead><tr>
+        <th>Tipo / Descrição</th>
+        <th style="width:80px;">L × A (m)</th>
+        <th style="width:60px; text-align:right;">m²</th>
+        <th style="width:80px; text-align:right;">R$/m²</th>
+        <th style="width:90px; text-align:right;">Subtotal</th>
+      </tr></thead><tbody>`;
+    o.moveis.forEach(m => {
+      html += `<tr>
+        <td>${m.tipoNome}${m.desc ? '<br><span style="font-size:10.5px;color:#555">'+m.desc+'</span>' : ''}</td>
+        <td style="text-align:center">${fmtNum(m.larg)} × ${fmtNum(m.alt)}</td>
+        <td style="text-align:right">${fmtNum(m.area)}</td>
+        <td style="text-align:right">${fmt(m.precoM2)}</td>
+        <td style="text-align:right"><strong>${fmt(m.subtotal)}</strong></td>
+      </tr>`;
+    });
+    html += `</tbody></table>`;
+  }
+
+  if (o.adicionais.length) {
+    html += `<div class="pa-title">ITENS ADICIONAIS</div>
+      <table><thead><tr>
+        <th>Item / Descrição</th>
+        <th style="width:50px;">Un.</th>
+        <th style="width:55px; text-align:right;">Qtd</th>
+        <th style="width:80px; text-align:right;">Preço</th>
+        <th style="width:90px; text-align:right;">Subtotal</th>
+      </tr></thead><tbody>`;
+    o.adicionais.forEach(it => {
+      html += `<tr>
+        <td>${it.nome}${it.desc ? '<br><span style="font-size:10.5px;color:#555">'+it.desc+'</span>' : ''}</td>
+        <td style="text-align:center">${it.un}</td>
+        <td style="text-align:right">${fmtNum(it.qtd)}</td>
+        <td style="text-align:right">${fmt(it.preco)}</td>
+        <td style="text-align:right"><strong>${fmt(it.subtotal)}</strong></td>
+      </tr>`;
+    });
+    html += `</tbody></table>`;
+  }
+
+  html += `<div class="pa-totals">
+    <div>Subtotal: ${fmt(sub)}</div>
+    ${o.descPct > 0 ? `<div>Desconto (${fmtNum(o.descPct)}%): − ${fmt(descV)}</div>` : ''}
+    ${o.acrPct > 0 ? `<div>Acréscimo (${fmtNum(o.acrPct)}%): + ${fmt(acrV)}</div>` : ''}
+    <div class="grand">TOTAL: ${fmt(o.total)}</div>
+  </div>`;
+
+  if (o.prazo || o.pagto || o.obs) {
+    html += `<div class="pa-block">`;
+    if (o.pagto) html += `<div><span class="lab">Condições de pagamento:</span> ${o.pagto}</div>`;
+    if (o.prazo) html += `<div><span class="lab">Prazo de entrega:</span> ${o.prazo}</div>`;
+    if (o.obs) html += `<div style="margin-top:6px;"><span class="lab">Observações:</span><br>${o.obs.replace(/\n/g,'<br>')}</div>`;
+    html += `</div>`;
+  }
+
+  html += `<div class="pa-sign">
+    <div><br><br><span>${e.nome || 'Marcenaria'}</span></div>
+    <div><br><br><span>${o.cliente.nome} — Cliente</span></div>
+  </div>`;
+
+  html += `<div class="pa-foot">
+    Orçamento válido por ${o.validade} dias a contar de ${formatarData(o.data)}.
+    ${e.nome ? '· ' + e.nome : ''} ${e.tel ? '· ' + e.tel : ''}
+  </div>`;
+
+  document.getElementById('print-area').innerHTML = html;
+}
+
+/* =====================================================
+   BACKUP
+   ===================================================== */
+function exportarBackup() {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `backup-marcenaria-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+}
+function importarBackup(evt) {
+  const file = evt.target.files[0];
+  if (!file) return;
+  if (!confirm('Importar este backup substituirá os dados atuais. Continuar?')) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const imported = JSON.parse(e.target.result);
+      data = Object.assign(JSON.parse(JSON.stringify(defaultData)), imported);
+      salvar();
+      iniciar();
+      alert('Backup importado com sucesso!');
+    } catch (err) {
+      alert('Arquivo inválido.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+/* =====================================================
+   INTEGRAÇÃO COM SISTEMA DE CUSTOS
+   ===================================================== */
+function importarDoCustos() {
+  if (!db) { alert('Firebase não conectado.'); return; }
+  Promise.all([
+    db.ref('marc_prices').once('value'),
+    db.ref('marc_extras').once('value')
+  ]).then(([snapP, snapE]) => {
+    const marcPrices = snapP.exists() ? snapP.val() : null;
+    const marcExtras = snapE.exists() ? snapE.val() : null;
+    const syncEl = document.getElementById('sync-status');
+    if (!marcPrices && !marcExtras) {
+      syncEl.style.color = '#c0392b';
+      syncEl.textContent = '⚠ Nenhum dado encontrado. Sincronize primeiro no Sistema de Custos.';
+      return;
+    }
+    let importedPrices = 0, importedExtras = 0, updated = 0;
+    if (marcPrices && marcPrices.length) {
+      marcPrices.forEach(mp => {
+        const existing = data.tipos.find(t => t.nome.trim().toLowerCase() === mp.nome.trim().toLowerCase());
+        if (existing) { if (existing.preco !== mp.preco) { existing.preco = mp.preco; updated++; } }
+        else { data.tipos.push({ id: 'custos_' + mp.id, cat: 'Outros', nome: mp.nome, preco: mp.preco, _fromCustos: true }); importedPrices++; }
+      });
+    }
+    if (marcExtras && marcExtras.length) {
+      marcExtras.forEach(me => {
+        const existing = data.itens.find(i => i.nome.trim().toLowerCase() === me.nome.trim().toLowerCase());
+        if (existing) { if (existing.preco !== me.preco) { existing.preco = me.preco; updated++; } }
+        else { data.itens.push({ id: 'custos_' + me.id, cat: 'Ferragens', nome: me.nome, un: 'un', preco: me.preco, _fromCustos: true }); importedExtras++; }
+      });
+    }
+    salvar(); renderTipos(); renderItensCad();
+    const now = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    const parts = [];
+    if (importedPrices) parts.push(`${importedPrices} tipo(s) novo(s)`);
+    if (importedExtras) parts.push(`${importedExtras} item(ns) novo(s)`);
+    if (updated) parts.push(`${updated} preço(s) atualizado(s)`);
+    const msg = parts.length ? parts.join(' · ') : 'Tudo já estava atualizado';
+    syncEl.style.color = '#2f7d32';
+    syncEl.textContent = `✅ ${msg} — ${now}`;
+    const toast = document.createElement('div');
+    toast.textContent = `✅ Importação: ${msg}`;
+    Object.assign(toast.style, { position:'fixed', bottom:'24px', left:'50%', transform:'translateX(-50%)', background:'#2f7d32', color:'#fff', padding:'12px 22px', borderRadius:'8px', fontWeight:'600', fontSize:'14px', zIndex:'9999', boxShadow:'0 4px 12px rgba(0,0,0,.2)', transition:'opacity .4s' });
+    document.body.appendChild(toast);
+    setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, 3500);
+  });
+}
+
+function renderSyncStatus() {
+  if (!db) return;
+  db.ref('marc_prices').once('value').then(snap => {
+    const syncEl = document.getElementById('sync-status');
+    if (snap.exists()) {
+      syncEl.style.color = '#c0392b';
+      syncEl.textContent = '● Dados do Sistema de Custos disponíveis para importar';
+    } else {
+      syncEl.style.color = '#666666';
+      syncEl.textContent = 'Aguardando sincronização do Sistema de Custos';
+    }
+  });
+}
+
+/* =====================================================
+   INICIALIZAÇÃO
+   ===================================================== */
+function iniciar() {
+  renderEmpresa();
+  renderTipos();
+  renderItensCad();
+  renderMoveis();
+  renderAdicionais();
+  renderSalvos();
+  renderSyncStatus();
+  document.getElementById('orc-data').valueAsDate = new Date();
+}
+
+// Boot Firebase
+const fbCfg = getFbCfg();
+if (fbCfg) {
+  document.getElementById('fb-apiKey').value = fbCfg.apiKey || '';
+  document.getElementById('fb-authDomain').value = fbCfg.authDomain || '';
+  document.getElementById('fb-databaseURL').value = fbCfg.databaseURL || '';
+  document.getElementById('fb-projectId').value = fbCfg.projectId || '';
+  initFbOrc(fbCfg);
+}
+// If no config saved, overlay stays visible
+</script>
+</body>
+</html>
