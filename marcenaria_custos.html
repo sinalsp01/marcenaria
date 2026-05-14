@@ -10,6 +10,7 @@
 body{font-family:'Inter','Segoe UI',sans-serif;background:#f2f2f2;color:#2c2c2c;min-height:100vh}
 input,select{width:100%;padding:8px 11px;background:#fff;border:1px solid #d0d0d0;border-radius:6px;color:#2c2c2c;font-size:12px;font-family:inherit;outline:none;box-sizing:border-box;transition:border .15s}
 input:focus,select:focus{border-color:#555;box-shadow:0 0 0 3px rgba(0,0,0,.06)}
+input.upper{text-transform:uppercase}
 button{font-family:inherit;cursor:pointer}
 table{width:100%;border-collapse:collapse;font-size:12px}
 th{padding:9px 10px;text-align:left;color:#666;font-size:10px;font-weight:600;letter-spacing:.8px;border-bottom:2px solid #e4e4e4;background:#fafafa;text-transform:uppercase}
@@ -105,7 +106,7 @@ tr:hover td{background:#f9f9f9}
     <div style="border-top:1px solid #e4e4e4;padding-top:12px">
       <label class="label">NOVA CATEGORIA</label>
       <div class="flex" style="gap:8px">
-        <input id="modal-cat-input" placeholder="Ex: Pintura, MDF Extra..." onkeydown="if(event.key==='Enter')confirmarNovaCategoria()"/>
+        <input id="modal-cat-input" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()" placeholder="EX: PINTURA, MDF EXTRA..." onkeydown="if(event.key==='Enter')confirmarNovaCategoria()"/>
         <button class="btn btn-primary btn-sm" style="white-space:nowrap" onclick="confirmarNovaCategoria()">＋ Adicionar</button>
       </div>
     </div>
@@ -303,7 +304,7 @@ function renderModalCatList(){
   el.innerHTML=list.map((cat,i)=>`
     <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:#fafafa;border-radius:7px;border:1px solid #e8e8e8">
       <div id="cat-view-${i}" style="flex:1;font-size:12px;color:#2c2c2c">${esc(cat)}</div>
-      <input id="cat-edit-${i}" value="${esc(cat)}" style="flex:1;display:none;padding:4px 8px;font-size:12px" onkeydown="if(event.key==='Enter')salvarEdicaoCat(${i});if(event.key==='Escape')cancelarEdicaoCat(${i})"/>
+      <input id="cat-edit-${i}" value="${esc(cat)}" style="flex:1;display:none;padding:4px 8px;font-size:12px;text-transform:uppercase" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')salvarEdicaoCat(${i});if(event.key==='Escape')cancelarEdicaoCat(${i})"/>
       <div id="cat-btns-${i}" class="flex" style="gap:4px">
         <button class="btn-icon" title="Editar" onclick="iniciarEdicaoCat(${i})" style="font-size:11px">✏</button>
         <button class="btn-icon danger" title="Remover" onclick="removerCat(${i})" style="font-size:11px">✕</button>
@@ -328,7 +329,7 @@ function cancelarEdicaoCat(i){
   ge(`cat-edit-btns-${i}`).style.display="none";
 }
 function salvarEdicaoCat(i){
-  const novo=ge(`cat-edit-${i}`).value.trim();
+  const novo=ge(`cat-edit-${i}`).value.trim().toUpperCase();
   if(!novo)return;
   const antigo=_catList[i];
   if(antigo!==novo){
@@ -351,7 +352,7 @@ function removerCat(i){
   renderModalCatList();
 }
 function confirmarNovaCategoria(){
-  const nome=ge("modal-cat-input").value.trim();
+  const nome=ge("modal-cat-input").value.trim().toUpperCase();
   if(!nome)return;
   if(!_catList.includes(nome)){_catList.push(nome);save();}
   ge("modal-cat-input").value="";
@@ -427,7 +428,7 @@ function renderMateriais(c){
   <div class="card">
     <div class="card-title">${matEditId?"EDITAR MATERIAL":"NOVO MATERIAL"}</div>
     <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;margin-bottom:10px">
-      <div><label class="label">NOME</label><input id="m-nome" value="${esc(f.nome||"")}" placeholder="Ex: MDF 18mm Branco"/></div>
+      <div><label class="label">NOME</label><input id="m-nome" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()" value="${esc(f.nome||"")}" placeholder="EX: MDF 18MM BRANCO"/></div>
       <div><label class="label">CATEGORIA</label>
         <div class="flex" style="gap:6px">
           <select id="m-cat" style="flex:1">${cats.map(cat=>`<option${(f.cat||cats[0])===cat?" selected":""}>${esc(cat)}</option>`).join("")}</select>
@@ -470,7 +471,7 @@ function novaCategoriaMat(){abrirModalCat(state.catMat,"Categorias de Materiais"
 function updMP(){const c=+ge("m-custo").value,p=+ge("m-perda").value,mg=+ge("m-marg").value;ge("m-prev").textContent=c?fmt(c*(1+p/100)*(1+mg/100)):"—";}
 function setMatFilter(cat){matFilter=cat;renderTab();}
 function saveMat(){
-  const nome=ge("m-nome").value.trim(),custo=ge("m-custo").value;
+  const nome=ge("m-nome").value.trim().toUpperCase(),custo=ge("m-custo").value;
   if(!nome||!custo)return;
   const d={nome,cat:ge("m-cat").value,unidade:ge("m-und").value,custoCompra:+custo,perdaPerc:+ge("m-perda").value,margemPerc:+ge("m-marg").value};
   if(matEditId){state.materiais=state.materiais.map(m=>m.id===matEditId?{...m,...d}:m);matEditId=null;}
@@ -491,7 +492,7 @@ function renderFerragens(c){
   <div class="card">
     <div class="card-title">${ferEditId?"EDITAR FERRAGEM":"NOVA FERRAGEM"}</div>
     <div style="display:grid;grid-template-columns:2fr 1fr;gap:10px;margin-bottom:10px">
-      <div><label class="label">NOME</label><input id="f-nome" value="${esc(f.nome||"")}" placeholder="Ex: Dobradiça Soft Close 35mm"/></div>
+      <div><label class="label">NOME</label><input id="f-nome" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()" value="${esc(f.nome||"")}" placeholder="EX: DOBRADIÇA SOFT CLOSE 35MM"/></div>
       <div><label class="label">CATEGORIA</label>
         <div class="flex" style="gap:6px">
           <select id="f-cat" style="flex:1">${cats.map(cat=>`<option${(f.cat||cats[0])===cat?" selected":""}>${esc(cat)}</option>`).join("")}</select>
@@ -541,7 +542,7 @@ function novaFerCat(){abrirModalCat(state.catFer,"Categorias de Ferragens");}
 function updFP(){const c=+ge("f-custo").value,mg=+ge("f-marg").value;ge("f-prev").textContent=c?fmt(c*(1+mg/100)):"—";}
 function setFerFilter(cat){ferFilter=cat;renderTab();}
 function saveFer(){
-  const nome=ge("f-nome").value.trim(),custo=ge("f-custo").value;
+  const nome=ge("f-nome").value.trim().toUpperCase(),custo=ge("f-custo").value;
   if(!nome||!custo)return;
   const d={nome,cat:ge("f-cat").value,custoCompra:+custo,margemPerc:+ge("f-marg").value,ativoOrcamento:ge("f-ativo").checked};
   if(ferEditId){state.ferragens=state.ferragens.map(f=>f.id===ferEditId?{...f,...d}:f);ferEditId=null;}
@@ -592,9 +593,9 @@ function renderComposicao(container){
   const bdown=prev?`<div class="card"><div class="card-title">BREAKDOWN — PRÉVIA</div>
   <div class="grid2">${[["Materiais",prev.cm,"#555"],["Ferragens",prev.cf,"#555"],["Mão de Obra",prev.mao,"#555"],["Overhead por hora",prev.ov,"#777"],[`Overhead estrutural (${cfg.overheadPerc}%)`,prev.comOv-prev.sub,T.muted],[`Imposto (${cfg.impostoVendaPerc}%)`,prev.comImp-prev.comOv,T.muted]].map(([l,v,cl])=>`
   <div class="info-box" style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:10px;color:${T.muted}">${l}</span><span style="font-size:13px;font-weight:700;color:${cl}">${fmt(v)}</span></div>`).join("")}</div>
-  <div style="margin-top:10px;background:#f5f5f5;border:1px solid #e8e8e8;border-radius:10px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center">
-    <div><div style="font-size:9px;color:${T.muted}">PREÇO FINAL / m²</div><div style="font-size:9px;color:${T.muted}">Margem: ${comp.margemLucroPerc}%</div></div>
-    <div style="font-size:26px;font-weight:800;color:#fff">${fmt(prev.final)}</div>
+  <div style="margin-top:10px;background:#f0f0f0;border:2px solid #2c2c2c;border-radius:10px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center">
+    <div><div style="font-size:9px;color:#666;font-weight:600;letter-spacing:1px">PREÇO FINAL / m²</div><div style="font-size:9px;color:#888">Margem: ${comp.margemLucroPerc}%</div></div>
+    <div style="font-size:26px;font-weight:800;color:#2c2c2c">${fmt(prev.final)}</div>
   </div></div>`:"";
   // Categorias do orçamento (personalizáveis)
   const cats=state.catComp||["Cozinha","Dormitório/Closet","Banheiro/Lavanderia","Sala/Home/Comercial","Outros"];
@@ -611,7 +612,7 @@ function renderComposicao(container){
     <div class="card">
       <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px">
         <div><label class="label">NOME DO TIPO</label>
-          <input value="${esc(compData.nome)}" oninput="compData.nome=this.value"/>
+          <input value="${esc(compData.nome)}" oninput="compData.nome=this.value.toUpperCase();this.value=this.value.toUpperCase()"/>
         </div>
         <div><label class="label">CATEGORIA</label>
           <div class="flex" style="gap:6px">
@@ -678,7 +679,7 @@ function renderConfig(container){
     </div>
     <table><thead><tr><th>CARGO</th><th>SALÁRIO/MÊS (R$)</th><th>HORAS/MÊS</th><th>CUSTO/HORA</th><th></th></tr></thead>
     <tbody>${(cfg.maoObra||[]).map((m,i)=>`<tr>
-      <td><input value="${esc(m.nome)}" style="background:transparent;border:none;border-bottom:1px solid #e8e8e8;border-radius:0;padding:4px" onchange="updMO(${i},'nome',this.value)"/></td>
+      <td><input value="${esc(m.nome)}" style="background:transparent;border:none;border-bottom:1px solid #e8e8e8;border-radius:0;padding:4px" oninput="this.value=this.value.toUpperCase()" onchange="updMO(${i},'nome',this.value.toUpperCase())"/></td>
       <td><input type="number" value="${m.salario}" step="100" style="background:transparent;border:none;border-bottom:1px solid #e8e8e8;border-radius:0;padding:4px;text-align:right" onchange="updMO(${i},'salario',+this.value)"/></td>
       <td><input type="number" value="${m.horas}" step="1" style="background:transparent;border:none;border-bottom:1px solid #e8e8e8;border-radius:0;padding:4px;text-align:right" onchange="updMO(${i},'horas',+this.value)"/></td>
       <td style="color:#2c2c2c;font-weight:700;text-align:right">${fmt((+m.salario||0)/(+m.horas||1))}/h</td>
@@ -693,7 +694,7 @@ function renderConfig(container){
     </div>
     <table><thead><tr><th>ITEM</th><th>CUSTO/MÊS (R$)</th><th>HORAS/MÊS</th><th>CUSTO/HORA</th><th></th></tr></thead>
     <tbody>${(cfg.overhead||[]).map((o,i)=>`<tr>
-      <td><input value="${esc(o.nome)}" style="background:transparent;border:none;border-bottom:1px solid #e8e8e8;border-radius:0;padding:4px" onchange="updOV(${i},'nome',this.value)"/></td>
+      <td><input value="${esc(o.nome)}" style="background:transparent;border:none;border-bottom:1px solid #e8e8e8;border-radius:0;padding:4px" oninput="this.value=this.value.toUpperCase()" onchange="updOV(${i},'nome',this.value.toUpperCase())"/></td>
       <td><input type="number" value="${o.mes}" step="10" style="background:transparent;border:none;border-bottom:1px solid #e8e8e8;border-radius:0;padding:4px;text-align:right" onchange="updOV(${i},'mes',+this.value)"/></td>
       <td><input type="number" value="${o.horas}" step="1" style="background:transparent;border:none;border-bottom:1px solid #e8e8e8;border-radius:0;padding:4px;text-align:right" onchange="updOV(${i},'horas',+this.value)"/></td>
       <td style="color:#2c2c2c;font-weight:700;text-align:right">${fmt((+o.mes||0)/(+o.horas||1))}/h</td>
@@ -734,7 +735,7 @@ function renderUsuarios(container){
   container.innerHTML=`<div class="flex-col">
   <div class="card"><div class="card-title">${userEditId?"EDITAR":"NOVO USUÁRIO"}</div>
   <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:12px">
-    <div><label class="label">NOME</label><input id="u-nome" value="${esc(f.nome||"")}" placeholder="João Silva"/></div>
+    <div><label class="label">NOME</label><input id="u-nome" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()" value="${esc(f.nome||"")}" placeholder="JOÃO SILVA"/></div>
     <div><label class="label">LOGIN</label><input id="u-login" value="${esc(f.login||"")}" placeholder="joao.silva"/></div>
     <div><label class="label">${userEditId?"NOVA SENHA":"SENHA"}</label><input id="u-senha" type="password" value="" placeholder="••••••••"/></div>
     <div><label class="label">SETOR</label><select id="u-setor">${SETORES.map(s=>`<option value="${s.id}"${(f.setor||"vendas")===s.id?" selected":""}>${s.nome}</option>`).join("")}</select></div>
@@ -752,7 +753,7 @@ function renderUsuarios(container){
     <div class="flex">${u.id!==currentUser.id?`<button class="btn-icon" onclick="editUser(${u.id})">✏</button><button class="btn-icon danger" onclick="delUser(${u.id})">✕</button>`:`<span style="font-size:10px;color:${T.muted}">você</span>`}</div>
   </div>`;}).join("")}</div></div>`;
 }
-function saveUser(){const nome=ge("u-nome").value.trim(),login=ge("u-login").value.trim(),senha=ge("u-senha").value,setor=ge("u-setor").value;if(!nome||!login||(!userEditId&&!senha))return;if(userEditId){state.users=state.users.map(u=>u.id===userEditId?{...u,nome,login,setor,senha:senha||u.senha}:u);userEditId=null;}else{if(state.users.find(u=>u.login===login)){alert("Login já existe.");return;}state.users.push({id:genId(),nome,login,senha,setor});}save();renderTab();}
+function saveUser(){const nome=ge("u-nome").value.trim().toUpperCase(),login=ge("u-login").value.trim(),senha=ge("u-senha").value,setor=ge("u-setor").value;if(!nome||!login||(!userEditId&&!senha))return;if(userEditId){state.users=state.users.map(u=>u.id===userEditId?{...u,nome,login,setor,senha:senha||u.senha}:u);userEditId=null;}else{if(state.users.find(u=>u.login===login)){alert("Login já existe.");return;}state.users.push({id:genId(),nome,login,senha,setor});}save();renderTab();}
 function editUser(id){userEditId=id;renderTab();}
 function cancelUserEdit(){userEditId=null;renderTab();}
 function delUser(id){if(id===currentUser.id)return;if(confirm("Excluir?"))state.users=state.users.filter(u=>u.id!==id);save();renderTab();}
