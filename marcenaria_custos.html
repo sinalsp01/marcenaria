@@ -6,97 +6,108 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Sinal SP Marcenaria — Gestão de Custos</title>
 <style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'JetBrains Mono','Fira Code',monospace;background:#0f1117;color:#e8eaf0;min-height:100vh}
-  input,select{width:100%;padding:8px 10px;background:#12151f;border:1px solid #2a2d3e;border-radius:7px;color:#e8eaf0;font-size:12px;font-family:inherit;outline:none;box-sizing:border-box}
-  input:focus,select:focus{border-color:#ffffff}
-  button{font-family:inherit;cursor:pointer}
-  table{width:100%;border-collapse:collapse;font-size:11px}
-  th{padding:7px 8px;text-align:left;color:#6b7080;font-size:9px;font-weight:600;border-bottom:1px solid #2a2d3e}
-  td{padding:8px;border-bottom:1px solid #383d52}
-  tr:nth-child(even) td{background:#14171f}
-  .card{background:#1a1d27;border:1px solid #2a2d3e;border-radius:12px;padding:16px;margin-bottom:8px}
-  .card-title{font-size:9px;font-weight:700;color:#6b7080;letter-spacing:1.5px;margin-bottom:14px}
-  .card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
-  .label{display:block;font-size:9px;font-weight:700;color:#6b7080;margin-bottom:4px;letter-spacing:1.2px}
-  .btn{padding:9px 16px;border-radius:8px;font-size:12px;font-weight:700;border:1px solid #2a2d3e;color:#e8eaf0;background:#14171f}
-  .btn:hover{opacity:.85}
-  .btn-amber{background:#ffffff;border-color:#ffffff;color:#111}
-  .btn-ghost{background:transparent;border-color:#2a2d3e;color:#6b7080}
-  .btn-danger{background:#1a0505;border-color:#ef4444;color:#ef4444}
-  .btn-icon{width:28px;height:28px;background:#383d52;border:1px solid #2a2d3e;border-radius:6px;color:#6b7080;display:flex;align-items:center;justify-content:center;font-size:13px}
-  .btn-icon.danger{background:#1a0505;border-color:#ef4444;color:#ef4444}
-  .tag{background:#383d52;color:#6b7080;border-radius:4px;padding:2px 7px;font-size:10px}
-  .pill{padding:3px 10px;border-radius:20px;border:1px solid #2a2d3e;background:transparent;color:#6b7080;font-size:10px;font-family:inherit;cursor:pointer}
-  .pill.active{border-color:#ffffff;background:#222222;color:#ffffff}
-  .info-box{background:#14171f;border-radius:8px;padding:12px 14px}
-  .info-box .info-label{font-size:9px;color:#6b7080;margin-bottom:6px;letter-spacing:1px}
-  .info-box .info-val{font-size:18px;font-weight:800}
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
-  .grid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px}
-  .flex{display:flex;gap:8px;align-items:center}
-  .flex-col{display:flex;flex-direction:column;gap:14px}
-  .empty{text-align:center;padding:24px 0;color:#6b7080;font-size:12px}
-  .hidden{display:none!important}
-  #login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center}
-  #header{background:#1a1d27;border-bottom:1px solid #2a2d3e;padding:14px 20px;display:flex;justify-content:space-between;align-items:center}
-  #tabbar{display:flex;background:#1a1d27;border-bottom:1px solid #2a2d3e;overflow-x:auto}
-  .tab-btn{padding:10px 18px;border:none;border-bottom:2px solid transparent;background:none;color:#6b7080;font-size:12px;font-family:inherit;font-weight:400;white-space:nowrap;cursor:pointer}
-  .tab-btn.active{border-bottom-color:#ffffff;color:#ffffff;font-weight:700}
-  #content{padding:18px 14px;max-width:960px;margin:0 auto}
-  .comp-layout{display:flex;gap:14px}
-  .comp-sidebar{width:185px;flex-shrink:0}
-  .comp-item{padding:10px 12px;border-radius:8px;cursor:pointer;border:1px solid #2a2d3e;background:transparent;margin-bottom:6px}
-  .comp-item.active{border-color:#ffffff;background:#222}
-  #fb-overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px}
-  #fb-box{background:#1a1d27;border:2px solid #ffffff;border-radius:16px;padding:32px;width:100%;max-width:500px}
-  #saving-ind{position:fixed;bottom:16px;right:16px;background:#1a1d27;border:1px solid #2a2d3e;border-radius:8px;padding:8px 14px;font-size:11px;color:#6b7080;display:none;z-index:100}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter','Segoe UI',sans-serif;background:#f2f2f2;color:#2c2c2c;min-height:100vh}
+input,select{width:100%;padding:8px 11px;background:#fff;border:1px solid #d0d0d0;border-radius:6px;color:#2c2c2c;font-size:12px;font-family:inherit;outline:none;box-sizing:border-box;transition:border .15s}
+input:focus,select:focus{border-color:#555;box-shadow:0 0 0 3px rgba(0,0,0,.06)}
+button{font-family:inherit;cursor:pointer}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{padding:9px 10px;text-align:left;color:#666;font-size:10px;font-weight:600;letter-spacing:.8px;border-bottom:2px solid #e4e4e4;background:#fafafa;text-transform:uppercase}
+td{padding:10px;border-bottom:1px solid #ececec;color:#2c2c2c}
+tr:hover td{background:#f9f9f9}
+.card{background:#fff;border:1px solid #e4e4e4;border-radius:10px;padding:20px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.card-title{font-size:10px;font-weight:700;color:#777;letter-spacing:1.5px;margin-bottom:16px;text-transform:uppercase}
+.card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
+.label{display:block;font-size:10px;font-weight:600;color:#666;margin-bottom:5px;letter-spacing:.8px;text-transform:uppercase}
+.btn{padding:9px 18px;border-radius:7px;font-size:12px;font-weight:600;border:1px solid #d0d0d0;color:#444;background:#fff;transition:all .15s}
+.btn:hover{background:#f5f5f5;border-color:#bbb}
+.btn-primary{background:#2c2c2c;border-color:#2c2c2c;color:#fff}
+.btn-primary:hover{background:#444;border-color:#444}
+.btn-ghost{background:transparent;border-color:#d8d8d8;color:#666}
+.btn-ghost:hover{background:#f5f5f5}
+.btn-danger{background:#fff;border-color:#dbb;color:#a33}
+.btn-danger:hover{background:#fdf5f5}
+.btn-sm{padding:5px 12px;font-size:11px;border-radius:6px}
+.btn-icon{width:30px;height:30px;background:#f5f5f5;border:1px solid #e0e0e0;border-radius:6px;color:#666;display:inline-flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;transition:all .15s}
+.btn-icon:hover{background:#ebebeb;border-color:#ccc}
+.btn-icon.danger{background:#fdf5f5;border-color:#dbb;color:#a33}
+.btn-icon.danger:hover{background:#fae8e8}
+.tag{background:#efefef;color:#666;border-radius:4px;padding:2px 8px;font-size:10px;font-weight:500;border:1px solid #e2e2e2}
+.pill{padding:4px 12px;border-radius:20px;border:1px solid #ddd;background:#fff;color:#666;font-size:11px;font-family:inherit;cursor:pointer;transition:all .15s}
+.pill:hover{border-color:#666;color:#444}
+.pill.active{border-color:#2c2c2c;background:#2c2c2c;color:#fff}
+.info-box{background:#f7f7f7;border-radius:8px;padding:14px;border:1px solid #ebebeb}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.grid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px}
+.flex{display:flex;gap:8px;align-items:center}
+.flex-col{display:flex;flex-direction:column;gap:14px}
+.empty{text-align:center;padding:32px 0;color:#999;font-size:13px}
+.hidden{display:none!important}
+#login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f2f2f2}
+#header{background:#fff;border-bottom:1px solid #e4e4e4;padding:14px 24px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+#tabbar{display:flex;background:#fff;border-bottom:1px solid #e4e4e4;overflow-x:auto;padding:0 16px}
+.tab-btn{padding:12px 20px;border:none;border-bottom:2px solid transparent;background:none;color:#777;font-size:12px;font-family:inherit;font-weight:500;white-space:nowrap;cursor:pointer;transition:all .15s}
+.tab-btn:hover{color:#555}
+.tab-btn.active{border-bottom-color:#2c2c2c;color:#2c2c2c;font-weight:700}
+#content{padding:20px 16px;max-width:1000px;margin:0 auto}
+.comp-layout{display:flex;gap:14px}
+.comp-sidebar{width:200px;flex-shrink:0}
+.comp-item{padding:12px 14px;border-radius:8px;cursor:pointer;border:1px solid #e4e4e4;background:#fff;margin-bottom:6px;transition:all .15s}
+.comp-item:hover{border-color:#bbb;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.comp-item.active{border-color:#2c2c2c;background:#2c2c2c;color:#fff}
+#saving-ind{position:fixed;bottom:16px;right:16px;background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:8px 16px;font-size:11px;color:#666;display:none;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.tog{position:relative;display:inline-flex;align-items:center;gap:8px;cursor:pointer}
+.tog input{opacity:0;width:0;height:0;position:absolute}
+.tog-track{width:36px;height:20px;background:#d8d8d8;border-radius:10px;transition:.2s;flex-shrink:0;position:relative}
+.tog input:checked + .tog-track{background:#2c2c2c}
+.tog-track::after{content:'';position:absolute;left:3px;top:3px;width:14px;height:14px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.tog input:checked + .tog-track::after{transform:translateX(16px)}
+.tog-lbl{font-size:11px;color:#666}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.25);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px)}
+.modal-box{background:#fff;border:1px solid #e0e0e0;border-radius:12px;padding:24px;width:100%;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,.10)}
 </style>
 </head>
 <body>
 
-<!-- FIREBASE SETUP OVERLAY -->
-<div id="fb-overlay" style="display:none!important">
-  <div id="fb-box">
-    <div style="text-align:center;margin-bottom:22px">
-      <div style="font-size:30px;margin-bottom:6px">🔥</div>
-      <div style="color:#ffffff;font-weight:800;font-size:15px;letter-spacing:1px">CONFIGURAR FIREBASE</div>
-      <div style="color:#6b7080;font-size:11px;margin-top:8px;line-height:1.7">Cole as configurações do seu projeto Firebase.<br>Consulte o arquivo <strong style="color:#ffffff">COMO-CONFIGURAR.html</strong> para obter esses dados.</div>
-    </div>
-    <div class="flex-col">
-      <div><label class="label">API KEY</label><input id="fb-apiKey" placeholder="AIzaSy..."/></div>
-      <div><label class="label">AUTH DOMAIN</label><input id="fb-authDomain" placeholder="seu-projeto.firebaseapp.com"/></div>
-      <div><label class="label">DATABASE URL</label><input id="fb-databaseURL" placeholder="https://seu-projeto-default-rtdb.firebaseio.com"/></div>
-      <div><label class="label">PROJECT ID</label><input id="fb-projectId" placeholder="seu-projeto"/></div>
-    </div>
-    <button class="btn btn-amber" style="width:100%;margin-top:18px;padding:12px;font-size:13px" onclick="conectarFirebase()">CONECTAR →</button>
-    <div id="fb-err" style="color:#ef4444;font-size:11px;text-align:center;margin-top:10px;display:none"></div>
-  </div>
-</div>
+<div id="fb-overlay" style="display:none!important"></div>
 
 <!-- LOGIN -->
 <div id="login-screen" class="hidden">
   <div class="card" style="width:340px;border-radius:16px;padding:40px">
     <div style="text-align:center;margin-bottom:28px">
-            <div style="margin-bottom:8px">
-        <img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0iQ2FtYWRhXzEiIGRhdGEtbmFtZT0iQ2FtYWRhIDEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHZpZXdCb3g9IjAgMCA4NDIuMjUgNjA0LjA4Ij4KICA8ZGVmcz4KICAgIDxzdHlsZT4KICAgICAgLmNscy0xIHsKICAgICAgICBjbGlwLXBhdGg6IHVybCgjY2xpcHBhdGgtNCk7CiAgICAgIH0KCiAgICAgIC5jbHMtMiB7CiAgICAgICAgZmlsbDogI2ZmZjsKICAgICAgfQoKICAgICAgLmNscy0zIHsKICAgICAgICBmaWxsOiBub25lOwogICAgICB9CgogICAgICAuY2xzLTQgewogICAgICAgIGNsaXAtcGF0aDogdXJsKCNjbGlwcGF0aC0xKTsKICAgICAgfQoKICAgICAgLmNscy01IHsKICAgICAgICBpc29sYXRpb246IGlzb2xhdGU7CiAgICAgIH0KCiAgICAgIC5jbHMtNiB7CiAgICAgICAgY2xpcC1wYXRoOiB1cmwoI2NsaXBwYXRoLTMpOwogICAgICB9CgogICAgICAuY2xzLTcgewogICAgICAgIG9wYWNpdHk6IDA7CiAgICAgIH0KCiAgICAgIC5jbHMtOCB7CiAgICAgICAgZm9udC1zaXplOiAyNC40MnB4OwogICAgICB9CgogICAgICAuY2xzLTgsIC5jbHMtOSB7CiAgICAgICAgZm9udC1mYW1pbHk6IFRlbm9yU2FucywgJ1Rlbm9yIFNhbnMnOwogICAgICB9CgogICAgICAuY2xzLTkgewogICAgICAgIGZvbnQtc2l6ZTogODMuMTRweDsKICAgICAgfQoKICAgICAgLmNscy0xMCB7CiAgICAgICAgY2xpcC1wYXRoOiB1cmwoI2NsaXBwYXRoLTIpOwogICAgICB9CiAgICA8L3N0eWxlPgogICAgPGNsaXBQYXRoIGlkPSJjbGlwcGF0aC0xIj4KICAgICAgPHJlY3QgY2xhc3M9ImNscy0zIiB4PSIwIiB5PSI4LjU4IiB3aWR0aD0iODQyLjI1IiBoZWlnaHQ9IjU5NS41Ii8+CiAgICA8L2NsaXBQYXRoPgogICAgPGNsaXBQYXRoIGlkPSJjbGlwcGF0aC0yIj4KICAgICAgPHJlY3QgY2xhc3M9ImNscy0zIiB4PSIwIiB5PSI4LjU4IiB3aWR0aD0iODQyLjQiIGhlaWdodD0iNTk1LjY4Ii8+CiAgICA8L2NsaXBQYXRoPgogICAgPGNsaXBQYXRoIGlkPSJjbGlwcGF0aC0zIj4KICAgICAgPHJlY3QgY2xhc3M9ImNscy0zIiB4PSIwIiB5PSI4LjU4IiB3aWR0aD0iODQyLjU3IiBoZWlnaHQ9IjU5NS43MiIvPgogICAgPC9jbGlwUGF0aD4KICAgIDxjbGlwUGF0aCBpZD0iY2xpcHBhdGgtNCI+CiAgICAgIDxyZWN0IGNsYXNzPSJjbHMtMyIgeD0iNTQuNjQiIHk9IjIyNS41IiB3aWR0aD0iMTM0LjI2IiBoZWlnaHQ9IjE1Ni4wNiIvPgogICAgPC9jbGlwUGF0aD4KICA8L2RlZnM+CiAgPGcgY2xhc3M9ImNscy00Ij4KICAgIDxnIGNsYXNzPSJjbHMtNSI+CiAgICAgIDxnIGNsYXNzPSJjbHMtMTAiPgogICAgICAgIDxnIGNsYXNzPSJjbHMtNiI+CiAgICAgICAgICA8cmVjdCBjbGFzcz0iY2xzLTIiIHg9IjAiIHk9IjguNTgiIHdpZHRoPSI4NDIuNTciIGhlaWdodD0iNTk1LjcyIi8+CiAgICAgICAgPC9nPgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjI2LjcyIDMwMi43MSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5TPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy05IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyOTguNjMgMzAyLjcxKSI+PHRzcGFuIHg9IjAiIHk9IjAiPkk8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTkiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDM1Mi43NSAzMDIuNzEpIj48dHNwYW4geD0iMCIgeT0iMCI+TjwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDQzLjM3IDMwMi43MSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5BPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy05IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg1MjQuMTcgMzAyLjcxKSI+PHRzcGFuIHg9IjAiIHk9IjAiPkw8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTkiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDU5NC4xNyAzMDIuNzEpIj48dHNwYW4geD0iMCIgeT0iMCI+IDwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNjQzLjIyIDMwMi43MSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5TPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy05IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg3MTUuMTMgMzAyLjcxKSI+PHRzcGFuIHg9IjAiIHk9IjAiPlA8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8ZyBjbGFzcz0iY2xzLTEiPgogICAgICAgICAgPHBhdGggZD0iTTE4Mi4yNSwzMTAuNzdINjAuOTljMi4xMiwyLjEyLDQuMjMsNC4yMyw2LjM1LDYuMzR2LTI4Ljg1Yy0yLjExLDIuMTEtNC4yMyw0LjIzLTYuMzUsNi4zNWgxMjEuMjdjLTIuMTItMi4xMS00LjIzLTQuMjMtNi4zNS02LjM1djI4Ljg1YzAsOC4xOCwxMi42OSw4LjE4LDEyLjY5LDB2LTI4Ljg1YzAtMy40Ni0yLjg5LTYuMzUtNi4zNC02LjM1SDYwLjk5Yy0zLjQ2LDAtNi4zNSwyLjg5LTYuMzUsNi4zNXYyOC44NWMwLDMuNDYsMi44OSw2LjM1LDYuMzUsNi4zNWgxMjEuMjdjOC4xOCwwLDguMTgtMTIuNjksMC0xMi42OVoiLz4KICAgICAgICAgIDxwYXRoIGQ9Ik0xODIuMjUsMjU0LjM1SDYwLjk5YzIuMTIsMi4xMSw0LjIzLDQuMjMsNi4zNSw2LjM1di0yOC44NmMtMi4xMSwyLjEyLTQuMjMsNC4yMy02LjM1LDYuMzVoMTIxLjI3Yy0yLjEyLTIuMTEtNC4yMy00LjIzLTYuMzUtNi4zNXYyOC44NmMwLDguMTgsMTIuNjksOC4xOCwxMi42OSwwdi0yOC44NmMwLTMuNDYtMi44OS02LjM1LTYuMzQtNi4zNS00MC40MiwwLTgwLjg0LDAtMTIxLjI3LDAtMy40NiwwLTYuMzUsMi44OS02LjM1LDYuMzV2MjguODZjMCwzLjQ2LDIuODksNi4zNSw2LjM1LDYuMzVoMTIxLjI3YzguMTgsMCw4LjE4LTEyLjY5LDAtMTIuNjlaIi8+CiAgICAgICAgICA8cGF0aCBkPSJNMTgyLjI1LDM2OC42OEg2MC45OWMyLjEyLDIuMTIsNC4yMyw0LjIzLDYuMzUsNi4zNHYtMjguODVjLTIuMTEsMi4xMi00LjIzLDQuMjMtNi4zNSw2LjM1aDEyMS4yN2MtMi4xMi0yLjEyLTQuMjMtNC4yMy02LjM1LTYuMzV2MjguODVjMCw4LjE4LDEyLjY5LDguMTgsMTIuNjksMHYtMjguODVjMC0zLjQ2LTIuODktNi4zNC02LjM0LTYuMzRINjAuOTljLTMuNDYsMC02LjM1LDIuODktNi4zNSw2LjM0djI4Ljg1YzAsMy40NiwyLjg5LDYuMzUsNi4zNSw2LjM1aDEyMS4yN2M4LjE4LDAsOC4xOC0xMi42OSwwLTEyLjY5WiIvPgogICAgICAgIDwvZz4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDIyNi43MiAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+TTwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjU5Ljg0IDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5BPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyODUuNzcgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPlI8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDMxMS4zNyAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+QzwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMzM3Ljk2IDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5FPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzNjAuNzIgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPk48L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDM4OS41NCAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+QTwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDE1LjQ4IDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5SPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg0NDEuMDcgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPkk8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDQ1OS4xNyAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+QTwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDg1LjExIDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj4gPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg1MDguOTcgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPkM8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDUzNS41NiAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+TzwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNTY0Ljc1IDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5SPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg1OTAuMzQgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPlA8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDYxMy4zNyAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+TzwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNjQyLjU2IDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5SPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg2NjguMTUgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPkE8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDY5NC4wOSAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+VDwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNzE4LjQ0IDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5JPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg3MzYuNTMgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPlY8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDc2MS42MSAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+QTwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNzg3LjU2IDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj4gPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg4MDQuMTcgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPiA8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDIyNi43MiAzNzkuODUpIj48dHNwYW4geD0iMCIgeT0iMCI+RTwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjQ5LjQ4IDM3OS44NSkiPjx0c3BhbiB4PSIwIiB5PSIwIj4gPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyNjYuMDkgMzc5Ljg1KSI+PHRzcGFuIHg9IjAiIHk9IjAiPlI8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDI5MS42OSAzNzkuODUpIj48dHNwYW4geD0iMCIgeT0iMCI+RTwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMzE0LjQ1IDM3OS44NSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5TPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzMzcuNzcgMzc5Ljg1KSI+PHRzcGFuIHg9IjAiIHk9IjAiPkk8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDM1NS44NyAzNzkuODUpIj48dHNwYW4geD0iMCIgeT0iMCI+RDwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMzgyLjYxIDM3OS44NSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5FPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg0MDUuMzcgMzc5Ljg1KSI+PHRzcGFuIHg9IjAiIHk9IjAiPk48L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDQzNC4xOSAzNzkuODUpIj48dHNwYW4geD0iMCIgeT0iMCI+QzwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDYwLjc4IDM3OS44NSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5JPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg0NzguODggMzc5Ljg1KSI+PHRzcGFuIHg9IjAiIHk9IjAiPkE8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDUwNC44MiAzNzkuODUpIj48dHNwYW4geD0iMCIgeT0iMCI+TDwvdHNwYW4+PC90ZXh0PgogICAgICA8L2c+CiAgICA8L2c+CiAgPC9nPgogIDxyZWN0IGNsYXNzPSJjbHMtNyIgeD0iNTQuNjIiIHk9IjIxNi44MyIgd2lkdGg9IjEzMy45MiIgaGVpZ2h0PSIxNTUuODEiLz4KPC9zdmc+" style="height:48px" alt="Sinal SP"/>
-      </div>
-      <div style="color:#ffffff;font-weight:400;font-size:22px;letter-spacing:3px;margin-top:6px;font-family:'Tenor Sans','TenorSans',serif;">SINAL SP</div>
-      <div style="color:#6b7080;font-size:9px;letter-spacing:2px;font-family:'Tenor Sans','TenorSans',serif;">MARCENARIA CORPORATIVA E RESIDENCIAL</div>
-      <div style="color:#6b7080;font-size:9px;letter-spacing:2px;margin-top:2px">GESTÃO DE CUSTOS · MARCENARIA</div>
+      <img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0iQ2FtYWRhXzEiIGRhdGEtbmFtZT0iQ2FtYWRhIDEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHZpZXdCb3g9IjAgMCA4NDIuMjUgNjA0LjA4Ij4KICA8ZGVmcz4KICAgIDxzdHlsZT4KICAgICAgLmNscy0xIHsKICAgICAgICBjbGlwLXBhdGg6IHVybCgjY2xpcHBhdGgtNCk7CiAgICAgIH0KCiAgICAgIC5jbHMtMiB7CiAgICAgICAgZmlsbDogI2ZmZjsKICAgICAgfQoKICAgICAgLmNscy0zIHsKICAgICAgICBmaWxsOiBub25lOwogICAgICB9CgogICAgICAuY2xzLTQgewogICAgICAgIGNsaXAtcGF0aDogdXJsKCNjbGlwcGF0aC0xKTsKICAgICAgfQoKICAgICAgLmNscy01IHsKICAgICAgICBpc29sYXRpb246IGlzb2xhdGU7CiAgICAgIH0KCiAgICAgIC5jbHMtNiB7CiAgICAgICAgY2xpcC1wYXRoOiB1cmwoI2NsaXBwYXRoLTMpOwogICAgICB9CgogICAgICAuY2xzLTcgewogICAgICAgIG9wYWNpdHk6IDA7CiAgICAgIH0KCiAgICAgIC5jbHMtOCB7CiAgICAgICAgZm9udC1zaXplOiAyNC40MnB4OwogICAgICB9CgogICAgICAuY2xzLTgsIC5jbHMtOSB7CiAgICAgICAgZm9udC1mYW1pbHk6IFRlbm9yU2FucywgJ1Rlbm9yIFNhbnMnOwogICAgICB9CgogICAgICAuY2xzLTkgewogICAgICAgIGZvbnQtc2l6ZTogODMuMTRweDsKICAgICAgfQoKICAgICAgLmNscy0xMCB7CiAgICAgICAgY2xpcC1wYXRoOiB1cmwoI2NsaXBwYXRoLTIpOwogICAgICB9CiAgICA8L3N0eWxlPgogICAgPGNsaXBQYXRoIGlkPSJjbGlwcGF0aC0xIj4KICAgICAgPHJlY3QgY2xhc3M9ImNscy0zIiB4PSIwIiB5PSI4LjU4IiB3aWR0aD0iODQyLjI1IiBoZWlnaHQ9IjU5NS41Ii8+CiAgICA8L2NsaXBQYXRoPgogICAgPGNsaXBQYXRoIGlkPSJjbGlwcGF0aC0yIj4KICAgICAgPHJlY3QgY2xhc3M9ImNscy0zIiB4PSIwIiB5PSI4LjU4IiB3aWR0aD0iODQyLjQiIGhlaWdodD0iNTk1LjY4Ii8+CiAgICA8L2NsaXBQYXRoPgogICAgPGNsaXBQYXRoIGlkPSJjbGlwcGF0aC0zIj4KICAgICAgPHJlY3QgY2xhc3M9ImNscy0zIiB4PSIwIiB5PSI4LjU4IiB3aWR0aD0iODQyLjU3IiBoZWlnaHQ9IjU5NS43MiIvPgogICAgPC9jbGlwUGF0aD4KICAgIDxjbGlwUGF0aCBpZD0iY2xpcHBhdGgtNCI+CiAgICAgIDxyZWN0IGNsYXNzPSJjbHMtMyIgeD0iNTQuNjQiIHk9IjIyNS41IiB3aWR0aD0iMTM0LjI2IiBoZWlnaHQ9IjE1Ni4wNiIvPgogICAgPC9jbGlwUGF0aD4KICA8L2RlZnM+CiAgPGcgY2xhc3M9ImNscy00Ij4KICAgIDxnIGNsYXNzPSJjbHMtNSI+CiAgICAgIDxnIGNsYXNzPSJjbHMtMTAiPgogICAgICAgIDxnIGNsYXNzPSJjbHMtNiI+CiAgICAgICAgICA8cmVjdCBjbGFzcz0iY2xzLTIiIHg9IjAiIHk9IjguNTgiIHdpZHRoPSI4NDIuNTciIGhlaWdodD0iNTk1LjcyIi8+CiAgICAgICAgPC9nPgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjI2LjcyIDMwMi43MSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5TPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy05IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyOTguNjMgMzAyLjcxKSI+PHRzcGFuIHg9IjAiIHk9IjAiPkk8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTkiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDM1Mi43NSAzMDIuNzEpIj48dHNwYW4geD0iMCIgeT0iMCI+TjwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDQzLjM3IDMwMi43MSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5BPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy05IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg1MjQuMTcgMzAyLjcxKSI+PHRzcGFuIHg9IjAiIHk9IjAiPkw8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTkiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDU5NC4xNyAzMDIuNzEpIj48dHNwYW4geD0iMCIgeT0iMCI+IDwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNjQzLjIyIDMwMi43MSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5TPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy05IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg3MTUuMTMgMzAyLjcxKSI+PHRzcGFuIHg9IjAiIHk9IjAiPlA8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8ZyBjbGFzcz0iY2xzLTEiPgogICAgICAgICAgPHBhdGggZD0iTTE4Mi4yNSwzMTAuNzdINjAuOTljMi4xMiwyLjEyLDQuMjMsNC4yMyw2LjM1LDYuMzR2LTI4Ljg1Yy0yLjExLDIuMTEtNC4yMyw0LjIzLTYuMzUsNi4zNWgxMjEuMjdjLTIuMTItMi4xMS00LjIzLTQuMjMtNi4zNS02LjM1djI4Ljg1YzAsOC4xOCwxMi42OSw4LjE4LDEyLjY5LDB2LTI4Ljg1YzAtMy40Ni0yLjg5LTYuMzUtNi4zNC02LjM1SDYwLjk5Yy0zLjQ2LDAtNi4zNSwyLjg5LTYuMzUsNi4zNXYyOC44NWMwLDMuNDYsMi44OSw2LjM1LDYuMzUsNi4zNWgxMjEuMjdjOC4xOCwwLDguMTgtMTIuNjksMC0xMi42OVoiLz4KICAgICAgICAgIDxwYXRoIGQ9Ik0xODIuMjUsMjU0LjM1SDYwLjk5YzIuMTIsMi4xMSw0LjIzLDQuMjMsNi4zNSw2LjM1di0yOC44NmMtMi4xMSwyLjEyLTQuMjMsNC4yMy02LjM1LDYuMzVoMTIxLjI3Yy0yLjEyLTIuMTEtNC4yMy00LjIzLTYuMzUtNi4zNXYyOC44NmMwLDguMTgsMTIuNjksOC4xOCwxMi42OSwwdi0yOC44NmMwLTMuNDYtMi44OS02LjM1LTYuMzQtNi4zNS00MC40MiwwLTgwLjg0LDAtMTIxLjI3LDAtMy40NiwwLTYuMzUsMi44OS02LjM1LDYuMzV2MjguODZjMCwzLjQ2LDIuODksNi4zNSw2LjM1LDYuMzVoMTIxLjI3YzguMTgsMCw4LjE4LTEyLjY5LDAtMTIuNjlaIi8+CiAgICAgICAgICA8cGF0aCBkPSJNMTgyLjI1LDM2OC42OEg2MC45OWMyLjEyLDIuMTIsNC4yMyw0LjIzLDYuMzUsNi4zNHYtMjguODVjLTIuMTEsMi4xMi00LjIzLDQuMjMtNi4zNSw2LjM1aDEyMS4yN2MtMi4xMi0yLjEyLTQuMjMtNC4yMy02LjM1LTYuMzV2MjguODVjMCw4LjE4LDEyLjY5LDguMTgsMTIuNjksMHYtMjguODVjMC0zLjQ2LTIuODktNi4zNC02LjM0LTYuMzRINjAuOTljLTMuNDYsMC02LjM1LDIuODktNi4zNSw2LjM0djI4Ljg1YzAsMy40NiwyLjg5LDYuMzUsNi4zNSw2LjM1aDEyMS4yN2M4LjE4LDAsOC4xOC0xMi42OSwwLTEyLjY5WiIvPgogICAgICAgIDwvZz4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDIyNi43MiAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+TTwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjU5Ljg0IDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5BPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyODUuNzcgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPlI8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDMxMS4zNyAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+QzwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMzM3Ljk2IDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5FPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzNjAuNzIgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPk48L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDM4OS41NCAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+QTwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDE1LjQ4IDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5SPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg0NDEuMDcgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPkk8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDQ1OS4xNyAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+QTwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDg1LjExIDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj4gPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg1MDguOTcgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPkM8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDUzNS41NiAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+TzwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNTY0Ljc1IDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5SPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg1OTAuMzQgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPlA8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDYxMy4zNyAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+TzwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNjQyLjU2IDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5SPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg2NjguMTUgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPkE8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDY5NC4wOSAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+VDwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNzE4LjQ0IDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5JPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg3MzYuNTMgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPlY8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDc2MS42MSAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+QTwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNzg3LjU2IDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj4gPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg4MDQuMTcgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPiA8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDIyNi43MiAzNzkuODUpIj48dHNwYW4geD0iMCIgeT0iMCI+RTwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjQ5LjQ4IDM3OS44NSkiPjx0c3BhbiB4PSIwIiB5PSIwIj4gPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyNjYuMDkgMzc5Ljg1KSI+PHRzcGFuIHg9IjAiIHk9IjAiPlI8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDI5MS42OSAzNzkuODUpIj48dHNwYW4geD0iMCIgeT0iMCI+RTwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMzE0LjQ1IDM3OS44NSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5TPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzMzcuNzcgMzc5Ljg1KSI+PHRzcGFuIHg9IjAiIHk9IjAiPkk8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDM1NS44NyAzNzkuODUpIj48dHNwYW4geD0iMCIgeT0iMCI+RDwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMzgyLjYxIDM3OS44NSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5FPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg0MDUuMzcgMzc5Ljg1KSI+PHRzcGFuIHg9IjAiIHk9IjAiPk48L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDQzNC4xOSAzNzkuODUpIj48dHNwYW4geD0iMCIgeT0iMCI+QzwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDYwLjc4IDM3OS44NSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5JPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg0NzguODggMzc5Ljg1KSI+PHRzcGFuIHg9IjAiIHk9IjAiPkE8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDUwNC44MiAzNzkuODUpIj48dHNwYW4geD0iMCIgeT0iMCI+TDwvdHNwYW4+PC90ZXh0PgogICAgICA8L2c+CiAgICA8L2c+CiAgPC9nPgogIDxyZWN0IGNsYXNzPSJjbHMtNyIgeD0iNTQuNjIiIHk9IjIxNi44MyIgd2lkdGg9IjEzMy45MiIgaGVpZ2h0PSIxNTUuODEiLz4KPC9zdmc+" style="height:48px;filter:invert(1)" alt="Sinal SP"/>
+      <div style="color:#2c2c2c;font-weight:400;font-size:22px;letter-spacing:3px;margin-top:10px;font-family:'Tenor Sans',serif">SINAL SP</div>
+      <div style="color:#666;font-size:9px;letter-spacing:2px;font-family:'Tenor Sans',serif">MARCENARIA CORPORATIVA E RESIDENCIAL</div>
+      <div style="color:#666;font-size:9px;letter-spacing:2px;margin-top:4px">GESTÃO DE CUSTOS</div>
     </div>
     <div class="flex-col">
       <div><label class="label">USUÁRIO</label><input id="inp-login" placeholder="seu.login" onkeydown="if(event.key==='Enter')doLogin()"/></div>
       <div><label class="label">SENHA</label><input id="inp-senha" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/></div>
-      <div id="login-err" style="font-size:11px;color:#ef4444;text-align:center;display:none"></div>
-      <button class="btn btn-amber" style="margin-top:6px;padding:11px;font-size:13px;border-radius:8px;width:100%" onclick="doLogin()">ENTRAR →</button>
+      <div id="login-err" style="font-size:11px;color:#a33333;text-align:center;display:none"></div>
+      <button class="btn btn-primary" style="margin-top:6px;padding:11px;font-size:13px;border-radius:8px;width:100%" onclick="doLogin()">ENTRAR →</button>
     </div>
-    <div style="margin-top:18px;padding:10px 14px;background:#1e1e1e;border-radius:8px;font-size:10px;color:#888888;line-height:1.8">
-      Primeiro acesso:<br/><span style="color:#ffffff">admin</span> / <span style="color:#ffffff">admin123</span>
+    <div style="margin-top:18px;padding:10px 14px;background:#f5f5f5;border-radius:8px;font-size:10px;color:#666;line-height:1.8">
+      Primeiro acesso: <span style="color:#2c2c2c;font-weight:700">admin</span> / <span style="color:#2c2c2c;font-weight:700">admin123</span>
     </div>
-    <div style="margin-top:12px;text-align:center">
-      <button onclick="resetFb()" style="background:none;border:none;color:#6b7080;font-size:10px;font-family:inherit;cursor:pointer">⚙ Reconfigurar Firebase</button>
+  </div>
+</div>
+
+<!-- MODAL nova categoria -->
+<!-- MODAL gerenciar categorias -->
+<div id="modal-cat" class="modal-overlay hidden">
+  <div class="modal-box" style="max-width:440px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div style="font-size:13px;font-weight:700;color:#2c2c2c" id="modal-cat-title">Gerenciar Categorias</div>
+      <button class="btn-icon" onclick="fecharModalCat()" style="font-size:16px">✕</button>
+    </div>
+    <div id="modal-cat-list" style="margin-bottom:14px;max-height:240px;overflow-y:auto;display:flex;flex-direction:column;gap:6px"></div>
+    <div style="border-top:1px solid #e4e4e4;padding-top:12px">
+      <label class="label">NOVA CATEGORIA</label>
+      <div class="flex" style="gap:8px">
+        <input id="modal-cat-input" placeholder="Ex: Pintura, MDF Extra..." onkeydown="if(event.key==='Enter')confirmarNovaCategoria()"/>
+        <button class="btn btn-primary btn-sm" style="white-space:nowrap" onclick="confirmarNovaCategoria()">＋ Adicionar</button>
+      </div>
     </div>
   </div>
 </div>
@@ -105,23 +116,23 @@
 <div id="app" class="hidden">
   <div id="header">
     <div class="flex">
-            <img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0iQ2FtYWRhXzEiIGRhdGEtbmFtZT0iQ2FtYWRhIDEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHZpZXdCb3g9IjAgMCA4NDIuMjUgNjA0LjA4Ij4KICA8ZGVmcz4KICAgIDxzdHlsZT4KICAgICAgLmNscy0xIHsKICAgICAgICBjbGlwLXBhdGg6IHVybCgjY2xpcHBhdGgtNCk7CiAgICAgIH0KCiAgICAgIC5jbHMtMiB7CiAgICAgICAgZmlsbDogI2ZmZjsKICAgICAgfQoKICAgICAgLmNscy0zIHsKICAgICAgICBmaWxsOiBub25lOwogICAgICB9CgogICAgICAuY2xzLTQgewogICAgICAgIGNsaXAtcGF0aDogdXJsKCNjbGlwcGF0aC0xKTsKICAgICAgfQoKICAgICAgLmNscy01IHsKICAgICAgICBpc29sYXRpb246IGlzb2xhdGU7CiAgICAgIH0KCiAgICAgIC5jbHMtNiB7CiAgICAgICAgY2xpcC1wYXRoOiB1cmwoI2NsaXBwYXRoLTMpOwogICAgICB9CgogICAgICAuY2xzLTcgewogICAgICAgIG9wYWNpdHk6IDA7CiAgICAgIH0KCiAgICAgIC5jbHMtOCB7CiAgICAgICAgZm9udC1zaXplOiAyNC40MnB4OwogICAgICB9CgogICAgICAuY2xzLTgsIC5jbHMtOSB7CiAgICAgICAgZm9udC1mYW1pbHk6IFRlbm9yU2FucywgJ1Rlbm9yIFNhbnMnOwogICAgICB9CgogICAgICAuY2xzLTkgewogICAgICAgIGZvbnQtc2l6ZTogODMuMTRweDsKICAgICAgfQoKICAgICAgLmNscy0xMCB7CiAgICAgICAgY2xpcC1wYXRoOiB1cmwoI2NsaXBwYXRoLTIpOwogICAgICB9CiAgICA8L3N0eWxlPgogICAgPGNsaXBQYXRoIGlkPSJjbGlwcGF0aC0xIj4KICAgICAgPHJlY3QgY2xhc3M9ImNscy0zIiB4PSIwIiB5PSI4LjU4IiB3aWR0aD0iODQyLjI1IiBoZWlnaHQ9IjU5NS41Ii8+CiAgICA8L2NsaXBQYXRoPgogICAgPGNsaXBQYXRoIGlkPSJjbGlwcGF0aC0yIj4KICAgICAgPHJlY3QgY2xhc3M9ImNscy0zIiB4PSIwIiB5PSI4LjU4IiB3aWR0aD0iODQyLjQiIGhlaWdodD0iNTk1LjY4Ii8+CiAgICA8L2NsaXBQYXRoPgogICAgPGNsaXBQYXRoIGlkPSJjbGlwcGF0aC0zIj4KICAgICAgPHJlY3QgY2xhc3M9ImNscy0zIiB4PSIwIiB5PSI4LjU4IiB3aWR0aD0iODQyLjU3IiBoZWlnaHQ9IjU5NS43MiIvPgogICAgPC9jbGlwUGF0aD4KICAgIDxjbGlwUGF0aCBpZD0iY2xpcHBhdGgtNCI+CiAgICAgIDxyZWN0IGNsYXNzPSJjbHMtMyIgeD0iNTQuNjQiIHk9IjIyNS41IiB3aWR0aD0iMTM0LjI2IiBoZWlnaHQ9IjE1Ni4wNiIvPgogICAgPC9jbGlwUGF0aD4KICA8L2RlZnM+CiAgPGcgY2xhc3M9ImNscy00Ij4KICAgIDxnIGNsYXNzPSJjbHMtNSI+CiAgICAgIDxnIGNsYXNzPSJjbHMtMTAiPgogICAgICAgIDxnIGNsYXNzPSJjbHMtNiI+CiAgICAgICAgICA8cmVjdCBjbGFzcz0iY2xzLTIiIHg9IjAiIHk9IjguNTgiIHdpZHRoPSI4NDIuNTciIGhlaWdodD0iNTk1LjcyIi8+CiAgICAgICAgPC9nPgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjI2LjcyIDMwMi43MSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5TPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy05IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyOTguNjMgMzAyLjcxKSI+PHRzcGFuIHg9IjAiIHk9IjAiPkk8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTkiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDM1Mi43NSAzMDIuNzEpIj48dHNwYW4geD0iMCIgeT0iMCI+TjwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDQzLjM3IDMwMi43MSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5BPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy05IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg1MjQuMTcgMzAyLjcxKSI+PHRzcGFuIHg9IjAiIHk9IjAiPkw8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTkiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDU5NC4xNyAzMDIuNzEpIj48dHNwYW4geD0iMCIgeT0iMCI+IDwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNjQzLjIyIDMwMi43MSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5TPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy05IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg3MTUuMTMgMzAyLjcxKSI+PHRzcGFuIHg9IjAiIHk9IjAiPlA8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8ZyBjbGFzcz0iY2xzLTEiPgogICAgICAgICAgPHBhdGggZD0iTTE4Mi4yNSwzMTAuNzdINjAuOTljMi4xMiwyLjEyLDQuMjMsNC4yMyw2LjM1LDYuMzR2LTI4Ljg1Yy0yLjExLDIuMTEtNC4yMyw0LjIzLTYuMzUsNi4zNWgxMjEuMjdjLTIuMTItMi4xMS00LjIzLTQuMjMtNi4zNS02LjM1djI4Ljg1YzAsOC4xOCwxMi42OSw4LjE4LDEyLjY5LDB2LTI4Ljg1YzAtMy40Ni0yLjg5LTYuMzUtNi4zNC02LjM1SDYwLjk5Yy0zLjQ2LDAtNi4zNSwyLjg5LTYuMzUsNi4zNXYyOC44NWMwLDMuNDYsMi44OSw2LjM1LDYuMzUsNi4zNWgxMjEuMjdjOC4xOCwwLDguMTgtMTIuNjksMC0xMi42OVoiLz4KICAgICAgICAgIDxwYXRoIGQ9Ik0xODIuMjUsMjU0LjM1SDYwLjk5YzIuMTIsMi4xMSw0LjIzLDQuMjMsNi4zNSw2LjM1di0yOC44NmMtMi4xMSwyLjEyLTQuMjMsNC4yMy02LjM1LDYuMzVoMTIxLjI3Yy0yLjEyLTIuMTEtNC4yMy00LjIzLTYuMzUtNi4zNXYyOC44NmMwLDguMTgsMTIuNjksOC4xOCwxMi42OSwwdi0yOC44NmMwLTMuNDYtMi44OS02LjM1LTYuMzQtNi4zNS00MC40MiwwLTgwLjg0LDAtMTIxLjI3LDAtMy40NiwwLTYuMzUsMi44OS02LjM1LDYuMzV2MjguODZjMCwzLjQ2LDIuODksNi4zNSw2LjM1LDYuMzVoMTIxLjI3YzguMTgsMCw4LjE4LTEyLjY5LDAtMTIuNjlaIi8+CiAgICAgICAgICA8cGF0aCBkPSJNMTgyLjI1LDM2OC42OEg2MC45OWMyLjEyLDIuMTIsNC4yMyw0LjIzLDYuMzUsNi4zNHYtMjguODVjLTIuMTEsMi4xMi00LjIzLDQuMjMtNi4zNSw2LjM1aDEyMS4yN2MtMi4xMi0yLjEyLTQuMjMtNC4yMy02LjM1LTYuMzV2MjguODVjMCw4LjE4LDEyLjY5LDguMTgsMTIuNjksMHYtMjguODVjMC0zLjQ2LTIuODktNi4zNC02LjM0LTYuMzRINjAuOTljLTMuNDYsMC02LjM1LDIuODktNi4zNSw2LjM0djI4Ljg1YzAsMy40NiwyLjg5LDYuMzUsNi4zNSw2LjM1aDEyMS4yN2M4LjE4LDAsOC4xOC0xMi42OSwwLTEyLjY5WiIvPgogICAgICAgIDwvZz4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDIyNi43MiAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+TTwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjU5Ljg0IDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5BPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyODUuNzcgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPlI8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDMxMS4zNyAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+QzwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMzM3Ljk2IDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5FPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzNjAuNzIgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPk48L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDM4OS41NCAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+QTwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDE1LjQ4IDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5SPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg0NDEuMDcgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPkk8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDQ1OS4xNyAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+QTwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDg1LjExIDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj4gPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg1MDguOTcgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPkM8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDUzNS41NiAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+TzwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNTY0Ljc1IDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5SPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg1OTAuMzQgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPlA8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDYxMy4zNyAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+TzwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNjQyLjU2IDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5SPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg2NjguMTUgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPkE8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDY5NC4wOSAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+VDwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNzE4LjQ0IDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5JPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg3MzYuNTMgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPlY8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDc2MS42MSAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+QTwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNzg3LjU2IDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj4gPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg4MDQuMTcgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPiA8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDIyNi43MiAzNzkuODUpIj48dHNwYW4geD0iMCIgeT0iMCI+RTwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjQ5LjQ4IDM3OS44NSkiPjx0c3BhbiB4PSIwIiB5PSIwIj4gPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyNjYuMDkgMzc5Ljg1KSI+PHRzcGFuIHg9IjAiIHk9IjAiPlI8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDI5MS42OSAzNzkuODUpIj48dHNwYW4geD0iMCIgeT0iMCI+RTwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMzE0LjQ1IDM3OS44NSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5TPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzMzcuNzcgMzc5Ljg1KSI+PHRzcGFuIHg9IjAiIHk9IjAiPkk8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDM1NS44NyAzNzkuODUpIj48dHNwYW4geD0iMCIgeT0iMCI+RDwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMzgyLjYxIDM3OS44NSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5FPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg0MDUuMzcgMzc5Ljg1KSI+PHRzcGFuIHg9IjAiIHk9IjAiPk48L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDQzNC4xOSAzNzkuODUpIj48dHNwYW4geD0iMCIgeT0iMCI+QzwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDYwLjc4IDM3OS44NSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5JPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg0NzguODggMzc5Ljg1KSI+PHRzcGFuIHg9IjAiIHk9IjAiPkE8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDUwNC44MiAzNzkuODUpIj48dHNwYW4geD0iMCIgeT0iMCI+TDwvdHNwYW4+PC90ZXh0PgogICAgICA8L2c+CiAgICA8L2c+CiAgPC9nPgogIDxyZWN0IGNsYXNzPSJjbHMtNyIgeD0iNTQuNjIiIHk9IjIxNi44MyIgd2lkdGg9IjEzMy45MiIgaGVpZ2h0PSIxNTUuODEiLz4KPC9zdmc+" style="height:36px" alt="Sinal SP"/>
+      <img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0iQ2FtYWRhXzEiIGRhdGEtbmFtZT0iQ2FtYWRhIDEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHZpZXdCb3g9IjAgMCA4NDIuMjUgNjA0LjA4Ij4KICA8ZGVmcz4KICAgIDxzdHlsZT4KICAgICAgLmNscy0xIHsKICAgICAgICBjbGlwLXBhdGg6IHVybCgjY2xpcHBhdGgtNCk7CiAgICAgIH0KCiAgICAgIC5jbHMtMiB7CiAgICAgICAgZmlsbDogI2ZmZjsKICAgICAgfQoKICAgICAgLmNscy0zIHsKICAgICAgICBmaWxsOiBub25lOwogICAgICB9CgogICAgICAuY2xzLTQgewogICAgICAgIGNsaXAtcGF0aDogdXJsKCNjbGlwcGF0aC0xKTsKICAgICAgfQoKICAgICAgLmNscy01IHsKICAgICAgICBpc29sYXRpb246IGlzb2xhdGU7CiAgICAgIH0KCiAgICAgIC5jbHMtNiB7CiAgICAgICAgY2xpcC1wYXRoOiB1cmwoI2NsaXBwYXRoLTMpOwogICAgICB9CgogICAgICAuY2xzLTcgewogICAgICAgIG9wYWNpdHk6IDA7CiAgICAgIH0KCiAgICAgIC5jbHMtOCB7CiAgICAgICAgZm9udC1zaXplOiAyNC40MnB4OwogICAgICB9CgogICAgICAuY2xzLTgsIC5jbHMtOSB7CiAgICAgICAgZm9udC1mYW1pbHk6IFRlbm9yU2FucywgJ1Rlbm9yIFNhbnMnOwogICAgICB9CgogICAgICAuY2xzLTkgewogICAgICAgIGZvbnQtc2l6ZTogODMuMTRweDsKICAgICAgfQoKICAgICAgLmNscy0xMCB7CiAgICAgICAgY2xpcC1wYXRoOiB1cmwoI2NsaXBwYXRoLTIpOwogICAgICB9CiAgICA8L3N0eWxlPgogICAgPGNsaXBQYXRoIGlkPSJjbGlwcGF0aC0xIj4KICAgICAgPHJlY3QgY2xhc3M9ImNscy0zIiB4PSIwIiB5PSI4LjU4IiB3aWR0aD0iODQyLjI1IiBoZWlnaHQ9IjU5NS41Ii8+CiAgICA8L2NsaXBQYXRoPgogICAgPGNsaXBQYXRoIGlkPSJjbGlwcGF0aC0yIj4KICAgICAgPHJlY3QgY2xhc3M9ImNscy0zIiB4PSIwIiB5PSI4LjU4IiB3aWR0aD0iODQyLjQiIGhlaWdodD0iNTk1LjY4Ii8+CiAgICA8L2NsaXBQYXRoPgogICAgPGNsaXBQYXRoIGlkPSJjbGlwcGF0aC0zIj4KICAgICAgPHJlY3QgY2xhc3M9ImNscy0zIiB4PSIwIiB5PSI4LjU4IiB3aWR0aD0iODQyLjU3IiBoZWlnaHQ9IjU5NS43MiIvPgogICAgPC9jbGlwUGF0aD4KICAgIDxjbGlwUGF0aCBpZD0iY2xpcHBhdGgtNCI+CiAgICAgIDxyZWN0IGNsYXNzPSJjbHMtMyIgeD0iNTQuNjQiIHk9IjIyNS41IiB3aWR0aD0iMTM0LjI2IiBoZWlnaHQ9IjE1Ni4wNiIvPgogICAgPC9jbGlwUGF0aD4KICA8L2RlZnM+CiAgPGcgY2xhc3M9ImNscy00Ij4KICAgIDxnIGNsYXNzPSJjbHMtNSI+CiAgICAgIDxnIGNsYXNzPSJjbHMtMTAiPgogICAgICAgIDxnIGNsYXNzPSJjbHMtNiI+CiAgICAgICAgICA8cmVjdCBjbGFzcz0iY2xzLTIiIHg9IjAiIHk9IjguNTgiIHdpZHRoPSI4NDIuNTciIGhlaWdodD0iNTk1LjcyIi8+CiAgICAgICAgPC9nPgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjI2LjcyIDMwMi43MSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5TPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy05IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyOTguNjMgMzAyLjcxKSI+PHRzcGFuIHg9IjAiIHk9IjAiPkk8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTkiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDM1Mi43NSAzMDIuNzEpIj48dHNwYW4geD0iMCIgeT0iMCI+TjwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDQzLjM3IDMwMi43MSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5BPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy05IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg1MjQuMTcgMzAyLjcxKSI+PHRzcGFuIHg9IjAiIHk9IjAiPkw8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTkiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDU5NC4xNyAzMDIuNzEpIj48dHNwYW4geD0iMCIgeT0iMCI+IDwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNjQzLjIyIDMwMi43MSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5TPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy05IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg3MTUuMTMgMzAyLjcxKSI+PHRzcGFuIHg9IjAiIHk9IjAiPlA8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8ZyBjbGFzcz0iY2xzLTEiPgogICAgICAgICAgPHBhdGggZD0iTTE4Mi4yNSwzMTAuNzdINjAuOTljMi4xMiwyLjEyLDQuMjMsNC4yMyw2LjM1LDYuMzR2LTI4Ljg1Yy0yLjExLDIuMTEtNC4yMyw0LjIzLTYuMzUsNi4zNWgxMjEuMjdjLTIuMTItMi4xMS00LjIzLTQuMjMtNi4zNS02LjM1djI4Ljg1YzAsOC4xOCwxMi42OSw4LjE4LDEyLjY5LDB2LTI4Ljg1YzAtMy40Ni0yLjg5LTYuMzUtNi4zNC02LjM1SDYwLjk5Yy0zLjQ2LDAtNi4zNSwyLjg5LTYuMzUsNi4zNXYyOC44NWMwLDMuNDYsMi44OSw2LjM1LDYuMzUsNi4zNWgxMjEuMjdjOC4xOCwwLDguMTgtMTIuNjksMC0xMi42OVoiLz4KICAgICAgICAgIDxwYXRoIGQ9Ik0xODIuMjUsMjU0LjM1SDYwLjk5YzIuMTIsMi4xMSw0LjIzLDQuMjMsNi4zNSw2LjM1di0yOC44NmMtMi4xMSwyLjEyLTQuMjMsNC4yMy02LjM1LDYuMzVoMTIxLjI3Yy0yLjEyLTIuMTEtNC4yMy00LjIzLTYuMzUtNi4zNXYyOC44NmMwLDguMTgsMTIuNjksOC4xOCwxMi42OSwwdi0yOC44NmMwLTMuNDYtMi44OS02LjM1LTYuMzQtNi4zNS00MC40MiwwLTgwLjg0LDAtMTIxLjI3LDAtMy40NiwwLTYuMzUsMi44OS02LjM1LDYuMzV2MjguODZjMCwzLjQ2LDIuODksNi4zNSw2LjM1LDYuMzVoMTIxLjI3YzguMTgsMCw4LjE4LTEyLjY5LDAtMTIuNjlaIi8+CiAgICAgICAgICA8cGF0aCBkPSJNMTgyLjI1LDM2OC42OEg2MC45OWMyLjEyLDIuMTIsNC4yMyw0LjIzLDYuMzUsNi4zNHYtMjguODVjLTIuMTEsMi4xMi00LjIzLDQuMjMtNi4zNSw2LjM1aDEyMS4yN2MtMi4xMi0yLjEyLTQuMjMtNC4yMy02LjM1LTYuMzV2MjguODVjMCw4LjE4LDEyLjY5LDguMTgsMTIuNjksMHYtMjguODVjMC0zLjQ2LTIuODktNi4zNC02LjM0LTYuMzRINjAuOTljLTMuNDYsMC02LjM1LDIuODktNi4zNSw2LjM0djI4Ljg1YzAsMy40NiwyLjg5LDYuMzUsNi4zNSw2LjM1aDEyMS4yN2M4LjE4LDAsOC4xOC0xMi42OSwwLTEyLjY5WiIvPgogICAgICAgIDwvZz4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDIyNi43MiAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+TTwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjU5Ljg0IDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5BPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyODUuNzcgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPlI8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDMxMS4zNyAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+QzwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMzM3Ljk2IDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5FPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzNjAuNzIgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPk48L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDM4OS41NCAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+QTwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDE1LjQ4IDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5SPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg0NDEuMDcgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPkk8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDQ1OS4xNyAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+QTwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDg1LjExIDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj4gPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg1MDguOTcgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPkM8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDUzNS41NiAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+TzwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNTY0Ljc1IDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5SPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg1OTAuMzQgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPlA8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDYxMy4zNyAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+TzwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNjQyLjU2IDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5SPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg2NjguMTUgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPkE8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDY5NC4wOSAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+VDwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNzE4LjQ0IDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5JPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg3MzYuNTMgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPlY8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDc2MS42MSAzNDYuMDkpIj48dHNwYW4geD0iMCIgeT0iMCI+QTwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNzg3LjU2IDM0Ni4wOSkiPjx0c3BhbiB4PSIwIiB5PSIwIj4gPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg4MDQuMTcgMzQ2LjA5KSI+PHRzcGFuIHg9IjAiIHk9IjAiPiA8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDIyNi43MiAzNzkuODUpIj48dHNwYW4geD0iMCIgeT0iMCI+RTwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjQ5LjQ4IDM3OS44NSkiPjx0c3BhbiB4PSIwIiB5PSIwIj4gPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyNjYuMDkgMzc5Ljg1KSI+PHRzcGFuIHg9IjAiIHk9IjAiPlI8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDI5MS42OSAzNzkuODUpIj48dHNwYW4geD0iMCIgeT0iMCI+RTwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMzE0LjQ1IDM3OS44NSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5TPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzMzcuNzcgMzc5Ljg1KSI+PHRzcGFuIHg9IjAiIHk9IjAiPkk8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDM1NS44NyAzNzkuODUpIj48dHNwYW4geD0iMCIgeT0iMCI+RDwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMzgyLjYxIDM3OS44NSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5FPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg0MDUuMzcgMzc5Ljg1KSI+PHRzcGFuIHg9IjAiIHk9IjAiPk48L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDQzNC4xOSAzNzkuODUpIj48dHNwYW4geD0iMCIgeT0iMCI+QzwvdHNwYW4+PC90ZXh0PgogICAgICAgIDx0ZXh0IGNsYXNzPSJjbHMtOCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDYwLjc4IDM3OS44NSkiPjx0c3BhbiB4PSIwIiB5PSIwIj5JPC90c3Bhbj48L3RleHQ+CiAgICAgICAgPHRleHQgY2xhc3M9ImNscy04IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg0NzguODggMzc5Ljg1KSI+PHRzcGFuIHg9IjAiIHk9IjAiPkE8L3RzcGFuPjwvdGV4dD4KICAgICAgICA8dGV4dCBjbGFzcz0iY2xzLTgiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDUwNC44MiAzNzkuODUpIj48dHNwYW4geD0iMCIgeT0iMCI+TDwvdHNwYW4+PC90ZXh0PgogICAgICA8L2c+CiAgICA8L2c+CiAgPC9nPgogIDxyZWN0IGNsYXNzPSJjbHMtNyIgeD0iNTQuNjIiIHk9IjIxNi44MyIgd2lkdGg9IjEzMy45MiIgaGVpZ2h0PSIxNTUuODEiLz4KPC9zdmc+" style="height:32px;filter:invert(1)" alt="Sinal SP"/>
       <div>
-        <div style="color:#ffffff;font-weight:700;font-size:14px;letter-spacing:1px"><span style="font-family:'Tenor Sans','TenorSans',serif;font-weight:400;font-size:15px;letter-spacing:2px">SINAL SP</span> — GESTÃO DE CUSTOS</div>
-        <div style="color:#6b7080;font-size:9px;letter-spacing:2px">BACK-OFFICE · MARCENARIA · ☁️ NUVEM</div>
+        <div style="color:#2c2c2c;font-weight:700;font-size:14px;letter-spacing:1px"><span style="font-family:'Tenor Sans',serif;font-weight:400;font-size:15px;letter-spacing:2px">SINAL SP</span> — GESTÃO DE CUSTOS</div>
+
       </div>
     </div>
     <div class="flex">
       <div id="sync-area" class="hidden">
-        <button class="btn btn-amber" style="font-size:11px;padding:8px 14px" onclick="sincronizar()">⟳ SINCRONIZAR COM ORÇAMENTO</button>
-        <span id="sync-msg" style="font-size:10px;color:#10b981;display:none;margin-left:8px"></span>
+        <button class="btn btn-primary" style="font-size:11px;padding:8px 14px" onclick="sincronizar()">⟳ SINCRONIZAR COM ORÇAMENTO</button>
+        <span id="sync-msg" style="font-size:10px;color:#4a7a5a;display:none;margin-left:8px"></span>
       </div>
       <div style="text-align:right">
         <div id="hdr-nome" style="font-size:12px;font-weight:700"></div>
-        <div id="hdr-setor" style="font-size:9px;color:#6b7080"></div>
-        <button onclick="doLogout()" style="font-size:9px;color:#6b7080;background:none;border:none;cursor:pointer;padding:0">Sair →</button>
+        <div id="hdr-setor" style="font-size:9px;color:#666"></div>
+        <button onclick="doLogout()" style="font-size:9px;color:#666;background:none;border:none;cursor:pointer;padding:0">Sair →</button>
       </div>
-      <div id="hdr-avatar" style="width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px"></div>
+      <div id="hdr-avatar" style="width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;background:#2c2c2c;border:2px solid #2c2c2c;color:#fff"></div>
     </div>
   </div>
   <div id="tabbar"></div>
@@ -132,100 +143,223 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script>
-const T={amber:"#ffffff",amberDim:"#888888",amberBg:"#1e1e1e",green:"#10b981",red:"#ef4444",blue:"#3b82f6",purple:"#a78bfa",text:"#e8eaf0",muted:"#6b7080",faint:"#383d52"};
-const CAT_MAT=["MDF","Compensado","Alumínio","Vidro","Fita de Bordo","Cola","Parafuso/Fixação","Outro"];
-const CAT_FER=["Dobradiça","Corrediça","Puxador","Trilho","Fechadura","Suporte","Painel LED","Espelho","Outro"];
-const UNIDADES=["m²","m","un","kg","L","cx"];
-const SETORES=[{id:"admin",nome:"Administrador",cor:T.amber},{id:"financeiro",nome:"Financeiro",cor:T.green},{id:"vendas",nome:"Vendas",cor:T.blue},{id:"producao",nome:"Produção",cor:T.purple}];
+// ── CONSTANTES ───────────────────────────────────────────────────
+const T={white:"#2c2c2c",muted:"#999",faint:"#e4e4e4",green:"#4a7a5a",red:"#a33333",blue:"#2c2c2c",purple:"#2c2c2c",text:"#2c2c2c"};
+const SETORES=[{id:"admin",nome:"Administrador",cor:"#2c2c2c"},{id:"financeiro",nome:"Financeiro",cor:"#555"},{id:"vendas",nome:"Vendas",cor:"#555"},{id:"producao",nome:"Producao",cor:"#555"}];
 const PERMS={admin:[0,1,2,3,4,5],financeiro:[0,1,2,3,4],vendas:[0],producao:[1,2]};
 const ALL_TABS=[{i:0,l:"📊 Painel"},{i:1,l:"🪵 Materiais"},{i:2,l:"🔩 Ferragens"},{i:3,l:"🏗️ Composição"},{i:4,l:"⚙️ Config"},{i:5,l:"👥 Usuários"}];
+
 const DEF={
   users:[{id:1,nome:"Administrador",login:"admin",senha:"admin123",setor:"admin"}],
-  materiais:[{id:1,nome:"MDF 15mm BP",cat:"MDF",unidade:"m²",custoCompra:85,perdaPerc:8,impostoPerc:12},{id:2,nome:"MDF 18mm BP",cat:"MDF",unidade:"m²",custoCompra:95,perdaPerc:8,impostoPerc:12},{id:3,nome:"MDF 6mm Fundo",cat:"MDF",unidade:"m²",custoCompra:38,perdaPerc:10,impostoPerc:12},{id:4,nome:"Fita de Bordo PVC",cat:"Fita de Bordo",unidade:"m",custoCompra:1.2,perdaPerc:5,impostoPerc:6}],
-  ferragens:[{id:1,nome:"Dobradiça Soft Close",cat:"Dobradiça",custoCompra:8.5,impostoPerc:6},{id:2,nome:"Corrediça Telescópica 450mm",cat:"Corrediça",custoCompra:22,impostoPerc:6},{id:3,nome:"Puxador Alumínio 128mm",cat:"Puxador",custoCompra:12,impostoPerc:6},{id:4,nome:"Parafuso Minifix",cat:"Parafuso/Fixação",custoCompra:0.8,impostoPerc:6}],
-  comps:[{id:1,nome:"Armário",margemLucroPerc:45,horasM2:2.5,materiais:[{matId:1,qtd:2.8},{matId:3,qtd:1.2},{matId:4,qtd:8}],ferragens:[{ferId:1,qtd:2.5},{ferId:4,qtd:12}]},{id:2,nome:"Cozinha Planejada",margemLucroPerc:45,horasM2:3.2,materiais:[{matId:2,qtd:3},{matId:3,qtd:1.5},{matId:4,qtd:10}],ferragens:[{ferId:1,qtd:3},{ferId:2,qtd:1.5},{ferId:3,qtd:2},{ferId:4,qtd:16}]},{id:3,nome:"Guarda-Roupa",margemLucroPerc:45,horasM2:2.8,materiais:[{matId:1,qtd:3.2},{matId:3,qtd:1.4},{matId:4,qtd:9}],ferragens:[{ferId:1,qtd:3},{ferId:2,qtd:1},{ferId:4,qtd:14}]}],
-  config:{maoObraHora:25,custoKm:2.5,kmMedioEntrega:30,transporteM2medio:6,overheadPerc:12,impostoVendaPerc:6}
+  catMat:["MDF","Compensado","Alumínio","Vidro","Fita de Bordo","Cola","Parafuso"],
+  catFer:["Dobradiça","Corrediça","Puxador","Trilho","Fechadura","Suporte","Painel LED","Espelho"],
+  catComp:["Cozinha","Dormitório/Closet","Banheiro/Lavanderia","Sala/Home/Comercial","Outros"],
+  materiais:[
+    {id:1,nome:"MDF 15mm BP",cat:"MDF",unidade:"m²",custoCompra:85,perdaPerc:8,margemPerc:20,ativo:true},
+    {id:2,nome:"MDF 18mm BP",cat:"MDF",unidade:"m²",custoCompra:95,perdaPerc:8,margemPerc:20,ativo:true},
+    {id:3,nome:"MDF 6mm Fundo",cat:"MDF",unidade:"m²",custoCompra:38,perdaPerc:10,margemPerc:20,ativo:true},
+    {id:4,nome:"Fita de Bordo PVC",cat:"Fita de Bordo",unidade:"m",custoCompra:1.2,perdaPerc:5,margemPerc:15,ativo:true},
+  ],
+  ferragens:[
+    {id:1,nome:"Dobradiça Soft Close",cat:"Dobradiça",custoCompra:8.5,margemPerc:30,ativoOrcamento:true},
+    {id:2,nome:"Corrediça Telescópica 450mm",cat:"Corrediça",custoCompra:22,margemPerc:30,ativoOrcamento:true},
+    {id:3,nome:"Puxador Alumínio 128mm",cat:"Puxador",custoCompra:12,margemPerc:30,ativoOrcamento:true},
+    {id:4,nome:"Parafuso Minifix",cat:"Parafuso",custoCompra:0.8,margemPerc:20,ativoOrcamento:false},
+  ],
+  comps:[
+    {id:1,nome:"Armário",catOrcamento:"Dormitório/Closet",margemLucroPerc:45,horasM2:2.5,ativoDescricao:true,materiais:[{matId:1,qtd:2.8},{matId:3,qtd:1.2},{matId:4,qtd:8}],ferragens:[{ferId:1,qtd:2.5},{ferId:4,qtd:12}]},
+    {id:2,nome:"Cozinha Planejada",catOrcamento:"Cozinha",margemLucroPerc:45,horasM2:3.2,ativoDescricao:true,materiais:[{matId:2,qtd:3},{matId:3,qtd:1.5},{matId:4,qtd:10}],ferragens:[{ferId:1,qtd:3},{ferId:2,qtd:1.5},{ferId:3,qtd:2},{ferId:4,qtd:16}]},
+    {id:3,nome:"Guarda-Roupa",catOrcamento:"Dormitório/Closet",margemLucroPerc:45,horasM2:2.8,ativoDescricao:true,materiais:[{matId:1,qtd:3.2},{matId:3,qtd:1.4},{matId:4,qtd:9}],ferragens:[{ferId:1,qtd:3},{ferId:2,qtd:1},{ferId:4,qtd:14}]},
+  ],
+  config:{
+    maoObra:[
+      {id:1,nome:"Montagem",salario:3000,horas:176},
+      {id:2,nome:"Operador de Máquina",salario:3500,horas:176},
+      {id:3,nome:"Engenharia",salario:6000,horas:176},
+    ],
+    overhead:[
+      {id:1,nome:"Água",mes:200,horas:176},
+      {id:2,nome:"Luz",mes:800,horas:176},
+      {id:3,nome:"Internet",mes:150,horas:176},
+    ],
+    overheadPerc:12,
+    impostoVendaPerc:6,
+  }
 };
 
+// ── FIREBASE ────────────────────────────────────────────────────
 let db=null, state=JSON.parse(JSON.stringify(DEF)), currentUser=null, currentTab=0;
 let saveTimer=null, ignoreRemote=false;
 
-// ── FIREBASE ─────────────────────────────────────────────────────
 function getCfg(){try{return JSON.parse(localStorage.getItem('marc_fb_cfg'));}catch(e){return null;}}
 function resetFb(){localStorage.removeItem('marc_fb_cfg');location.reload();}
-
 function conectarFirebase(){
   const cfg={apiKey:ge("fb-apiKey").value.trim(),authDomain:ge("fb-authDomain").value.trim(),databaseURL:ge("fb-databaseURL").value.trim(),projectId:ge("fb-projectId").value.trim()};
   if(!cfg.apiKey||!cfg.databaseURL||!cfg.projectId){showFbErr("Preencha todos os campos.");return;}
-  localStorage.setItem('marc_fb_cfg',JSON.stringify(cfg));
-  initFb(cfg);
+  localStorage.setItem('marc_fb_cfg',JSON.stringify(cfg));initFb(cfg);
 }
-
+function showFbErr(msg){const el=ge("fb-err");if(el){el.textContent=msg;el.style.display="block";}}
 function initFb(cfg){
   try{
-    if(firebase.apps.length){firebase.app().delete().catch(()=>{});}
-    firebase.initializeApp(cfg);
-    db=firebase.database();
-    ge("fb-err").style.display="none";
+    if(firebase.apps.length)firebase.app().delete().catch(()=>{});
+    firebase.initializeApp(cfg);db=firebase.database();
     db.ref('marc_data').once('value').then(snap=>{
-      if(snap.exists()){state=merge(snap.val());}
-      else{db.ref('marc_data').set(state);}
+      if(snap.exists())state=merge(snap.val());
+      else db.ref('marc_data').set(state);
       ge("fb-overlay").style.display="none";
       ge("login-screen").classList.remove("hidden");
-      // live sync
       db.ref('marc_data').on('value',snap=>{
         if(!snap.exists()||ignoreRemote)return;
         state=merge(snap.val());
         if(currentUser&&!ge("app").classList.contains("hidden"))renderTab();
       });
-    }).catch(err=>{showFbErr("Erro de conexão: "+err.message);});
+    }).catch(err=>{showFbErr("Erro: "+err.message);});
   }catch(err){showFbErr("Config inválida: "+err.message);}
 }
-
-function merge(remote){return Object.assign(JSON.parse(JSON.stringify(DEF)),remote);}
-function showFbErr(msg){ge("fb-err").textContent=msg;ge("fb-err").style.display="block";}
-
+function merge(r){
+  const d=JSON.parse(JSON.stringify(DEF));
+  if(r.users)d.users=r.users;
+  if(r.catMat)d.catMat=r.catMat;
+  if(r.catFer)d.catFer=r.catFer;
+  if(r.catComp)d.catComp=r.catComp;
+  if(r.materiais)d.materiais=r.materiais;
+  if(r.ferragens)d.ferragens=r.ferragens;
+  if(r.comps)d.comps=r.comps;
+  if(r.config)d.config=Object.assign(d.config,r.config);
+  return d;
+}
 function save(){
   if(!db)return;
-  ignoreRemote=true;
-  clearTimeout(saveTimer);
+  ignoreRemote=true;clearTimeout(saveTimer);
   ge("saving-ind").style.display="block";
   saveTimer=setTimeout(()=>{
     db.ref('marc_data').set(state).then(()=>{ge("saving-ind").style.display="none";setTimeout(()=>{ignoreRemote=false;},500);}).catch(()=>{ge("saving-ind").style.display="none";ignoreRemote=false;});
   },500);
 }
-
 async function sincronizar(){
   if(!db)return;
-  const prices=state.comps.map(c=>{const{final}=calcPreco(c);return{id:c.id,nome:c.nome,preco:Math.round(final*100)/100};});
-  const extras=state.ferragens.map(f=>({id:f.id,nome:f.nome,preco:Math.round(custoFer(f)*100)/100}));
+  const prices=state.comps.map(c=>{const{final}=calcPreco(c);return{id:c.id,nome:c.nome,cat:c.catOrcamento||"Outros",preco:Math.round(final*100)/100,ativoDescricao:c.ativoDescricao!==false};});
+  const extras=state.ferragens.filter(f=>f.ativoOrcamento!==false).map(f=>({id:f.id,nome:f.nome,preco:Math.round(custoFer(f)*100)/100}));
   await db.ref('marc_prices').set(prices);
   await db.ref('marc_extras').set(extras);
-  const sm=ge("sync-msg");sm.textContent="✅ Sincronizado com o sistema de orçamentos!";sm.style.display="inline";
+  const sm=ge("sync-msg");sm.textContent="✅ Sincronizado!";sm.style.display="inline";
   setTimeout(()=>{sm.style.display="none";},4000);
 }
 
-// ── UTILS ────────────────────────────────────────────────────────
+// ── UTILS ───────────────────────────────────────────────────────
 const fmt=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const pct=v=>`${(+v||0).toFixed(1)}%`;
 const genId=()=>Date.now()+Math.random();
-const custoMat=m=>m.custoCompra*(1+m.perdaPerc/100)*(1+m.impostoPerc/100);
-const custoFer=f=>f.custoCompra*(1+f.impostoPerc/100);
+const custoMat=m=>m.custoCompra*(1+( m.perdaPerc||0)/100)*(1+(m.margemPerc||0)/100);
+const custoFer=f=>f.custoCompra*(1+(f.margemPerc||0)/100);
 const setorInfo=id=>SETORES.find(s=>s.id===id)||SETORES[0];
 function ge(id){return document.getElementById(id);}
 function h(el,html){el.innerHTML=html;}
 function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+
+function calcMaoObra(){
+  // custo total por hora = soma(salario/horas) de todos os cargos
+  return (state.config.maoObra||[]).reduce((a,m)=>a+(+m.salario||0)/(+m.horas||1),0);
+}
+function calcOverheadHora(){
+  return (state.config.overhead||[]).reduce((a,o)=>a+(+o.mes||0)/(+o.horas||1),0);
+}
 function calcPreco(comp){
   const mats=state.materiais,fers=state.ferragens,cfg=state.config;
   const cm=(comp.materiais||[]).reduce((a,li)=>{const m=mats.find(x=>x.id===li.matId);return a+(m?custoMat(m)*li.qtd:0);},0);
   const cf=(comp.ferragens||[]).reduce((a,li)=>{const f=fers.find(x=>x.id===li.ferId);return a+(f?custoFer(f)*li.qtd:0);},0);
-  const mao=(cfg.maoObraHora||0)*(comp.horasM2||0);
-  const transp=((cfg.custoKm||0)*(cfg.kmMedioEntrega||0))/Math.max(1,cfg.transporteM2medio||1);
-  const sub=cm+cf+mao+transp,comOv=sub*(1+(cfg.overheadPerc||0)/100),comImp=comOv*(1+(cfg.impostoVendaPerc||0)/100),final=comImp/(1-(comp.margemLucroPerc||0)/100);
-  return{cm,cf,mao,transp,sub,comOv,comImp,final};
+  const maoH=calcMaoObra();
+  const mao=maoH*(comp.horasM2||0);
+  const ovH=calcOverheadHora();
+  const ov=ovH*(comp.horasM2||0);
+  const sub=cm+cf+mao+ov;
+  const comOv=sub*(1+(cfg.overheadPerc||0)/100);
+  const comImp=comOv*(1+(cfg.impostoVendaPerc||0)/100);
+  const final=comImp/(1-(comp.margemLucroPerc||0)/100);
+  return{cm,cf,mao,ov,sub,comOv,comImp,final,maoH,ovH};
 }
 
-// ── AUTH ──────────────────────────────────────────────────────────
+// ── MODAL CATEGORIA ─────────────────────────────────────────────
+let _catCallback=null;
+// ── GERENCIADOR DE CATEGORIAS ───────────────────────────────────
+let _catList=null;
+function abrirModalCat(listRef,titulo){
+  _catList=listRef;
+  ge("modal-cat-title").textContent=titulo||"Gerenciar Categorias";
+  ge("modal-cat-input").value="";
+  renderModalCatList();
+  ge("modal-cat").classList.remove("hidden");
+  setTimeout(()=>ge("modal-cat-input").focus(),100);
+}
+function fecharModalCat(){
+  ge("modal-cat").classList.add("hidden");
+  _catList=null;
+  renderTab();
+}
+function renderModalCatList(){
+  const list=_catList||[];
+  const el=ge("modal-cat-list");
+  if(!list.length){el.innerHTML=`<div style="font-size:11px;color:#666;text-align:center;padding:8px">Nenhuma categoria ainda.</div>`;return;}
+  el.innerHTML=list.map((cat,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:#fafafa;border-radius:7px;border:1px solid #e8e8e8">
+      <div id="cat-view-${i}" style="flex:1;font-size:12px;color:#2c2c2c">${esc(cat)}</div>
+      <input id="cat-edit-${i}" value="${esc(cat)}" style="flex:1;display:none;padding:4px 8px;font-size:12px" onkeydown="if(event.key==='Enter')salvarEdicaoCat(${i});if(event.key==='Escape')cancelarEdicaoCat(${i})"/>
+      <div id="cat-btns-${i}" class="flex" style="gap:4px">
+        <button class="btn-icon" title="Editar" onclick="iniciarEdicaoCat(${i})" style="font-size:11px">✏</button>
+        <button class="btn-icon danger" title="Remover" onclick="removerCat(${i})" style="font-size:11px">✕</button>
+      </div>
+      <div id="cat-edit-btns-${i}" class="flex" style="gap:4px;display:none">
+        <button class="btn btn-primary btn-sm" onclick="salvarEdicaoCat(${i})">✓</button>
+        <button class="btn btn-ghost btn-sm" onclick="cancelarEdicaoCat(${i})">✕</button>
+      </div>
+    </div>`).join("");
+}
+function iniciarEdicaoCat(i){
+  ge(`cat-view-${i}`).style.display="none";
+  ge(`cat-btns-${i}`).style.display="none";
+  ge(`cat-edit-${i}`).style.display="block";
+  ge(`cat-edit-btns-${i}`).style.display="flex";
+  ge(`cat-edit-${i}`).focus();ge(`cat-edit-${i}`).select();
+}
+function cancelarEdicaoCat(i){
+  ge(`cat-view-${i}`).style.display="block";
+  ge(`cat-btns-${i}`).style.display="flex";
+  ge(`cat-edit-${i}`).style.display="none";
+  ge(`cat-edit-btns-${i}`).style.display="none";
+}
+function salvarEdicaoCat(i){
+  const novo=ge(`cat-edit-${i}`).value.trim();
+  if(!novo)return;
+  const antigo=_catList[i];
+  if(antigo!==novo){
+    state.materiais.forEach(m=>{if(m.cat===antigo)m.cat=novo;});
+    state.ferragens.forEach(f=>{if(f.cat===antigo)f.cat=novo;});
+    _catList[i]=novo;
+    save();
+  }
+  renderModalCatList();
+}
+function removerCat(i){
+  const cat=_catList[i];
+  const usadaMat=state.materiais.some(m=>m.cat===cat);
+  const usadaFer=state.ferragens.some(f=>f.cat===cat);
+  if(usadaMat||usadaFer){
+    if(!confirm(`A categoria "${cat}" está em uso. Remover mesmo assim?`))return;
+  }
+  _catList.splice(i,1);
+  save();
+  renderModalCatList();
+}
+function confirmarNovaCategoria(){
+  const nome=ge("modal-cat-input").value.trim();
+  if(!nome)return;
+  if(!_catList.includes(nome)){_catList.push(nome);save();}
+  ge("modal-cat-input").value="";
+  renderModalCatList();
+  setTimeout(()=>ge("modal-cat-input").focus(),50);
+}
+
+// ── AUTH ────────────────────────────────────────────────────────
 function doLogin(){
   const login=ge("inp-login").value.trim(),senha=ge("inp-senha").value;
   const u=state.users.find(x=>x.login===login&&x.senha===senha);
@@ -235,13 +369,10 @@ function doLogin(){
   renderHeader();renderTabs();renderTab();
 }
 function doLogout(){currentUser=null;ge("app").classList.add("hidden");ge("login-screen").classList.remove("hidden");ge("inp-login").value="";ge("inp-senha").value="";ge("login-err").style.display="none";}
-
-// ── LAYOUT ────────────────────────────────────────────────────────
 function renderHeader(){
   const s=setorInfo(currentUser.setor);
   ge("hdr-nome").textContent=currentUser.nome;ge("hdr-nome").style.color=s.cor;
   ge("hdr-setor").textContent=s.nome;
-  ge("hdr-avatar").style.cssText=`width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;background:${s.cor}22;border:2px solid ${s.cor};color:${s.cor}`;
   ge("hdr-avatar").textContent=currentUser.nome[0].toUpperCase();
   ge("sync-area").classList.toggle("hidden",!(PERMS[currentUser.setor]||[]).includes(0));
 }
@@ -252,91 +383,381 @@ function renderTabs(){
 function switchTab(i){currentTab=i;renderTabs();renderTab();}
 function renderTab(){
   const c=ge("content");h(c,"");
-  if(currentTab===0)renderPainel(c);else if(currentTab===1)renderMateriais(c);else if(currentTab===2)renderFerragens(c);else if(currentTab===3)renderComposicao(c);else if(currentTab===4)renderConfig(c);else if(currentTab===5)renderUsuarios(c);
+  if(currentTab===0)renderPainel(c);
+  else if(currentTab===1)renderMateriais(c);
+  else if(currentTab===2)renderFerragens(c);
+  else if(currentTab===3)renderComposicao(c);
+  else if(currentTab===4)renderConfig(c);
+  else if(currentTab===5)renderUsuarios(c);
 }
 
-// ── PAINEL ────────────────────────────────────────────────────────
+// ── PAINEL ──────────────────────────────────────────────────────
 function renderPainel(c){
-  const cfg=state.config,transpM2=((cfg.custoKm||0)*(cfg.kmMedioEntrega||0))/Math.max(1,cfg.transporteM2medio||1),rows=state.comps.map(comp=>({...comp,...calcPreco(comp)}));
-  c.innerHTML=`<div class="flex-col"><div class="grid4">${[{l:"Tipos de Móvel",v:state.comps.length,c:T.amber},{l:"Materiais",v:state.materiais.length,c:T.blue},{l:"Ferragens",v:state.ferragens.length,c:T.green},{l:"Custo/km",v:fmt(cfg.custoKm),c:T.purple}].map(s=>`<div class="card" style="margin-bottom:0"><div style="font-size:9px;color:${T.muted};margin-bottom:8px;letter-spacing:1px">${s.l.toUpperCase()}</div><div style="font-size:22px;font-weight:700;color:${s.c}">${s.v}</div></div>`).join("")}</div>
-  <div class="card"><div class="card-title">PREÇO POR m² — COMPOSIÇÃO ATUAL</div>${rows.length===0?`<div class="empty">Nenhuma composição.</div>`:`<table><thead><tr>${["Tipo","Mat.","Ferr.","M.O.","Transp.","Overhead","Imp.","Margem","PREÇO/m²"].map(hh=>`<th style="text-align:right">${hh}</th>`).join("")}</tr></thead><tbody>${rows.map(p=>`<tr><td style="color:${T.amber};font-weight:700;text-align:left">${p.nome}</td>${[fmt(p.cm),fmt(p.cf),fmt(p.mao),fmt(p.transp),pct(cfg.overheadPerc),pct(cfg.impostoVendaPerc),pct(p.margemLucroPerc)].map(v=>`<td style="text-align:right;color:${T.muted}">${v}</td>`).join("")}<td style="text-align:right;color:${T.green};font-weight:800;font-size:13px">${fmt(p.final)}</td></tr>`).join("")}</tbody></table>`}</div>
-  <div style="background:${T.amberBg};border:1px solid ${T.amberDim};border-radius:10px;padding:10px 14px;font-size:11px;color:${T.amber}">🚛 ${fmt(cfg.custoKm)}/km × ${cfg.kmMedioEntrega}km = ${fmt((cfg.custoKm||0)*(cfg.kmMedioEntrega||0))}/entrega ÷ ${cfg.transporteM2medio}m² = <strong>${fmt(transpM2)}/m²</strong></div></div>`;
+  const rows=state.comps.map(comp=>({...comp,...calcPreco(comp)}));
+  c.innerHTML=`<div class="flex-col">
+  <div class="grid4">
+    ${[{l:"Tipos de Móvel",v:state.comps.length,co:"#2c2c2c"},{l:"Materiais",v:state.materiais.length,co:"#2c2c2c"},{l:"Ferragens",v:state.ferragens.length,co:"#2c2c2c"},{l:"M.O./hora",v:fmt(calcMaoObra()),co:"#2c2c2c"}].map(s=>`
+    <div class="card" style="margin-bottom:0"><div style="font-size:9px;color:${T.muted};margin-bottom:8px;letter-spacing:1px">${s.l.toUpperCase()}</div><div style="font-size:22px;font-weight:700;color:${s.co}">${s.v}</div></div>`).join("")}
+  </div>
+  <div class="card">
+    <div class="card-title">PREÇO POR m² — COMPOSIÇÃO ATUAL</div>
+    ${rows.length===0?`<div class="empty">Nenhuma composição.</div>`:`
+    <table><thead><tr>${["Tipo","Cat. Orçamento","Mat.","Ferr.","M.O.","Overhead","Imp.","Margem","PREÇO/m²"].map(hh=>`<th style="text-align:right">${hh}</th>`).join("")}</tr></thead>
+    <tbody>${rows.map(p=>`<tr>
+      <td style="color:#2c2c2c;font-weight:700;text-align:left">${esc(p.nome)}</td>
+      <td style="text-align:right"><span class="tag">${esc(p.catOrcamento||"Outros")}</span></td>
+      ${[fmt(p.cm),fmt(p.cf),fmt(p.mao),fmt(p.ov),pct(state.config.impostoVendaPerc),pct(p.margemLucroPerc)].map(v=>`<td style="text-align:right;color:${T.muted}">${v}</td>`).join("")}
+      <td style="text-align:right;color:#4a7a5a;font-weight:800;font-size:13px">${fmt(p.final)}</td>
+    </tr>`).join("")}</tbody></table>`}
+  </div>
+  <div style="background:#f5f5f5;border:1px solid #e8e8e8;border-radius:10px;padding:10px 14px;font-size:11px;color:#666">
+    M.O./h: ${fmt(calcMaoObra())} · Overhead/h: ${fmt(calcOverheadHora())} · Overhead estrutural: ${pct(state.config.overheadPerc)} · Imposto: ${pct(state.config.impostoVendaPerc)}
+  </div>
+  </div>`;
 }
 
-// ── MATERIAIS ────────────────────────────────────────────────────
+// ── MATERIAIS ──────────────────────────────────────────────────
 let matEditId=null,matFilter="Todos";
 function renderMateriais(c){
-  const f=matEditId?state.materiais.find(m=>m.id===matEditId)||{}:{},lista=matFilter==="Todos"?state.materiais:state.materiais.filter(m=>m.cat===matFilter);
-  c.innerHTML=`<div class="flex-col"><div class="card"><div class="card-title">${matEditId?"EDITAR MATERIAL":"NOVO MATERIAL"}</div><div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;margin-bottom:10px"><div><label class="label">NOME</label><input id="m-nome" value="${esc(f.nome||"")}" placeholder="Ex: MDF 18mm Branco"/></div><div><label class="label">CATEGORIA</label><select id="m-cat">${CAT_MAT.map(cat=>`<option${(f.cat||"MDF")===cat?" selected":""}>${cat}</option>`).join("")}</select></div><div><label class="label">UNIDADE</label><select id="m-und">${UNIDADES.map(u=>`<option${(f.unidade||"m²")===u?" selected":""}>${u}</option>`).join("")}</select></div></div><div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:12px"><div><label class="label">CUSTO (R$/und)</label><input id="m-custo" type="number" value="${f.custoCompra||""}" placeholder="0.00" step="0.01" oninput="updMP()"/></div><div><label class="label">PERDA (%)</label><input id="m-perda" type="number" value="${f.perdaPerc??8}" step="0.5" oninput="updMP()"/></div><div><label class="label">IMPOSTO (%)</label><input id="m-imp" type="number" value="${f.impostoPerc??12}" step="0.5" oninput="updMP()"/></div><div><label class="label">CUSTO FINAL</label><div id="m-prev" style="padding:8px 10px;background:${T.amberBg};color:${T.amber};font-weight:700;border-radius:7px;font-size:12px;border:1px solid ${T.amberDim}">${f.custoCompra?fmt(custoMat(f)):"—"}</div></div></div><div class="flex"><button class="btn btn-amber" onclick="saveMat()">${matEditId?"💾 Salvar":"＋ Adicionar"}</button>${matEditId?`<button class="btn btn-ghost" onclick="cancelMatEdit()">Cancelar</button>`:""}</div></div>
-  <div class="card"><div class="card-header"><div class="card-title" style="margin-bottom:0">MATERIAIS — ${lista.length}</div><div style="display:flex;gap:5px;flex-wrap:wrap">${["Todos",...CAT_MAT].map(cat=>`<button class="pill${matFilter===cat?" active":""}" onclick="setMatFilter('${cat}')">${cat}</button>`).join("")}</div></div>${lista.length===0?`<div class="empty">Nenhum material.</div>`:`<table><thead><tr><th>Nome</th><th>Cat.</th><th>Und.</th><th>Custo</th><th>Perda</th><th>Imposto</th><th>Custo Final</th><th></th></tr></thead><tbody>${lista.map(m=>`<tr><td style="color:${T.text};font-weight:600">${esc(m.nome)}</td><td><span class="tag">${m.cat}</span></td><td style="color:${T.muted}">${m.unidade}</td><td>${fmt(m.custoCompra)}</td><td style="color:${T.muted}">${pct(m.perdaPerc)}</td><td style="color:${T.muted}">${pct(m.impostoPerc)}</td><td style="color:${T.amber};font-weight:700">${fmt(custoMat(m))}/${m.unidade}</td><td><div class="flex"><button class="btn-icon" onclick="editMat(${m.id})">✏</button><button class="btn-icon danger" onclick="delMat(${m.id})">✕</button></div></td></tr>`).join("")}</tbody></table>`}</div></div>`;
+  const UNIDADES=["m²","m","un","kg","L","cx"];
+  const f=matEditId?state.materiais.find(m=>m.id===matEditId)||{}:{};
+  const cats=state.catMat||[];
+  const lista=matFilter==="Todos"?state.materiais:state.materiais.filter(m=>m.cat===matFilter);
+  c.innerHTML=`<div class="flex-col">
+  <div class="card">
+    <div class="card-title">${matEditId?"EDITAR MATERIAL":"NOVO MATERIAL"}</div>
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;margin-bottom:10px">
+      <div><label class="label">NOME</label><input id="m-nome" value="${esc(f.nome||"")}" placeholder="Ex: MDF 18mm Branco"/></div>
+      <div><label class="label">CATEGORIA</label>
+        <div class="flex" style="gap:6px">
+          <select id="m-cat" style="flex:1">${cats.map(cat=>`<option${(f.cat||cats[0])===cat?" selected":""}>${esc(cat)}</option>`).join("")}</select>
+          <button class="btn-icon" title="Nova categoria" onclick="novaCategoriaMat()">＋</button>
+        </div>
+      </div>
+      <div><label class="label">UNIDADE</label><select id="m-und">${UNIDADES.map(u=>`<option${(f.unidade||"m²")===u?" selected":""}>${u}</option>`).join("")}</select></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:12px">
+      <div><label class="label">CUSTO (R$/und)</label><input id="m-custo" type="number" value="${f.custoCompra||""}" placeholder="0.00" step="0.01" oninput="updMP()"/></div>
+      <div><label class="label">PERDA (%)</label><input id="m-perda" type="number" value="${f.perdaPerc??8}" step="0.5" oninput="updMP()"/></div>
+      <div><label class="label">MARGEM GANHO (%)</label><input id="m-marg" type="number" value="${f.margemPerc??20}" step="0.5" oninput="updMP()"/></div>
+      <div><label class="label">PREÇO FINAL</label><div id="m-prev" style="padding:8px 10px;background:#f5f5f5;color:#2c2c2c;font-weight:700;border-radius:7px;font-size:12px;border:1px solid #e8e8e8">${f.custoCompra?fmt(custoMat(f)):"—"}</div></div>
+    </div>
+    <div class="flex">
+      <button class="btn btn-primary" onclick="saveMat()">${matEditId?"💾 Salvar":"＋ Adicionar"}</button>
+      ${matEditId?`<button class="btn btn-ghost" onclick="cancelMatEdit()">Cancelar</button>`:""}
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title" style="margin-bottom:0">MATERIAIS — ${lista.length}</div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap">${["Todos",...cats].map(cat=>`<button class="pill${matFilter===cat?" active":""}" onclick="setMatFilter('${esc(cat)}')">${esc(cat)}</button>`).join("")}</div>
+    </div>
+    ${lista.length===0?`<div class="empty">Nenhum material.</div>`:`
+    <table><thead><tr><th>Nome</th><th>Cat.</th><th>Und.</th><th>Custo</th><th>Perda</th><th>Margem</th><th>Preço Final</th><th></th></tr></thead>
+    <tbody>${lista.map(m=>`<tr>
+      <td style="color:#2c2c2c;font-weight:600">${esc(m.nome)}</td>
+      <td><span class="tag">${esc(m.cat)}</span></td>
+      <td style="color:${T.muted}">${m.unidade}</td>
+      <td>${fmt(m.custoCompra)}</td>
+      <td style="color:${T.muted}">${pct(m.perdaPerc)}</td>
+      <td style="color:${T.muted}">${pct(m.margemPerc||0)}</td>
+      <td style="color:#2c2c2c;font-weight:700">${fmt(custoMat(m))}/${m.unidade}</td>
+      <td><div class="flex"><button class="btn-icon" onclick="editMat(${m.id})">✏</button><button class="btn-icon danger" onclick="delMat(${m.id})">✕</button></div></td>
+    </tr>`).join("")}</tbody></table>`}
+  </div></div>`;
 }
-function updMP(){const c=+ge("m-custo").value,p=+ge("m-perda").value,i=+ge("m-imp").value;ge("m-prev").textContent=c?fmt(c*(1+p/100)*(1+i/100)):"—";}
+function novaCategoriaMat(){abrirModalCat(state.catMat,"Categorias de Materiais");}
+function updMP(){const c=+ge("m-custo").value,p=+ge("m-perda").value,mg=+ge("m-marg").value;ge("m-prev").textContent=c?fmt(c*(1+p/100)*(1+mg/100)):"—";}
 function setMatFilter(cat){matFilter=cat;renderTab();}
-function saveMat(){const nome=ge("m-nome").value.trim(),custo=ge("m-custo").value;if(!nome||!custo)return;const d={nome,cat:ge("m-cat").value,unidade:ge("m-und").value,custoCompra:+custo,perdaPerc:+ge("m-perda").value,impostoPerc:+ge("m-imp").value};if(matEditId){state.materiais=state.materiais.map(m=>m.id===matEditId?{...m,...d}:m);matEditId=null;}else state.materiais.push({...d,id:genId()});save();renderTab();}
+function saveMat(){
+  const nome=ge("m-nome").value.trim(),custo=ge("m-custo").value;
+  if(!nome||!custo)return;
+  const d={nome,cat:ge("m-cat").value,unidade:ge("m-und").value,custoCompra:+custo,perdaPerc:+ge("m-perda").value,margemPerc:+ge("m-marg").value};
+  if(matEditId){state.materiais=state.materiais.map(m=>m.id===matEditId?{...m,...d}:m);matEditId=null;}
+  else state.materiais.push({...d,id:genId(),ativo:true});
+  save();renderTab();
+}
 function editMat(id){matEditId=id;renderTab();}
 function cancelMatEdit(){matEditId=null;renderTab();}
 function delMat(id){if(confirm("Excluir material?"))state.materiais=state.materiais.filter(m=>m.id!==id);save();renderTab();}
 
-// ── FERRAGENS ────────────────────────────────────────────────────
+// ── FERRAGENS ──────────────────────────────────────────────────
 let ferEditId=null,ferFilter="Todos";
 function renderFerragens(c){
-  const f=ferEditId?state.ferragens.find(x=>x.id===ferEditId)||{}:{},lista=ferFilter==="Todos"?state.ferragens:state.ferragens.filter(x=>x.cat===ferFilter);
-  c.innerHTML=`<div class="flex-col"><div class="card"><div class="card-title">${ferEditId?"EDITAR FERRAGEM":"NOVA FERRAGEM"}</div><div style="display:grid;grid-template-columns:2fr 1fr;gap:10px;margin-bottom:10px"><div><label class="label">NOME</label><input id="f-nome" value="${esc(f.nome||"")}" placeholder="Ex: Dobradiça Soft Close 35mm"/></div><div><label class="label">CATEGORIA</label><select id="f-cat">${CAT_FER.map(cat=>`<option${(f.cat||"Dobradiça")===cat?" selected":""}>${cat}</option>`).join("")}</select></div></div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px"><div><label class="label">CUSTO (R$/un)</label><input id="f-custo" type="number" value="${f.custoCompra||""}" placeholder="0.00" step="0.01" oninput="updFP()"/></div><div><label class="label">IMPOSTO (%)</label><input id="f-imp" type="number" value="${f.impostoPerc??6}" step="0.5" oninput="updFP()"/></div><div><label class="label">CUSTO FINAL</label><div id="f-prev" style="padding:8px 10px;background:${T.amberBg};color:${T.amber};font-weight:700;border-radius:7px;font-size:12px;border:1px solid ${T.amberDim}">${f.custoCompra?fmt(custoFer(f)):"—"}</div></div></div><div class="flex"><button class="btn btn-amber" onclick="saveFer()">${ferEditId?"💾 Salvar":"＋ Adicionar"}</button>${ferEditId?`<button class="btn btn-ghost" onclick="cancelFerEdit()">Cancelar</button>`:""}</div></div>
-  <div class="card"><div class="card-header"><div class="card-title" style="margin-bottom:0">FERRAGENS — ${lista.length}</div><div style="display:flex;gap:5px;flex-wrap:wrap">${["Todos",...CAT_FER].map(cat=>`<button class="pill${ferFilter===cat?" active":""}" onclick="setFerFilter('${cat}')">${cat}</button>`).join("")}</div></div>${lista.length===0?`<div class="empty">Nenhuma ferragem.</div>`:`<table><thead><tr><th>Nome</th><th>Categoria</th><th>Custo</th><th>Imposto</th><th>Custo Final/un</th><th></th></tr></thead><tbody>${lista.map(f=>`<tr><td style="color:${T.text};font-weight:600">${esc(f.nome)}</td><td><span class="tag">${f.cat}</span></td><td>${fmt(f.custoCompra)}</td><td style="color:${T.muted}">${pct(f.impostoPerc)}</td><td style="color:${T.amber};font-weight:700">${fmt(custoFer(f))}</td><td><div class="flex"><button class="btn-icon" onclick="editFer(${f.id})">✏</button><button class="btn-icon danger" onclick="delFer(${f.id})">✕</button></div></td></tr>`).join("")}</tbody></table>`}</div></div>`;
+  const f=ferEditId?state.ferragens.find(x=>x.id===ferEditId)||{}:{};
+  const cats=state.catFer||[];
+  const lista=ferFilter==="Todos"?state.ferragens:state.ferragens.filter(x=>x.cat===ferFilter);
+  c.innerHTML=`<div class="flex-col">
+  <div class="card">
+    <div class="card-title">${ferEditId?"EDITAR FERRAGEM":"NOVA FERRAGEM"}</div>
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:10px;margin-bottom:10px">
+      <div><label class="label">NOME</label><input id="f-nome" value="${esc(f.nome||"")}" placeholder="Ex: Dobradiça Soft Close 35mm"/></div>
+      <div><label class="label">CATEGORIA</label>
+        <div class="flex" style="gap:6px">
+          <select id="f-cat" style="flex:1">${cats.map(cat=>`<option${(f.cat||cats[0])===cat?" selected":""}>${esc(cat)}</option>`).join("")}</select>
+          <button class="btn-icon" title="Nova categoria" onclick="novaFerCat()">＋</button>
+        </div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:12px">
+      <div><label class="label">CUSTO (R$/un)</label><input id="f-custo" type="number" value="${f.custoCompra||""}" placeholder="0.00" step="0.01" oninput="updFP()"/></div>
+      <div><label class="label">MARGEM GANHO (%)</label><input id="f-marg" type="number" value="${f.margemPerc??30}" step="0.5" oninput="updFP()"/></div>
+      <div><label class="label">PREÇO FINAL/un</label><div id="f-prev" style="padding:8px 10px;background:#f5f5f5;color:#2c2c2c;font-weight:700;border-radius:7px;font-size:12px;border:1px solid #e8e8e8">${f.custoCompra?fmt(custoFer(f)):"—"}</div></div>
+      <div><label class="label">EXIBIR EM ITENS ADICIONAIS</label>
+        <label class="tog" style="margin-top:6px">
+          <input type="checkbox" id="f-ativo" ${f.ativoOrcamento!==false?"checked":""}/>
+          <div class="tog-track"></div>
+          <span class="tog-lbl" id="f-ativo-lbl">${f.ativoOrcamento!==false?"Ativo":"Inativo"}</span>
+        </label>
+      </div>
+    </div>
+    <div class="flex">
+      <button class="btn btn-primary" onclick="saveFer()">${ferEditId?"💾 Salvar":"＋ Adicionar"}</button>
+      ${ferEditId?`<button class="btn btn-ghost" onclick="cancelFerEdit()">Cancelar</button>`:""}
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title" style="margin-bottom:0">FERRAGENS — ${lista.length}</div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap">${["Todos",...cats].map(cat=>`<button class="pill${ferFilter===cat?" active":""}" onclick="setFerFilter('${esc(cat)}')">${esc(cat)}</button>`).join("")}</div>
+    </div>
+    ${lista.length===0?`<div class="empty">Nenhuma ferragem.</div>`:`
+    <table><thead><tr><th>Nome</th><th>Categoria</th><th>Custo</th><th>Margem</th><th>Preço Final</th><th>Itens Adicionais</th><th></th></tr></thead>
+    <tbody>${lista.map(fer=>`<tr>
+      <td style="color:#2c2c2c;font-weight:600">${esc(fer.nome)}</td>
+      <td><span class="tag">${esc(fer.cat)}</span></td>
+      <td>${fmt(fer.custoCompra)}</td>
+      <td style="color:${T.muted}">${pct(fer.margemPerc||0)}</td>
+      <td style="color:#2c2c2c;font-weight:700">${fmt(custoFer(fer))}</td>
+      <td><span style="font-size:11px;color:${fer.ativoOrcamento!==false?"#4a7a5a":"#bbb"}">${fer.ativoOrcamento!==false?"✓ Ativo":"✕ Inativo"}</span></td>
+      <td><div class="flex"><button class="btn-icon" onclick="editFer(${fer.id})">✏</button><button class="btn-icon danger" onclick="delFer(${fer.id})">✕</button></div></td>
+    </tr>`).join("")}</tbody></table>`}
+  </div></div>`;
+  // atualizar label do toggle ao mudar
+  const chk=ge("f-ativo");
+  if(chk)chk.addEventListener('change',()=>{const lbl=ge("f-ativo-lbl");if(lbl)lbl.textContent=chk.checked?"Ativo":"Inativo";});
 }
-function updFP(){const c=+ge("f-custo").value,i=+ge("f-imp").value;ge("f-prev").textContent=c?fmt(c*(1+i/100)):"—";}
+function novaFerCat(){abrirModalCat(state.catFer,"Categorias de Ferragens");}
+function updFP(){const c=+ge("f-custo").value,mg=+ge("f-marg").value;ge("f-prev").textContent=c?fmt(c*(1+mg/100)):"—";}
 function setFerFilter(cat){ferFilter=cat;renderTab();}
-function saveFer(){const nome=ge("f-nome").value.trim(),custo=ge("f-custo").value;if(!nome||!custo)return;const d={nome,cat:ge("f-cat").value,custoCompra:+custo,impostoPerc:+ge("f-imp").value};if(ferEditId){state.ferragens=state.ferragens.map(f=>f.id===ferEditId?{...f,...d}:f);ferEditId=null;}else state.ferragens.push({...d,id:genId()});save();renderTab();}
+function saveFer(){
+  const nome=ge("f-nome").value.trim(),custo=ge("f-custo").value;
+  if(!nome||!custo)return;
+  const d={nome,cat:ge("f-cat").value,custoCompra:+custo,margemPerc:+ge("f-marg").value,ativoOrcamento:ge("f-ativo").checked};
+  if(ferEditId){state.ferragens=state.ferragens.map(f=>f.id===ferEditId?{...f,...d}:f);ferEditId=null;}
+  else state.ferragens.push({...d,id:genId()});
+  save();renderTab();
+}
 function editFer(id){ferEditId=id;renderTab();}
 function cancelFerEdit(){ferEditId=null;renderTab();}
 function delFer(id){if(confirm("Excluir ferragem?"))state.ferragens=state.ferragens.filter(f=>f.id!==id);save();renderTab();}
 
-// ── COMPOSIÇÃO ────────────────────────────────────────────────────
-let compSel=null,compNome="",compMargem=45,compHoras=2.5,compMat=[],compFer=[];
-function loadComp(id){const c=state.comps.find(x=>x.id===id);if(!c)return;compSel=c.id;compNome=c.nome;compMargem=c.margemLucroPerc;compHoras=c.horasM2;compMat=[...c.materiais.map(x=>({...x}))];compFer=[...c.ferragens.map(x=>({...x}))];}
+// ── COMPOSIÇÃO ─────────────────────────────────────────────────
+let compSel=null,compData={};
+function loadComp(id){
+  const c=state.comps.find(x=>x.id===id);if(!c)return;
+  compSel=c.id;
+  compData={nome:c.nome,catOrcamento:c.catOrcamento||"Outros",margemLucroPerc:c.margemLucroPerc,horasM2:c.horasM2,ativoDescricao:c.ativoDescricao!==false,materiais:[...c.materiais.map(x=>({...x}))],ferragens:[...c.ferragens.map(x=>({...x}))]};
+}
 function renderComposicao(container){
   if(!compSel&&state.comps.length>0)loadComp(state.comps[0].id);
-  const comp=compSel?{nome:compNome,margemLucroPerc:+compMargem,horasM2:+compHoras,materiais:compMat,ferragens:compFer}:null,prev=comp?calcPreco(comp):null,cfg=state.config;
-  const sidebar=state.comps.map(c=>{const{final}=calcPreco(c);return`<div class="comp-item${compSel===c.id?" active":""}" onclick="selComp(${c.id})"><div style="font-size:12px;font-weight:700;color:${compSel===c.id?T.amber:T.text}">${esc(c.nome)}</div><div style="font-size:10px;color:${T.green};margin-top:2px">${fmt(final)}/m²</div></div>`;}).join("");
-  const mRows=compMat.map((li,i)=>{const m=state.materiais.find(x=>x.id===li.matId),opts=state.materiais.map(x=>`<option value="${x.id}"${x.id===li.matId?" selected":""}>${esc(x.nome)} (${x.unidade})</option>`).join("");return`<div style="display:grid;grid-template-columns:2fr 1fr auto auto;gap:8px;align-items:end;margin-bottom:8px"><select onchange="cmc(${i},'matId',+this.value)">${opts}</select><div><label class="label">QTD/${m?m.unidade:"un"}/m²</label><input type="number" value="${li.qtd}" step="0.1" min="0" oninput="cmc(${i},'qtd',+this.value)"/></div><div style="font-size:11px;color:${T.amber};font-weight:700;white-space:nowrap;padding-bottom:2px">${m?fmt(custoMat(m)*li.qtd):"-"}</div><button class="btn-icon danger" onclick="cmdel(${i})">✕</button></div>`;}).join("");
-  const fRows=compFer.map((li,i)=>{const f=state.ferragens.find(x=>x.id===li.ferId),opts=state.ferragens.map(x=>`<option value="${x.id}"${x.id===li.ferId?" selected":""}>${esc(x.nome)}</option>`).join("");return`<div style="display:grid;grid-template-columns:2fr 1fr auto auto;gap:8px;align-items:end;margin-bottom:8px"><select onchange="cfc(${i},'ferId',+this.value)">${opts}</select><div><label class="label">QTD/m²</label><input type="number" value="${li.qtd}" step="0.1" min="0" oninput="cfc(${i},'qtd',+this.value)"/></div><div style="font-size:11px;color:${T.amber};font-weight:700;white-space:nowrap;padding-bottom:2px">${f?fmt(custoFer(f)*li.qtd):"-"}</div><button class="btn-icon danger" onclick="cfdel(${i})">✕</button></div>`;}).join("");
-  const bdown=prev?`<div class="card"><div class="card-title">BREAKDOWN — PRÉVIA</div><div class="grid2">${[["Materiais",prev.cm,T.blue],["Ferragens",prev.cf,T.purple],["Mão de Obra",prev.mao,T.green],["Transporte",prev.transp,"#fb923c"],[`Overhead (${cfg.overheadPerc}%)`,prev.comOv-prev.sub,T.muted],[`Imp. (${cfg.impostoVendaPerc}%)`,prev.comImp-prev.comOv,T.muted]].map(([l,v,cl])=>`<div class="info-box" style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:10px;color:${T.muted}">${l}</span><span style="font-size:13px;font-weight:700;color:${cl}">${fmt(v)}</span></div>`).join("")}</div><div style="margin-top:10px;background:${T.amberBg};border:1px solid ${T.amberDim};border-radius:10px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:9px;color:${T.muted}">PREÇO FINAL / m²</div><div style="font-size:9px;color:${T.muted}">Margem: ${compMargem}%</div></div><div style="font-size:26px;font-weight:800;color:${T.amber}">${fmt(prev.final)}</div></div></div>`:"";
-  container.innerHTML=`<div class="comp-layout"><div class="comp-sidebar"><div class="card"><div class="card-title">TIPOS</div>${sidebar}<button class="btn btn-amber" style="margin-top:8px;width:100%;font-size:11px" onclick="novoComp()">＋ Novo</button></div></div><div style="flex:1">${!compSel?`<div class="empty">Selecione ou crie um tipo.</div>`:`<div class="flex-col"><div class="card"><div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px"><div><label class="label">NOME</label><input value="${esc(compNome)}" oninput="compNome=this.value;renderTab()"/></div><div><label class="label">MARGEM (%)</label><input type="number" value="${compMargem}" step="1" oninput="compMargem=+this.value;renderTab()"/></div><div><label class="label">HORAS/m²</label><input type="number" value="${compHoras}" step="0.1" oninput="compHoras=+this.value;renderTab()"/></div></div></div><div class="card"><div class="card-title">MATERIAIS (por m²)</div>${mRows}<button class="btn btn-ghost" style="font-size:11px" onclick="cmadd()">＋ Material</button></div><div class="card"><div class="card-title">FERRAGENS (por m²)</div>${fRows}<button class="btn btn-ghost" style="font-size:11px" onclick="cfadd()">＋ Ferragem</button></div>${bdown}<div class="flex"><button class="btn btn-amber" style="flex:1" onclick="salvarComp()">💾 Salvar Composição</button><button class="btn btn-danger" onclick="delComp()">Excluir</button></div></div>`}</div></div>`;
+  const comp=compSel?{...compData}:null;
+  const prev=comp?calcPreco(comp):null;
+  const cfg=state.config;
+  const sidebar=state.comps.map(c=>{const{final}=calcPreco(c);return`<div class="comp-item${compSel===c.id?" active":""}" onclick="selComp(${c.id})">
+    <div style="font-size:12px;font-weight:700;color:${compSel===c.id?"#fff":"#2c2c2c"}">${esc(c.nome)}</div>
+    <div style="font-size:10px;color:#4a7a5a;margin-top:2px">${fmt(final)}/m²</div>
+    <div style="font-size:9px;color:${T.muted};margin-top:2px">${esc(c.catOrcamento||"Outros")}</div>
+  </div>`;}).join("");
+  const mRows=(compData.materiais||[]).map((li,i)=>{const m=state.materiais.find(x=>x.id===li.matId);const opts=state.materiais.map(x=>`<option value="${x.id}"${x.id===li.matId?" selected":""}>${esc(x.nome)} (${x.unidade})</option>`).join("");const ativo=li.ativoDescricao!==false;return`<div style="display:grid;grid-template-columns:2fr 1fr auto auto auto;gap:8px;align-items:end;margin-bottom:8px">
+    <select onchange="cmc(${i},'matId',+this.value)">${opts}</select>
+    <div><label class="label">QTD/${m?m.unidade:"un"}/m²</label><input type="number" value="${li.qtd}" step="0.1" min="0" oninput="cmc(${i},'qtd',+this.value)"/></div>
+    <div style="font-size:11px;color:#2c2c2c;font-weight:700;white-space:nowrap;padding-bottom:2px">${m?fmt(custoMat(m)*li.qtd):"-"}</div>
+    <label class="tog" title="Exibir na descrição do orçamento" style="padding-bottom:2px">
+      <input type="checkbox" ${ativo?"checked":""} onchange="cmc(${i},'ativoDescricao',this.checked)"/>
+      <div class="tog-track"></div>
+    </label>
+    <button class="btn-icon danger" onclick="cmdel(${i})">✕</button>
+  </div>`;}).join("");
+  const fRows=(compData.ferragens||[]).map((li,i)=>{const f=state.ferragens.find(x=>x.id===li.ferId);const opts=state.ferragens.map(x=>`<option value="${x.id}"${x.id===li.ferId?" selected":""}>${esc(x.nome)}</option>`).join("");const ativo=li.ativoDescricao!==false;return`<div style="display:grid;grid-template-columns:2fr 1fr auto auto auto;gap:8px;align-items:end;margin-bottom:8px">
+    <select onchange="cfc(${i},'ferId',+this.value)">${opts}</select>
+    <div><label class="label">QTD/m²</label><input type="number" value="${li.qtd}" step="0.1" min="0" oninput="cfc(${i},'qtd',+this.value)"/></div>
+    <div style="font-size:11px;color:#2c2c2c;font-weight:700;white-space:nowrap;padding-bottom:2px">${f?fmt(custoFer(f)*li.qtd):"-"}</div>
+    <label class="tog" title="Exibir na descrição do orçamento" style="padding-bottom:2px">
+      <input type="checkbox" ${ativo?"checked":""} onchange="cfc(${i},'ativoDescricao',this.checked)"/>
+      <div class="tog-track"></div>
+    </label>
+    <button class="btn-icon danger" onclick="cfdel(${i})">✕</button>
+  </div>`;}).join("");
+  const bdown=prev?`<div class="card"><div class="card-title">BREAKDOWN — PRÉVIA</div>
+  <div class="grid2">${[["Materiais",prev.cm,"#555"],["Ferragens",prev.cf,"#555"],["Mão de Obra",prev.mao,"#555"],["Overhead por hora",prev.ov,"#777"],[`Overhead estrutural (${cfg.overheadPerc}%)`,prev.comOv-prev.sub,T.muted],[`Imposto (${cfg.impostoVendaPerc}%)`,prev.comImp-prev.comOv,T.muted]].map(([l,v,cl])=>`
+  <div class="info-box" style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:10px;color:${T.muted}">${l}</span><span style="font-size:13px;font-weight:700;color:${cl}">${fmt(v)}</span></div>`).join("")}</div>
+  <div style="margin-top:10px;background:#f5f5f5;border:1px solid #e8e8e8;border-radius:10px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center">
+    <div><div style="font-size:9px;color:${T.muted}">PREÇO FINAL / m²</div><div style="font-size:9px;color:${T.muted}">Margem: ${comp.margemLucroPerc}%</div></div>
+    <div style="font-size:26px;font-weight:800;color:#fff">${fmt(prev.final)}</div>
+  </div></div>`:"";
+  // Categorias do orçamento (personalizáveis)
+  const cats=state.catComp||["Cozinha","Dormitório/Closet","Banheiro/Lavanderia","Sala/Home/Comercial","Outros"];
+  container.innerHTML=`<div class="comp-layout">
+  <div class="comp-sidebar">
+    <div class="card">
+      <div class="card-title">TIPOS</div>
+      ${sidebar}
+      <button class="btn btn-primary" style="margin-top:8px;width:100%;font-size:11px" onclick="novoComp()">＋ Novo Tipo</button>
+    </div>
+  </div>
+  <div style="flex:1">${!compSel?`<div class="empty">Selecione ou crie um tipo.</div>`:`
+  <div class="flex-col">
+    <div class="card">
+      <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px">
+        <div><label class="label">NOME DO TIPO</label>
+          <input value="${esc(compData.nome)}" oninput="compData.nome=this.value"/>
+        </div>
+        <div><label class="label">CATEGORIA</label>
+          <div class="flex" style="gap:6px">
+            <select style="flex:1" onchange="compData.catOrcamento=this.value">${cats.map(o=>`<option${(compData.catOrcamento||"Outros")===o?" selected":""}>${esc(o)}</option>`).join("")}</select>
+            <button class="btn-icon" title="Gerenciar categorias" onclick="abrirModalCatComp()">＋</button>
+          </div>
+        </div>
+        <div><label class="label">MARGEM LUCRO (%)</label>
+          <input type="number" value="${compData.margemLucroPerc}" step="1" oninput="compData.margemLucroPerc=+this.value"/>
+        </div>
+        <div><label class="label">HORAS M.O./m²</label>
+          <input type="number" value="${compData.horasM2}" step="0.1" oninput="compData.horasM2=+this.value"/>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div class="card-title" style="margin-bottom:0">MATERIAIS (por m²)</div>
+        <span style="font-size:9px;color:${T.muted}">Toggle = exibir na descrição do orçamento</span>
+      </div>
+      ${mRows}<button class="btn btn-ghost btn-sm" style="margin-top:6px" onclick="cmadd()">＋ Material</button>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div class="card-title" style="margin-bottom:0">FERRAGENS (por m²)</div>
+        <span style="font-size:9px;color:${T.muted}">Toggle = exibir na descrição do orçamento</span>
+      </div>
+      ${fRows}<button class="btn btn-ghost btn-sm" style="margin-top:6px" onclick="cfadd()">＋ Ferragem</button>
+    </div>
+    ${bdown}
+    <div class="flex">
+      <button class="btn btn-primary" style="flex:1" onclick="salvarComp()">💾 Salvar Composição</button>
+      <button class="btn btn-danger" onclick="delComp()">Excluir</button>
+    </div>
+  </div>`}</div></div>`;
 }
+// Bug fix: não re-renderizar tudo ao digitar, só atualizar o preview
+function refreshBdown(){
+  // apenas recalcula sem re-renderizar toda a aba
+  // (o valor já foi atualizado no compData via oninput)
+}
+function abrirModalCatComp(){abrirModalCat(state.catComp,"Categorias de Composição");}
 function selComp(id){loadComp(id);renderTab();}
-function novoComp(){const c={id:genId(),nome:"Novo Tipo",margemLucroPerc:45,horasM2:2.5,materiais:[],ferragens:[]};state.comps.push(c);loadComp(c.id);save();renderTab();}
-function salvarComp(){state.comps=state.comps.map(c=>c.id===compSel?{...c,nome:compNome,margemLucroPerc:+compMargem,horasM2:+compHoras,materiais:compMat,ferragens:compFer}:c);save();renderTab();}
-function delComp(){if(!confirm("Excluir?"))return;state.comps=state.comps.filter(c=>c.id!==compSel);compSel=null;compMat=[];compFer=[];save();renderTab();}
-function cmadd(){compMat.push({matId:state.materiais[0]?.id,qtd:1});renderTab();}
-function cmdel(i){compMat.splice(i,1);renderTab();}
-function cmc(i,k,v){compMat[i][k]=v;renderTab();}
-function cfadd(){compFer.push({ferId:state.ferragens[0]?.id,qtd:1});renderTab();}
-function cfdel(i){compFer.splice(i,1);renderTab();}
-function cfc(i,k,v){compFer[i][k]=v;renderTab();}
+function novoComp(){if(!state.catComp)state.catComp=["Cozinha","Dormitório/Closet","Banheiro/Lavanderia","Sala/Home/Comercial","Outros"];const c={id:genId(),nome:"Novo Tipo",catOrcamento:state.catComp[0]||"Outros",margemLucroPerc:45,horasM2:2.5,materiais:[],ferragens:[]};state.comps.push(c);loadComp(c.id);save();renderTab();}
+function salvarComp(){state.comps=state.comps.map(c=>c.id===compSel?{...c,...compData}:c);save();renderTab();}
+function delComp(){if(!confirm("Excluir?"))return;state.comps=state.comps.filter(c=>c.id!==compSel);compSel=null;compData={};save();renderTab();}
+function cmadd(){compData.materiais.push({matId:state.materiais[0]?.id,qtd:1});renderTab();}
+function cmdel(i){compData.materiais.splice(i,1);renderTab();}
+function cmc(i,k,v){compData.materiais[i][k]=v;renderTab();}
+function cfadd(){compData.ferragens.push({ferId:state.ferragens[0]?.id,qtd:1});renderTab();}
+function cfdel(i){compData.ferragens.splice(i,1);renderTab();}
+function cfc(i,k,v){compData.ferragens[i][k]=v;renderTab();}
 
-// ── CONFIG ────────────────────────────────────────────────────────
+// ── CONFIG ─────────────────────────────────────────────────────
 function renderConfig(container){
-  const cfg=state.config,tt=(cfg.custoKm||0)*(cfg.kmMedioEntrega||0),tm=tt/Math.max(1,cfg.transporteM2medio||1);
-  const fields=[{k:"maoObraHora",l:"Mão de Obra (R$/hora)",d:"Custo por hora do marceneiro",ico:"👷"},{k:"custoKm",l:"Custo por km (R$/km)",d:"Combustível + desgaste + motorista",ico:"🚛"},{k:"kmMedioEntrega",l:"Distância Média por Entrega (km)",d:"Km médios por entrega/instalação",ico:"📍"},{k:"transporteM2medio",l:"Tamanho Médio do Projeto (m²)",d:"Para ratear o transporte por m²",ico:"📐"},{k:"overheadPerc",l:"Overhead / Estrutura (%)",d:"Água, luz, aluguel, administração",ico:"🏭"},{k:"impostoVendaPerc",l:"Imposto sobre Venda (%)",d:"Simples Nacional, ISS, ICMS",ico:"📄"}];
-  container.innerHTML=`<div class="flex-col"><div class="card"><div class="card-title">PARÂMETROS GLOBAIS</div>${fields.map(({k,l,d,ico})=>`<div style="display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;padding:13px 0;border-bottom:1px solid ${T.faint}"><div style="font-size:20px">${ico}</div><div><div style="font-size:13px;font-weight:600;color:${T.text}">${l}</div><div style="font-size:10px;color:${T.muted};margin-top:2px">${d}</div></div><input type="number" value="${cfg[k]||0}" step="0.5" min="0" style="width:100px;text-align:right" onchange="setCfg('${k}',+this.value)"/></div>`).join("")}</div><div class="card"><div class="card-title">SIMULAÇÃO DE TRANSPORTE</div><div class="grid3"><div class="info-box"><div class="info-label">Custo por entrega</div><div class="info-val" style="color:${T.amber}">${fmt(tt)}</div></div><div class="info-box"><div class="info-label">Rateado por m²</div><div class="info-val" style="color:${T.green}">${fmt(tm)}</div></div><div class="info-box"><div class="info-label">Overhead</div><div class="info-val" style="color:${T.blue}">${pct(cfg.overheadPerc)}</div></div></div><div style="margin-top:10px;font-size:10px;color:${T.muted};line-height:1.8">${fmt(cfg.custoKm)}/km × ${cfg.kmMedioEntrega}km = ${fmt(tt)}/entrega ÷ ${cfg.transporteM2medio}m² = <strong style="color:${T.amber}">${fmt(tm)}/m²</strong></div></div></div>`;
+  const cfg=state.config;
+  const maoTotal=calcMaoObra(),ovTotal=calcOverheadHora();
+  container.innerHTML=`<div class="flex-col">
+  <!-- MÃO DE OBRA -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title" style="margin-bottom:0">👷 MÃO DE OBRA — CUSTO/HORA TOTAL: <span style="color:#2c2c2c;font-weight:700">${fmt(maoTotal)}/h</span></div>
+      <button class="btn btn-ghost btn-sm" onclick="addMaoObra()">＋ Adicionar Cargo</button>
+    </div>
+    <table><thead><tr><th>CARGO</th><th>SALÁRIO/MÊS (R$)</th><th>HORAS/MÊS</th><th>CUSTO/HORA</th><th></th></tr></thead>
+    <tbody>${(cfg.maoObra||[]).map((m,i)=>`<tr>
+      <td><input value="${esc(m.nome)}" style="background:transparent;border:none;border-bottom:1px solid #e8e8e8;border-radius:0;padding:4px" onchange="updMO(${i},'nome',this.value)"/></td>
+      <td><input type="number" value="${m.salario}" step="100" style="background:transparent;border:none;border-bottom:1px solid #e8e8e8;border-radius:0;padding:4px;text-align:right" onchange="updMO(${i},'salario',+this.value)"/></td>
+      <td><input type="number" value="${m.horas}" step="1" style="background:transparent;border:none;border-bottom:1px solid #e8e8e8;border-radius:0;padding:4px;text-align:right" onchange="updMO(${i},'horas',+this.value)"/></td>
+      <td style="color:#2c2c2c;font-weight:700;text-align:right">${fmt((+m.salario||0)/(+m.horas||1))}/h</td>
+      <td><button class="btn-icon danger" onclick="delMO(${i})">✕</button></td>
+    </tr>`).join("")}</tbody></table>
+  </div>
+  <!-- OVERHEAD -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title" style="margin-bottom:0">🏭 OVERHEAD / CUSTOS FIXOS — TOTAL: <span style="color:#2c2c2c;font-weight:700">${fmt(ovTotal)}/h</span></div>
+      <button class="btn btn-ghost btn-sm" onclick="addOverhead()">＋ Adicionar Item</button>
+    </div>
+    <table><thead><tr><th>ITEM</th><th>CUSTO/MÊS (R$)</th><th>HORAS/MÊS</th><th>CUSTO/HORA</th><th></th></tr></thead>
+    <tbody>${(cfg.overhead||[]).map((o,i)=>`<tr>
+      <td><input value="${esc(o.nome)}" style="background:transparent;border:none;border-bottom:1px solid #e8e8e8;border-radius:0;padding:4px" onchange="updOV(${i},'nome',this.value)"/></td>
+      <td><input type="number" value="${o.mes}" step="10" style="background:transparent;border:none;border-bottom:1px solid #e8e8e8;border-radius:0;padding:4px;text-align:right" onchange="updOV(${i},'mes',+this.value)"/></td>
+      <td><input type="number" value="${o.horas}" step="1" style="background:transparent;border:none;border-bottom:1px solid #e8e8e8;border-radius:0;padding:4px;text-align:right" onchange="updOV(${i},'horas',+this.value)"/></td>
+      <td style="color:#2c2c2c;font-weight:700;text-align:right">${fmt((+o.mes||0)/(+o.horas||1))}/h</td>
+      <td><button class="btn-icon danger" onclick="delOV(${i})">✕</button></td>
+    </tr>`).join("")}</tbody></table>
+  </div>
+  <!-- OUTROS PARÂMETROS -->
+  <div class="card">
+    <div class="card-title">📄 OUTROS PARÂMETROS</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div>
+        <div style="font-size:13px;font-weight:600;color:#2c2c2c;margin-bottom:4px">Overhead / Estrutura (%)</div>
+        <div style="font-size:10px;color:${T.muted};margin-bottom:8px">Margem adicional sobre custos totais (aluguel, depreciação...)</div>
+        <input type="number" value="${cfg.overheadPerc||0}" step="0.5" min="0" style="max-width:120px;text-align:right" onchange="setCfg('overheadPerc',+this.value)"/>
+      </div>
+      <div>
+        <div style="font-size:13px;font-weight:600;color:#2c2c2c;margin-bottom:4px">Imposto sobre Venda (%)</div>
+        <div style="font-size:10px;color:${T.muted};margin-bottom:8px">Simples Nacional, ISS, ICMS</div>
+        <input type="number" value="${cfg.impostoVendaPerc||0}" step="0.5" min="0" style="max-width:120px;text-align:right" onchange="setCfg('impostoVendaPerc',+this.value)"/>
+      </div>
+    </div>
+  </div>
+  </div>`;
 }
+function updMO(i,k,v){state.config.maoObra[i][k]=v;save();renderTab();}
+function delMO(i){if(confirm("Remover cargo?"))state.config.maoObra.splice(i,1);save();renderTab();}
+function addMaoObra(){state.config.maoObra.push({id:genId(),nome:"Novo Cargo",salario:2000,horas:176});save();renderTab();}
+function updOV(i,k,v){state.config.overhead[i][k]=v;save();renderTab();}
+function delOV(i){if(confirm("Remover item?"))state.config.overhead.splice(i,1);save();renderTab();}
+function addOverhead(){state.config.overhead.push({id:genId(),nome:"Novo Item",mes:100,horas:176});save();renderTab();}
 function setCfg(k,v){state.config[k]=v;save();renderTab();}
 
-// ── USUÁRIOS ─────────────────────────────────────────────────────
+// ── USUÁRIOS ───────────────────────────────────────────────────
 let userEditId=null;
 const PL=["📊 Painel","🪵 Mat.","🔩 Ferr.","🏗️ Comp.","⚙️ Config","👥 Users"];
 function renderUsuarios(container){
   const f=userEditId?state.users.find(u=>u.id===userEditId)||{}:{};
-  container.innerHTML=`<div class="flex-col"><div class="card"><div class="card-title">${userEditId?"EDITAR":"NOVO USUÁRIO"}</div><div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:12px"><div><label class="label">NOME</label><input id="u-nome" value="${esc(f.nome||"")}" placeholder="João Silva"/></div><div><label class="label">LOGIN</label><input id="u-login" value="${esc(f.login||"")}" placeholder="joao.silva"/></div><div><label class="label">${userEditId?"NOVA SENHA":"SENHA"}</label><input id="u-senha" type="password" value="" placeholder="••••••••"/></div><div><label class="label">SETOR</label><select id="u-setor">${SETORES.map(s=>`<option value="${s.id}"${(f.setor||"vendas")===s.id?" selected":""}>${s.nome}</option>`).join("")}</select></div></div><div class="flex"><button class="btn btn-amber" onclick="saveUser()">${userEditId?"💾 Salvar":"＋ Criar"}</button>${userEditId?`<button class="btn btn-ghost" onclick="cancelUserEdit()">Cancelar</button>`:""}</div></div>
-  <div class="card"><div class="card-title">PERMISSÕES POR SETOR</div><table><thead><tr><th>SETOR</th>${PL.map(l=>`<th style="text-align:center">${l}</th>`).join("")}</tr></thead><tbody>${SETORES.map(s=>`<tr><td><span style="color:${s.cor};font-weight:700">${s.nome}</span></td>${[0,1,2,3,4,5].map(i=>`<td style="text-align:center">${(PERMS[s.id]||[]).includes(i)?`<span style="color:${T.green};font-size:16px">✓</span>`:`<span style="color:${T.faint};font-size:14px">—</span>`}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
-  <div class="card"><div class="card-title">USUÁRIOS (${state.users.length})</div>${state.users.map((u,i)=>{const s=setorInfo(u.setor);return`<div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:${i%2===0?"transparent":"#14171f"};border-radius:8px;margin-bottom:4px"><div class="flex"><div style="width:36px;height:36px;border-radius:50%;background:${s.cor}22;border:2px solid ${s.cor};display:flex;align-items:center;justify-content:center;font-weight:800;color:${s.cor};font-size:15px">${u.nome[0].toUpperCase()}</div><div><div style="font-weight:700;font-size:13px">${esc(u.nome)}</div><div style="font-size:10px;color:${T.muted}">@${esc(u.login)} · <span style="color:${s.cor}">${s.nome}</span></div></div></div><div class="flex">${u.id!==currentUser.id?`<button class="btn-icon" onclick="editUser(${u.id})">✏</button><button class="btn-icon danger" onclick="delUser(${u.id})">✕</button>`:`<span style="font-size:10px;color:${T.muted};padding:4px 10px">você</span>`}</div></div>`;}).join("")}</div></div>`;
+  container.innerHTML=`<div class="flex-col">
+  <div class="card"><div class="card-title">${userEditId?"EDITAR":"NOVO USUÁRIO"}</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:12px">
+    <div><label class="label">NOME</label><input id="u-nome" value="${esc(f.nome||"")}" placeholder="João Silva"/></div>
+    <div><label class="label">LOGIN</label><input id="u-login" value="${esc(f.login||"")}" placeholder="joao.silva"/></div>
+    <div><label class="label">${userEditId?"NOVA SENHA":"SENHA"}</label><input id="u-senha" type="password" value="" placeholder="••••••••"/></div>
+    <div><label class="label">SETOR</label><select id="u-setor">${SETORES.map(s=>`<option value="${s.id}"${(f.setor||"vendas")===s.id?" selected":""}>${s.nome}</option>`).join("")}</select></div>
+  </div>
+  <div class="flex"><button class="btn btn-primary" onclick="saveUser()">${userEditId?"💾 Salvar":"＋ Criar"}</button>${userEditId?`<button class="btn btn-ghost" onclick="cancelUserEdit()">Cancelar</button>`:""}</div></div>
+  <div class="card"><div class="card-title">PERMISSÕES POR SETOR</div>
+  <table><thead><tr><th>SETOR</th>${PL.map(l=>`<th style="text-align:center">${l}</th>`).join("")}</tr></thead>
+  <tbody>${SETORES.map(s=>`<tr><td><span style="color:${s.cor};font-weight:700">${s.nome}</span></td>${[0,1,2,3,4,5].map(i=>`<td style="text-align:center">${(PERMS[s.id]||[]).includes(i)?`<span style="color:#2c2c2c">✓</span>`:`<span style="color:#ccc">—</span>`}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
+  <div class="card"><div class="card-title">USUÁRIOS (${state.users.length})</div>
+  ${state.users.map((u,i)=>{const s=setorInfo(u.setor);return`<div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:${i%2===0?"transparent":"#f7f7f7"};border-radius:8px;margin-bottom:4px">
+    <div class="flex">
+      <div style="width:36px;height:36px;border-radius:50%;background:#ebebeb;border:2px solid ${s.cor};display:flex;align-items:center;justify-content:center;font-weight:800;color:${s.cor};font-size:15px">${u.nome[0].toUpperCase()}</div>
+      <div><div style="font-weight:700;font-size:13px">${esc(u.nome)}</div><div style="font-size:10px;color:${T.muted}">@${esc(u.login)} · <span style="color:${s.cor}">${s.nome}</span></div></div>
+    </div>
+    <div class="flex">${u.id!==currentUser.id?`<button class="btn-icon" onclick="editUser(${u.id})">✏</button><button class="btn-icon danger" onclick="delUser(${u.id})">✕</button>`:`<span style="font-size:10px;color:${T.muted}">você</span>`}</div>
+  </div>`;}).join("")}</div></div>`;
 }
 function saveUser(){const nome=ge("u-nome").value.trim(),login=ge("u-login").value.trim(),senha=ge("u-senha").value,setor=ge("u-setor").value;if(!nome||!login||(!userEditId&&!senha))return;if(userEditId){state.users=state.users.map(u=>u.id===userEditId?{...u,nome,login,setor,senha:senha||u.senha}:u);userEditId=null;}else{if(state.users.find(u=>u.login===login)){alert("Login já existe.");return;}state.users.push({id:genId(),nome,login,senha,setor});}save();renderTab();}
 function editUser(id){userEditId=id;renderTab();}
 function cancelUserEdit(){userEditId=null;renderTab();}
 function delUser(id){if(id===currentUser.id)return;if(confirm("Excluir?"))state.users=state.users.filter(u=>u.id!==id);save();renderTab();}
 
-// ── BOOT ─────────────────────────────────────────────────────────
+// ── BOOT ────────────────────────────────────────────────────────
 const EMBEDDED_CFG = {
   apiKey: "AIzaSyBhR2WfPyje5M6IA-APrx3coOZV1SjW7oE",
   authDomain: "sinal-sp.firebaseapp.com",
