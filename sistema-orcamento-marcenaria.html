@@ -246,7 +246,6 @@
     <div>
       <h1><span style="font-family:'Tenor Sans','TenorSans',serif;font-weight:400;letter-spacing:2px">Sinal SP</span> — Sistema de Orçamento</h1>
       <div class="sub" style="font-family:'Tenor Sans','TenorSans',serif;letter-spacing:1px">Marcenaria Corporativa e Residencial</div>
-      <div class="sub">Marcenaria Planejada · Cálculo por m² · Impressão para cliente</div>
     </div>
   </div>
   <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:flex-end">
@@ -337,19 +336,44 @@
           <input type="text" id="mov-desc" placeholder="Ex.: Cozinha, Quarto 1" list="ambientes-list" />
           <datalist id="ambientes-list"></datalist>
         </div>
-        <div>
-          <label>Largura (mm)</label>
-          <input type="number" id="mov-larg" step="1" min="0" placeholder="0" />
-        </div>
-        <div>
-          <label>Altura (mm)</label>
-          <input type="number" id="mov-alt" step="1" min="0" placeholder="0" />
+        <div style="grid-column:3/5;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+          <div>
+            <label>Largura (mm)</label>
+            <input type="number" id="mov-larg" step="1" min="0" placeholder="0" oninput="previewCustoMovel()" />
+          </div>
+          <div>
+            <label>Altura (mm)</label>
+            <input type="number" id="mov-alt" step="1" min="0" placeholder="0" oninput="previewCustoMovel()" />
+          </div>
+          <div>
+            <label>Profundidade (mm)</label>
+            <input type="number" id="mov-prof" step="1" min="0" placeholder="0" oninput="previewCustoMovel()" />
+          </div>
         </div>
         <div style="grid-column:1/-1;">
           <label>Descrição opcional (aparece no PDF)</label>
           <input type="text" id="mov-obs" placeholder="Ex.: MDF Branco TX, com soft close, porta de correr..." />
         </div>
       </div>
+
+      <!-- Preview de faces e custo -->
+      <div id="mov-faces-preview" style="display:none;margin-top:12px;background:#f7f7f7;border:1px solid #e0e0e0;border-radius:8px;padding:12px;">
+        <div style="font-size:11px;font-weight:700;color:#666;margin-bottom:8px;letter-spacing:.5px;">FACES DO MÓVEL — CUSTO ESTIMADO DE MATERIAL</div>
+        <table id="mov-faces-table" style="font-size:12px;margin-bottom:0;">
+          <thead><tr>
+            <th>Face</th><th>Material</th>
+            <th class="right">Área (m²)</th>
+            <th class="right">Custo</th>
+          </tr></thead>
+          <tbody id="mov-faces-tbody"></tbody>
+        </table>
+        <div style="margin-top:8px;display:flex;justify-content:space-between;font-size:12px;">
+          <span style="color:#666;">Custo total do móvel:</span>
+          <strong id="mov-custo-material" style="color:#2c2c2c;font-size:14px;"></strong>
+        </div>
+        <div id="mov-faces-breakdown"></div>
+      </div>
+
       <div style="margin-top:10px;">
         <label style="font-size:12px;color:#666;margin-bottom:6px;">Itens adicionais deste móvel (opcional)</label>
         <div id="mov-itens-adicionais" style="background:#f9f9f9;border:1px solid #e0e0e0;border-radius:6px;padding:12px;margin-bottom:8px;">
@@ -423,9 +447,9 @@
           <select id="orc-pagto">
             <option value="">— Selecione —</option>
             <option value="À VISTA">À VISTA</option>
-            <option value="BOLETO 30">BOLETO 30</option>
-            <option value="BOLETO 30/60/90">BOLETO 30/60/90</option>
-            <option value="40% ENTRADA + 3X">40% ENTRADA + 3X</option>
+            <option value="BOLETO 30 DIAS">BOLETO 30 DIAS</option>
+            <option value="30/60/90 DIAS">30/60/90 DIAS</option>
+            <option value="ENTRADA (40%) + 3 PARCELAS">ENTRADA (40%) + 3 PARCELAS</option>
           </select>
         </div>
         <div>
@@ -855,7 +879,7 @@ function renderTipos() {
     data.tipos.filter(t => t.cat === cat).forEach(t => {
       const o = document.createElement('option');
       o.value = t.id;
-      o.textContent = `${t.nome} — ${fmt(t.preco)}/m²`;
+      o.textContent = `${t.nome}`;
       og.appendChild(o);
     });
     sel.appendChild(og);
@@ -1171,10 +1195,150 @@ function calcularFrete(cep) {
 let itensPendentesMovel = [];
 
 function onTipoMovelChange() {
-  // populate ambiente datalist from existing moveis
   const dl = document.getElementById('ambientes-list');
   const ambientes = [...new Set(orcamentoAtual.moveis.map(m => m.desc).filter(Boolean))];
   dl.innerHTML = ambientes.map(a => `<option value="${a}">`).join('');
+  previewCustoMovel();
+}
+
+function calcularCustoFacesMovel(tipoId, largMm, altMm, profMm) {
+  const tipo = data.tipos.find(t => t.id === tipoId);
+  if (!tipo) return { subtotal: 0, faces: [], breakdown: {} };
+
+  const L = largMm / 1000;
+  const A = altMm / 1000;
+  const P = (profMm || 0) / 1000;
+
+  function areaFace(eixo) {
+    if (eixo === 'lp') return L * P;
+    if (eixo === 'ph') return P * A;
+    return L * A; // lh (frente/traseira)
+  }
+
+  // ── CAMINHO 1: faces reais do Sistema de Custos ──────────────
+  if (tipo.faces && tipo.faces.length > 0) {
+    let totalMaterial = 0, totalFerragens = 0, totalMaoObra = 0, totalOverhead = 0;
+
+    // Custo de material por face
+    const faces = tipo.faces.map(f => {
+      const area = areaFace(f.eixo);
+      const custo = (f.custoM2 || 0) * area;
+      totalMaterial += custo;
+      return { nome: f.nome, matNome: f.matNome || '', area, custo };
+    });
+
+    // Custo de ferragens (por m² de área total de frente)
+    const areaRef = L * A;
+    if (tipo.ferragens && tipo.ferragens.length) {
+      tipo.ferragens.forEach(fer => {
+        totalFerragens += (fer.custoM2 || 0) * areaRef;
+      });
+    }
+
+    // Mão de obra e overhead por m²
+    const horasM2 = tipo.horasM2 || 0;
+    totalMaoObra = (tipo.custoMaoObraHora || 0) * horasM2 * areaRef;
+    totalOverhead = (tipo.custoOverheadHora || 0) * horasM2 * areaRef;
+
+    // Overhead estrutural + imposto + margem
+    const sub = totalMaterial + totalFerragens + totalMaoObra + totalOverhead;
+    const comOv = sub * (1 + (tipo.overheadPerc || 0) / 100);
+    const comImp = comOv * (1 + (tipo.impostoPerc || 0) / 100);
+    const final = comImp / (1 - (tipo.margemPerc || 0) / 100);
+
+    return {
+      subtotal: Math.round(final * 100) / 100,
+      faces,
+      breakdown: {
+        material: totalMaterial,
+        ferragens: totalFerragens,
+        maoObra: totalMaoObra,
+        overhead: totalOverhead,
+        overheadEst: comOv - sub,
+        imposto: comImp - comOv,
+        margem: final - comImp
+      }
+    };
+  }
+
+  // ── CAMINHO 2: fallback — preco/m² × área total ───────────────
+  const areaTotal = (L * A) + (P > 0 ? 2 * (P * A) + 2 * (L * P) : 0);
+  const subtotal = areaTotal * (tipo.preco || 0);
+  return {
+    subtotal: Math.round(subtotal * 100) / 100,
+    faces: [{ nome: 'Área total (estimativa)', matNome: `${fmtNum(tipo.preco)}/m²`, area: areaTotal, custo: subtotal }],
+    breakdown: {}
+  };
+}
+
+function previewCustoMovel() {
+  const tipoId = document.getElementById('mov-tipo').value;
+  const largMm = parseFloat(document.getElementById('mov-larg').value) || 0;
+  const altMm = parseFloat(document.getElementById('mov-alt').value) || 0;
+  const profMm = parseFloat(document.getElementById('mov-prof').value) || 0;
+  const preview = document.getElementById('mov-faces-preview');
+  if (!tipoId || !largMm || !altMm) { preview.style.display = 'none'; return; }
+
+  const result = calcularCustoFacesMovel(tipoId, largMm, altMm, profMm);
+  const tbody = document.getElementById('mov-faces-tbody');
+  tbody.innerHTML = result.faces.map(f => `
+    <tr>
+      <td>${f.nome}</td>
+      <td style="color:#666;font-size:11px;">${f.matNome}</td>
+      <td class="right">${f.area.toFixed(4)} m²</td>
+      <td class="right"><strong>${fmt(f.custo)}</strong></td>
+    </tr>`).join('');
+
+  // Breakdown detalhado se disponível
+  const bd = result.breakdown;
+  let bdHtml = '';
+  if (bd && bd.material !== undefined) {
+    bdHtml = `<div style="margin-top:8px;border-top:1px solid #e0e0e0;padding-top:8px;font-size:11px;color:#666;display:grid;grid-template-columns:1fr 1fr;gap:2px 16px;">
+      <span>Material:</span><span style="text-align:right">${fmt(bd.material)}</span>
+      ${bd.ferragens > 0 ? `<span>Ferragens:</span><span style="text-align:right">${fmt(bd.ferragens)}</span>` : ''}
+      ${bd.maoObra > 0 ? `<span>Mão de Obra:</span><span style="text-align:right">${fmt(bd.maoObra)}</span>` : ''}
+      ${bd.overhead > 0 ? `<span>Overhead/hora:</span><span style="text-align:right">${fmt(bd.overhead)}</span>` : ''}
+      ${bd.overheadEst > 0 ? `<span>Overhead estrutural:</span><span style="text-align:right">${fmt(bd.overheadEst)}</span>` : ''}
+      ${bd.imposto > 0 ? `<span>Imposto:</span><span style="text-align:right">${fmt(bd.imposto)}</span>` : ''}
+      ${bd.margem > 0 ? `<span>Margem de lucro:</span><span style="text-align:right">${fmt(bd.margem)}</span>` : ''}
+    </div>`;
+  }
+  document.getElementById('mov-faces-breakdown').innerHTML = bdHtml;
+  document.getElementById('mov-custo-material').textContent = fmt(result.subtotal);
+  preview.style.display = 'block';
+}
+
+function adicionarMovel() {
+  const tipoId = document.getElementById('mov-tipo').value;
+  const desc = document.getElementById('mov-desc').value.trim();
+  const obs = document.getElementById('mov-obs').value.trim();
+  const largMm = parseFloat(document.getElementById('mov-larg').value);
+  const altMm = parseFloat(document.getElementById('mov-alt').value);
+  const profMm = parseFloat(document.getElementById('mov-prof').value) || 0;
+  if (!tipoId) { alert('Selecione o tipo de móvel.'); return; }
+  if (!largMm || !altMm || largMm <= 0 || altMm <= 0) { alert('Informe largura e altura em mm.'); return; }
+  const tipo = data.tipos.find(t => t.id === tipoId);
+  const result = calcularCustoFacesMovel(tipoId, largMm, altMm, profMm);
+
+  orcamentoAtual.moveis.push({
+    id: uid(),
+    tipoNome: tipo.nome,
+    cat: tipo.cat,
+    desc, obs,
+    largMm, altMm, profMm,
+    faces: result.faces,
+    subtotal: result.subtotal,
+    itensAdicionais: JSON.parse(JSON.stringify(itensPendentesMovel))
+  });
+  itensPendentesMovel = [];
+  document.getElementById('mov-itens-preview').innerHTML = '';
+  document.getElementById('mov-desc').value = '';
+  document.getElementById('mov-obs').value = '';
+  document.getElementById('mov-larg').value = '';
+  document.getElementById('mov-alt').value = '';
+  document.getElementById('mov-prof').value = '';
+  document.getElementById('mov-faces-preview').style.display = 'none';
+  renderMoveis();
 }
 
 function onMovAddItemChange() {
@@ -1280,7 +1444,7 @@ function renderMoveis() {
       const obsHtml = m.obs ? `<div style="font-size:11px;color:#888;font-style:italic;margin-top:2px;">📝 ${m.obs}</div>` : '';
       return `<tr>
         <td><strong>${m.tipoNome}</strong>${obsHtml}${itensHtml}</td>
-        <td class="center" style="font-size:12px;color:#888;">${m.largMm} × ${m.altMm} mm</td>
+        <td class="center" style="font-size:12px;color:#888;">${m.largMm} × ${m.altMm}${m.profMm ? ' × ' + m.profMm : ''} mm</td>
         <td class="right"><strong>${fmt(totalMovel)}</strong></td>
         <td class="row-actions">
           <button class="btn small secondary" onclick="abrirEdicaoMovel('${m.id}')">✏️ Editar</button>
@@ -1313,7 +1477,7 @@ function abrirEdicaoMovel(id) {
 
   // Monta o combo de tipos
   const tiposOpts = data.tipos.map(t =>
-    `<option value="${t.id}" ${t.nome === m.tipoNome ? 'selected' : ''}>${t.nome} — ${fmt(t.preco)}/m²</option>`
+    `<option value="${t.id}" ${t.nome === m.tipoNome ? 'selected' : ''}>${t.nome}</option>`
   ).join('');
 
   // Monta o combo de itens adicionais
@@ -1344,6 +1508,10 @@ function abrirEdicaoMovel(id) {
         <div>
           <label>Altura (mm)</label>
           <input type="number" id="edit-mov-alt" value="${m.altMm || ''}" style="width:100%;padding:8px;border:1px solid #e0e0e0;border-radius:5px;font-size:14px;" />
+        </div>
+        <div>
+          <label>Profundidade (mm)</label>
+          <input type="number" id="edit-mov-prof" value="${m.profMm || ''}" style="width:100%;padding:8px;border:1px solid #e0e0e0;border-radius:5px;font-size:14px;" placeholder="0" />
         </div>
         <div style="grid-column:1/-1;">
           <label>Descrição opcional (aparece no PDF)</label>
@@ -1426,24 +1594,18 @@ function salvarEdicaoMovel() {
   const obs = document.getElementById('edit-mov-obs').value.trim();
   const largMm = parseFloat(document.getElementById('edit-mov-larg').value);
   const altMm = parseFloat(document.getElementById('edit-mov-alt').value);
+  const profMm = parseFloat(document.getElementById('edit-mov-prof').value) || 0;
   if (!largMm || !altMm || largMm <= 0 || altMm <= 0) { alert('Informe largura e altura em mm.'); return; }
   const tipo = data.tipos.find(t => t.id === tipoId);
-  const largM = largMm / 1000;
-  const altM = altMm / 1000;
-  const area = largM * altM;
+  const result = calcularCustoFacesMovel(tipoId, largMm, altMm, profMm);
   const idx = orcamentoAtual.moveis.findIndex(x => x.id === editandoMovelId);
   if (idx !== -1) {
     orcamentoAtual.moveis[idx] = {
       ...orcamentoAtual.moveis[idx],
-      tipoNome: tipo.nome,
-      cat: tipo.cat,
-      desc,
-      obs,
-      largMm, altMm,
-      larg: largM, alt: altM,
-      area,
-      precoM2: tipo.preco,
-      subtotal: area * tipo.preco,
+      tipoNome: tipo.nome, cat: tipo.cat,
+      desc, obs, largMm, altMm, profMm,
+      faces: result.faces,
+      subtotal: result.subtotal,
       itensAdicionais: JSON.parse(JSON.stringify(itensEdicaoMovel))
     };
   }
@@ -1548,6 +1710,7 @@ function limparOrcamento() {
   orcamentoAtual = { moveis: [], adicionais: [] };
   itensPendentesMovel = [];
   ['cli-nome','cli-cpfcnpj','cli-tel','cli-email','cli-rua','cli-numero','cli-bairro','cli-cidade','cli-cep','cli-end','orc-prazo','orc-obs'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  ['mov-larg','mov-alt','mov-prof','mov-desc','mov-obs'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
   document.getElementById('orc-pagto').value = '';
   document.getElementById('orc-desc').value = 0;
   document.getElementById('orc-acresc').value = 0;
@@ -1809,6 +1972,7 @@ function montarImpressao(o) {
         const totalMovel = m.subtotal + subtotalItens;
         html += `<tr>
           <td><strong>${m.tipoNome}</strong>${m.obs ? `<br><span style="font-size:10px;color:#555;font-style:italic;">${m.obs}</span>` : ''}</td>
+          <td style="text-align:right;font-size:10px;color:#888;">${m.largMm}×${m.altMm}${m.profMm?'×'+m.profMm:''} mm</td>
           <td style="text-align:right"><strong>${fmt(totalMovel)}</strong></td>
         </tr>`;
         if (m.itensAdicionais && m.itensAdicionais.length) {
@@ -1926,14 +2090,33 @@ function importarDoCustos() {
     if (marcPrices && marcPrices.length) {
       marcPrices.forEach(mp => {
         const cat = mp.cat || mp.categoria || mp.category || mp.tipo || 'Outros';
-        const existing = data.tipos.find(t => t.nome.trim().toLowerCase() === mp.nome.trim().toLowerCase());
+        const existing = data.tipos.find(t => String(t.id) === String('custos_' + mp.id) || t.nome.trim().toLowerCase() === mp.nome.trim().toLowerCase());
+        // Dados completos do tipo
+        const tipoData = {
+          cat,
+          nome: mp.nome,
+          preco: mp.preco,
+          _fromCustos: true,
+          // faces com custo/m² por material
+          faces: mp.faces || [],
+          // ferragens com custo/m²
+          ferragens: mp.ferragens || [],
+          // parâmetros de custo
+          dimLarg: mp.dimLarg || 800,
+          dimAlt: mp.dimAlt || 1800,
+          dimProf: mp.dimProf || 600,
+          horasM2: mp.horasM2 || 0,
+          custoMaoObraHora: mp.custoMaoObraHora || 0,
+          custoOverheadHora: mp.custoOverheadHora || 0,
+          overheadPerc: mp.overheadPerc || 0,
+          impostoPerc: mp.impostoPerc || 0,
+          margemPerc: mp.margemPerc || 0
+        };
         if (existing) {
-          let changed = false;
-          if (existing.preco !== mp.preco) { existing.preco = mp.preco; changed = true; }
-          if (cat && cat !== 'Outros' && existing.cat !== cat) { existing.cat = cat; changed = true; }
-          if (changed) updated++;
+          Object.assign(existing, tipoData);
+          updated++;
         } else {
-          data.tipos.push({ id: 'custos_' + mp.id, cat, nome: mp.nome, preco: mp.preco, _fromCustos: true });
+          data.tipos.push({ id: 'custos_' + mp.id, ...tipoData });
           importedPrices++;
         }
       });

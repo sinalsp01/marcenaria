@@ -147,7 +147,7 @@ tr:hover td{background:#f9f9f9}
 // ── CONSTANTES ───────────────────────────────────────────────────
 const T={white:"#2c2c2c",muted:"#999",faint:"#e4e4e4",green:"#4a7a5a",red:"#a33333",blue:"#2c2c2c",purple:"#2c2c2c",text:"#2c2c2c"};
 const SETORES=[{id:"admin",nome:"Administrador",cor:"#2c2c2c"},{id:"financeiro",nome:"Financeiro",cor:"#555"},{id:"vendas",nome:"Vendas",cor:"#555"},{id:"producao",nome:"Producao",cor:"#555"}];
-const PERMS={admin:[0,1,2,3,4,5],financeiro:[0,1,2,3,4],vendas:[0],producao:[1,2]};
+const PERMS={admin:[0,1,2,3,4,5],financeiro:[0,1,2,3,4],vendas:[0],producao:[1,2,3]};
 const ALL_TABS=[{i:0,l:"📊 Painel"},{i:1,l:"🪵 Materiais"},{i:2,l:"🔩 Ferragens"},{i:3,l:"🏗️ Composição"},{i:4,l:"⚙️ Config"},{i:5,l:"👥 Usuários"}];
 
 const DEF={
@@ -239,8 +239,63 @@ function save(){
 }
 async function sincronizar(){
   if(!db)return;
-  const prices=state.comps.map(c=>{const{final}=calcPreco(c);return{id:c.id,nome:c.nome,cat:c.catOrcamento||"Outros",preco:Math.round(final*100)/100,ativoDescricao:c.ativoDescricao!==false};});
+
+  // Monta preços com faces detalhadas por composição
+  const prices=state.comps.map(c=>{
+    const{final}=calcPreco(c);
+
+    // Monta faces com custo por m² de cada material
+    const faces=(c.faces||[]).map(f=>{
+      const mat=state.materiais.find(m=>String(m.id)===String(f.matId));
+      const custoM2=mat?Math.round(custoMat(mat)*100)/100:0;
+      return {
+        nome:f.nome,
+        eixo:f.eixo,
+        matId:f.matId,
+        matNome:mat?mat.nome:'',
+        custoM2,
+        ativoDescricao:f.ativoDescricao!==false
+      };
+    });
+
+    // Monta ferragens com quantidade e preço por unidade
+    const ferragens=(c.ferragens||[]).map(li=>{
+      const fer=state.ferragens.find(x=>String(x.id)===String(li.ferId));
+      return {
+        nome:fer?fer.nome:'',
+        precoUn:fer?Math.round(custoFer(fer)*100)/100:0,
+        qtd:li.qtd,
+        custoTotal:fer?Math.round(custoFer(fer)*li.qtd*100)/100:0,
+        ativoDescricao:li.ativoDescricao!==false
+      };
+    });
+
+    return {
+      id:c.id,
+      nome:c.nome,
+      cat:c.catOrcamento||"Outros",
+      preco:Math.round(final*100)/100,
+      ativoDescricao:c.ativoDescricao!==false,
+      // dimensões de referência
+      dimLarg:c.dimLarg||800,
+      dimAlt:c.dimAlt||1800,
+      dimProf:c.dimProf||600,
+      // faces com material e custo/m²
+      faces,
+      // ferragens com custo/m²
+      ferragens,
+      // parâmetros de custo
+      horasM2:c.horasM2||0,
+      custoMaoObraHora:Math.round(calcMaoObra()*100)/100,
+      custoOverheadHora:Math.round(calcOverheadHora()*100)/100,
+      overheadPerc:state.config.overheadPerc||0,
+      impostoPerc:state.config.impostoVendaPerc||0,
+      margemPerc:c.margemLucroPerc||0
+    };
+  });
+
   const extras=state.ferragens.filter(f=>f.ativoOrcamento!==false).map(f=>({id:f.id,nome:f.nome,preco:Math.round(custoFer(f)*100)/100}));
+
   await db.ref('marc_prices').set(prices);
   await db.ref('marc_extras').set(extras);
   const sm=ge("sync-msg");sm.textContent="✅ Sincronizado!";sm.style.display="inline";
@@ -251,7 +306,7 @@ async function sincronizar(){
 const fmt=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const pct=v=>`${(+v||0).toFixed(1)}%`;
 const genId=()=>Date.now()+Math.random();
-const custoMat=m=>m.custoCompra*(1+( m.perdaPerc||0)/100)*(1+(m.margemPerc||0)/100);
+// custoMat definido em MATERIAIS abaixo
 const custoFer=f=>f.custoCompra*(1+(f.margemPerc||0)/100);
 const setorInfo=id=>SETORES.find(s=>s.id===id)||SETORES[0];
 function ge(id){return document.getElementById(id);}
@@ -267,8 +322,8 @@ function calcOverheadHora(){
 }
 function calcPreco(comp){
   const mats=state.materiais,fers=state.ferragens,cfg=state.config;
-  const cm=(comp.materiais||[]).reduce((a,li)=>{const m=mats.find(x=>x.id===li.matId);return a+(m?custoMat(m)*li.qtd:0);},0);
-  const cf=(comp.ferragens||[]).reduce((a,li)=>{const f=fers.find(x=>x.id===li.ferId);return a+(f?custoFer(f)*li.qtd:0);},0);
+  const cm=(comp.materiais||[]).reduce((a,li)=>{const m=mats.find(x=>String(x.id)===String(li.matId));return a+(m?custoMat(m)*li.qtd:0);},0);
+  const cf=(comp.ferragens||[]).reduce((a,li)=>{const f=fers.find(x=>String(x.id)===String(li.ferId));return a+(f?custoFer(f)*li.qtd:0);},0);
   const maoH=calcMaoObra();
   const mao=maoH*(comp.horasM2||0);
   const ovH=calcOverheadHora();
@@ -381,7 +436,7 @@ function renderTabs(){
   const perms=PERMS[currentUser.setor]||[],tabs=ALL_TABS.filter(t=>perms.includes(t.i));
   h(ge("tabbar"),tabs.map(t=>`<button class="tab-btn${currentTab===t.i?" active":""}" onclick="switchTab(${t.i})">${t.l}</button>`).join(""));
 }
-function switchTab(i){currentTab=i;renderTabs();renderTab();}
+function switchTab(i){currentTab=i;renderTabs();renderTab();if(i===3)setTimeout(desenhar3D,80);}
 function renderTab(){
   const c=ge("content");h(c,"");
   if(currentTab===0)renderPainel(c);
@@ -390,6 +445,7 @@ function renderTab(){
   else if(currentTab===3)renderComposicao(c);
   else if(currentTab===4)renderConfig(c);
   else if(currentTab===5)renderUsuarios(c);
+  if(currentTab===3) setTimeout(desenhar3D,80);
 }
 
 // ── PAINEL ──────────────────────────────────────────────────────
@@ -418,12 +474,60 @@ function renderPainel(c){
 }
 
 // ── MATERIAIS ──────────────────────────────────────────────────
+const AREA_CHAPA_PADRAO=1.85*2.75; // 5.0875 m²
+const custoMat=m=>{
+  if(m.tipo==="rolo"){
+    // Preço do rolo ÷ tamanho do rolo = custo/metro
+    const roloM=m.roloM||50;
+    const custoM=(m.custoCompra||0)/roloM;
+    return custoM*(1+(m.perdaPerc||0)/100)*(1+(m.margemPerc||0)/100);
+  }
+  // Chapa: preço da chapa ÷ área da chapa = custo/m²
+  const areaChapa=(m.chapaLarg||1850)/1000*(m.chapaAlt||2750)/1000;
+  const custoM2=(m.custoCompra||0)/areaChapa;
+  return custoM2*(1+(m.perdaPerc||0)/100)*(1+(m.margemPerc||0)/100);
+};
 let matEditId=null,matFilter="Todos";
 function renderMateriais(c){
-  const UNIDADES=["m²","m","un","kg","L","cx"];
   const f=matEditId?state.materiais.find(m=>m.id===matEditId)||{}:{};
   const cats=state.catMat||[];
   const lista=matFilter==="Todos"?state.materiais:state.materiais.filter(m=>m.cat===matFilter);
+  const tipo=_matTempTipo||f.tipo||"chapa";
+  _matTempTipo=null; // reset after use
+  const chapaLarg=f.chapaLarg||1850;
+  const chapaAlt=f.chapaAlt||2750;
+  const areaChapa=(chapaLarg/1000)*(chapaAlt/1000);
+  const roloM=f.roloM||50;
+
+  // Formulário dinâmico por tipo
+  const camposChapa=`
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+      <div><label class="label">PREÇO DA CHAPA (R$)</label><input id="m-custo" type="number" value="${f.custoCompra||""}" placeholder="0.00" step="0.01" oninput="updMP()"/></div>
+      <div><label class="label">LARG. CHAPA (mm)</label><input id="m-chapa-larg" type="number" value="${chapaLarg}" step="1" min="1" oninput="updMP()"/></div>
+      <div><label class="label">ALT. CHAPA (mm)</label><input id="m-chapa-alt" type="number" value="${chapaAlt}" step="1" min="1" oninput="updMP()"/></div>
+      <div><label class="label">ÁREA DA CHAPA</label><div id="m-area-chapa" style="padding:8px 10px;background:#f5f5f5;border-radius:7px;font-size:12px;border:1px solid #e8e8e8;color:#666">${areaChapa.toFixed(4)} m²</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:12px">
+      <div><label class="label">CUSTO/m² (sem margem)</label><div id="m-custo-un" style="padding:8px 10px;background:#f5f5f5;border-radius:7px;font-size:12px;border:1px solid #e8e8e8;color:#555">${f.custoCompra?fmt(f.custoCompra/areaChapa)+"/m²":"—"}</div></div>
+      <div><label class="label">PERDA (%)</label><input id="m-perda" type="number" value="${f.perdaPerc??8}" step="0.5" oninput="updMP()"/></div>
+      <div><label class="label">MARGEM GANHO (%)</label><input id="m-marg" type="number" value="${f.margemPerc??20}" step="0.5" oninput="updMP()"/></div>
+      <div><label class="label">PREÇO FINAL/m²</label><div id="m-prev" style="padding:8px 10px;background:#f5f5f5;color:#2c2c2c;font-weight:700;border-radius:7px;font-size:12px;border:1px solid #e8e8e8">${f.custoCompra?fmt(custoMat(f))+"/m²":"—"}</div></div>
+    </div>`;
+
+  const camposRolo=`
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+      <div><label class="label">PREÇO DO ROLO (R$)</label><input id="m-custo" type="number" value="${f.custoCompra||""}" placeholder="0.00" step="0.01" oninput="updMP()"/></div>
+      <div><label class="label">TAMANHO DO ROLO (m)</label><input id="m-rolo-m" type="number" value="${roloM}" step="1" min="1" oninput="updMP()"/></div>
+      <div><label class="label">CUSTO/metro (sem margem)</label><div id="m-custo-un" style="padding:8px 10px;background:#f5f5f5;border-radius:7px;font-size:12px;border:1px solid #e8e8e8;color:#555">${f.custoCompra?fmt(f.custoCompra/roloM)+"/m":"—"}</div></div>
+      <div style="display:none"><input id="m-chapa-larg" value="1850"/><input id="m-chapa-alt" value="2750"/></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:12px">
+      <div style="visibility:hidden"><div id="m-area-chapa"></div></div>
+      <div><label class="label">PERDA (%)</label><input id="m-perda" type="number" value="${f.perdaPerc??5}" step="0.5" oninput="updMP()"/></div>
+      <div><label class="label">MARGEM GANHO (%)</label><input id="m-marg" type="number" value="${f.margemPerc??20}" step="0.5" oninput="updMP()"/></div>
+      <div><label class="label">PREÇO FINAL/metro</label><div id="m-prev" style="padding:8px 10px;background:#f5f5f5;color:#2c2c2c;font-weight:700;border-radius:7px;font-size:12px;border:1px solid #e8e8e8">${f.custoCompra?fmt(custoMat(f))+"/m":"—"}</div></div>
+    </div>`;
+
   c.innerHTML=`<div class="flex-col">
   <div class="card">
     <div class="card-title">${matEditId?"EDITAR MATERIAL":"NOVO MATERIAL"}</div>
@@ -435,14 +539,14 @@ function renderMateriais(c){
           <button class="btn-icon" title="Nova categoria" onclick="novaCategoriaMat()">＋</button>
         </div>
       </div>
-      <div><label class="label">UNIDADE</label><select id="m-und">${UNIDADES.map(u=>`<option${(f.unidade||"m²")===u?" selected":""}>${u}</option>`).join("")}</select></div>
+      <div><label class="label">TIPO DE MATERIAL</label>
+        <select id="m-tipo" onchange="onChangeTipoMat(this.value)" style="font-weight:600">
+          <option value="chapa"${tipo==="chapa"?" selected":""}>🪵 Chapa (m²)</option>
+          <option value="rolo"${tipo==="rolo"?" selected":""}>🎞️ Rolo (metro linear)</option>
+        </select>
+      </div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:12px">
-      <div><label class="label">CUSTO (R$/und)</label><input id="m-custo" type="number" value="${f.custoCompra||""}" placeholder="0.00" step="0.01" oninput="updMP()"/></div>
-      <div><label class="label">PERDA (%)</label><input id="m-perda" type="number" value="${f.perdaPerc??8}" step="0.5" oninput="updMP()"/></div>
-      <div><label class="label">MARGEM GANHO (%)</label><input id="m-marg" type="number" value="${f.margemPerc??20}" step="0.5" oninput="updMP()"/></div>
-      <div><label class="label">PREÇO FINAL</label><div id="m-prev" style="padding:8px 10px;background:#f5f5f5;color:#2c2c2c;font-weight:700;border-radius:7px;font-size:12px;border:1px solid #e8e8e8">${f.custoCompra?fmt(custoMat(f)):"—"}</div></div>
-    </div>
+    ${tipo==="rolo"?camposRolo:camposChapa}
     <div class="flex">
       <button class="btn btn-primary" onclick="saveMat()">${matEditId?"💾 Salvar":"＋ Adicionar"}</button>
       ${matEditId?`<button class="btn btn-ghost" onclick="cancelMatEdit()">Cancelar</button>`:""}
@@ -454,26 +558,94 @@ function renderMateriais(c){
       <div style="display:flex;gap:5px;flex-wrap:wrap">${["Todos",...cats].map(cat=>`<button class="pill${matFilter===cat?" active":""}" onclick="setMatFilter('${esc(cat)}')">${esc(cat)}</button>`).join("")}</div>
     </div>
     ${lista.length===0?`<div class="empty">Nenhum material.</div>`:`
-    <table><thead><tr><th>Nome</th><th>Cat.</th><th>Und.</th><th>Custo</th><th>Perda</th><th>Margem</th><th>Preço Final</th><th></th></tr></thead>
-    <tbody>${lista.map(m=>`<tr>
-      <td style="color:#2c2c2c;font-weight:600">${esc(m.nome)}</td>
-      <td><span class="tag">${esc(m.cat)}</span></td>
-      <td style="color:${T.muted}">${m.unidade}</td>
-      <td>${fmt(m.custoCompra)}</td>
-      <td style="color:${T.muted}">${pct(m.perdaPerc)}</td>
-      <td style="color:${T.muted}">${pct(m.margemPerc||0)}</td>
-      <td style="color:#2c2c2c;font-weight:700">${fmt(custoMat(m))}/${m.unidade}</td>
-      <td><div class="flex"><button class="btn-icon" onclick="editMat(${m.id})">✏</button><button class="btn-icon danger" onclick="delMat(${m.id})">✕</button></div></td>
-    </tr>`).join("")}</tbody></table>`}
+    <table><thead><tr><th>Nome</th><th>Cat.</th><th>Tipo</th><th>Tamanho</th><th>Preço</th><th>Perda</th><th>Margem</th><th>Preço Final</th><th></th></tr></thead>
+    <tbody>${lista.map(m=>{
+      const isRolo=m.tipo==="rolo";
+      const tam=isRolo?`Rolo ${m.roloM||50}m`:`${m.chapaLarg||1850}×${m.chapaAlt||2750}mm`;
+      const finalLbl=isRolo?fmt(custoMat(m))+"/m":fmt(custoMat(m))+"/m²";
+      return `<tr>
+        <td style="color:#2c2c2c;font-weight:600">${esc(m.nome)}</td>
+        <td><span class="tag">${esc(m.cat)}</span></td>
+        <td><span style="font-size:10px;background:${isRolo?"#fff3e0":"#e8f5e9"};color:${isRolo?"#e65100":"#2e7d32"};border-radius:10px;padding:2px 8px;font-weight:600">${isRolo?"🎞️ ROLO":"🪵 CHAPA"}</span></td>
+        <td style="color:${T.muted};font-size:11px">${tam}</td>
+        <td>${fmt(m.custoCompra)}</td>
+        <td style="color:${T.muted}">${pct(m.perdaPerc)}</td>
+        <td style="color:${T.muted}">${pct(m.margemPerc||0)}</td>
+        <td style="color:#2c2c2c;font-weight:700">${finalLbl}</td>
+        <td><div class="flex"><button class="btn-icon" onclick="editMat(${m.id})">✏</button><button class="btn-icon danger" onclick="delMat(${m.id})">✕</button></div></td>
+      </tr>`;
+    }).join("")}</tbody></table>`}
   </div></div>`;
 }
-function novaCategoriaMat(){abrirModalCat(state.catMat,"Categorias de Materiais");}
-function updMP(){const c=+ge("m-custo").value,p=+ge("m-perda").value,mg=+ge("m-marg").value;ge("m-prev").textContent=c?fmt(c*(1+p/100)*(1+mg/100)):"—";}
+let _matTempTipo=null;
+function onChangeTipoMat(val){
+  // Salva dados atuais do formulário antes de re-renderizar
+  _matTempTipo=val;
+  // Preserva os valores já digitados
+  const nome=ge("m-nome")?ge("m-nome").value:"";
+  const cat=ge("m-cat")?ge("m-cat").value:"";
+  const custo=ge("m-custo")?ge("m-custo").value:"";
+  const perda=ge("m-perda")?ge("m-perda").value:"8";
+  const marg=ge("m-marg")?ge("m-marg").value:"20";
+  // Se estiver editando, atualiza o tipo temporariamente
+  if(matEditId){
+    state.materiais=state.materiais.map(m=>m.id===matEditId?{...m,tipo:val}:m);
+  } else {
+    // Novo material: guarda estado temporário
+    window._matTemp={nome,cat,custo,perda,marg,tipo:val};
+  }
+  renderTab();
+  // Restaura campos após re-render
+  setTimeout(()=>{
+    if(ge("m-nome")&&nome) ge("m-nome").value=nome;
+    if(ge("m-cat")&&cat){const s=ge("m-cat");for(let o of s.options)if(o.value===cat){o.selected=true;break;}}
+    if(ge("m-custo")&&custo) ge("m-custo").value=custo;
+    if(ge("m-perda")&&perda) ge("m-perda").value=perda;
+    if(ge("m-marg")&&marg) ge("m-marg").value=marg;
+    updMP();
+  },10);
+}
+function updMP(){
+  const tipo=ge("m-tipo")?ge("m-tipo").value:"chapa";
+  const preco=+ge("m-custo").value||0;
+  const perda=+ge("m-perda").value||0;
+  const marg=+ge("m-marg").value||0;
+  if(tipo==="rolo"){
+    const roloM=+ge("m-rolo-m").value||50;
+    const custoM=preco/roloM;
+    const final=custoM*(1+perda/100)*(1+marg/100);
+    const unEl=ge("m-custo-un"); if(unEl) unEl.textContent=preco?fmt(custoM)+"/m":"—";
+    const pEl=ge("m-prev"); if(pEl) pEl.textContent=preco?fmt(final)+"/m":"—";
+  } else {
+    const larg=+ge("m-chapa-larg").value||1850;
+    const alt=+ge("m-chapa-alt").value||2750;
+    const area=(larg/1000)*(alt/1000);
+    const custoM2=preco/area;
+    const final=custoM2*(1+perda/100)*(1+marg/100);
+    const aEl=ge("m-area-chapa"); if(aEl) aEl.textContent=area.toFixed(4)+" m²";
+    const unEl=ge("m-custo-un"); if(unEl) unEl.textContent=preco?fmt(custoM2)+"/m²":"—";
+    const pEl=ge("m-prev"); if(pEl) pEl.textContent=preco?fmt(final)+"/m²":"—";
+  }
+}
 function setMatFilter(cat){matFilter=cat;renderTab();}
 function saveMat(){
   const nome=ge("m-nome").value.trim().toUpperCase(),custo=ge("m-custo").value;
   if(!nome||!custo)return;
-  const d={nome,cat:ge("m-cat").value,unidade:ge("m-und").value,custoCompra:+custo,perdaPerc:+ge("m-perda").value,margemPerc:+ge("m-marg").value};
+  const tipo=ge("m-tipo")?ge("m-tipo").value:"chapa";
+  const d={
+    nome,cat:ge("m-cat").value,
+    tipo,
+    unidade:tipo==="rolo"?"m":"m²",
+    custoCompra:+custo,
+    perdaPerc:+ge("m-perda").value,
+    margemPerc:+ge("m-marg").value
+  };
+  if(tipo==="rolo"){
+    d.roloM=+ge("m-rolo-m").value||50;
+  } else {
+    d.chapaLarg=+ge("m-chapa-larg").value||1850;
+    d.chapaAlt=+ge("m-chapa-alt").value||2750;
+  }
   if(matEditId){state.materiais=state.materiais.map(m=>m.id===matEditId?{...m,...d}:m);matEditId=null;}
   else state.materiais.push({...d,id:genId(),ativo:true});
   save();renderTab();
@@ -558,7 +730,19 @@ let compSel=null,compData={};
 function loadComp(id){
   const c=state.comps.find(x=>x.id===id);if(!c)return;
   compSel=c.id;
-  compData={nome:c.nome,catOrcamento:c.catOrcamento||"Outros",margemLucroPerc:c.margemLucroPerc,horasM2:c.horasM2,ativoDescricao:c.ativoDescricao!==false,materiais:[...c.materiais.map(x=>({...x}))],ferragens:[...c.ferragens.map(x=>({...x}))]};
+  compData={
+    nome:c.nome,
+    catOrcamento:c.catOrcamento||"Outros",
+    margemLucroPerc:c.margemLucroPerc,
+    horasM2:c.horasM2,
+    ativoDescricao:c.ativoDescricao!==false,
+    dimLarg:c.dimLarg||800,
+    dimAlt:c.dimAlt||1800,
+    dimProf:c.dimProf||600,
+    faces:c.faces?c.faces.map(x=>({...x})):FACES_COMP_PADRAO(),
+    materiais:[...( c.materiais||[]).map(x=>({...x}))],
+    ferragens:[...(c.ferragens||[]).map(x=>({...x}))]
+  };
 }
 function renderComposicao(container){
   if(!compSel&&state.comps.length>0)loadComp(state.comps[0].id);
@@ -570,19 +754,9 @@ function renderComposicao(container){
     <div style="font-size:10px;color:#4a7a5a;margin-top:2px">${fmt(final)}/m²</div>
     <div style="font-size:9px;color:${T.muted};margin-top:2px">${esc(c.catOrcamento||"Outros")}</div>
   </div>`;}).join("");
-  const mRows=(compData.materiais||[]).map((li,i)=>{const m=state.materiais.find(x=>x.id===li.matId);const opts=state.materiais.map(x=>`<option value="${x.id}"${x.id===li.matId?" selected":""}>${esc(x.nome)} (${x.unidade})</option>`).join("");const ativo=li.ativoDescricao!==false;return`<div style="display:grid;grid-template-columns:2fr 1fr auto auto auto;gap:8px;align-items:end;margin-bottom:8px">
-    <select onchange="cmc(${i},'matId',+this.value)">${opts}</select>
-    <div><label class="label">QTD/${m?m.unidade:"un"}/m²</label><input type="number" value="${li.qtd}" step="0.1" min="0" oninput="cmc(${i},'qtd',+this.value)"/></div>
-    <div style="font-size:11px;color:#2c2c2c;font-weight:700;white-space:nowrap;padding-bottom:2px">${m?fmt(custoMat(m)*li.qtd):"-"}</div>
-    <label class="tog" title="Exibir na descrição do orçamento" style="padding-bottom:2px">
-      <input type="checkbox" ${ativo?"checked":""} onchange="cmc(${i},'ativoDescricao',this.checked)"/>
-      <div class="tog-track"></div>
-    </label>
-    <button class="btn-icon danger" onclick="cmdel(${i})">✕</button>
-  </div>`;}).join("");
   const fRows=(compData.ferragens||[]).map((li,i)=>{const f=state.ferragens.find(x=>x.id===li.ferId);const opts=state.ferragens.map(x=>`<option value="${x.id}"${x.id===li.ferId?" selected":""}>${esc(x.nome)}</option>`).join("");const ativo=li.ativoDescricao!==false;return`<div style="display:grid;grid-template-columns:2fr 1fr auto auto auto;gap:8px;align-items:end;margin-bottom:8px">
     <select onchange="cfc(${i},'ferId',+this.value)">${opts}</select>
-    <div><label class="label">QTD/m²</label><input type="number" value="${li.qtd}" step="0.1" min="0" oninput="cfc(${i},'qtd',+this.value)"/></div>
+    <div><label class="label">QTD (un)</label><input type="number" value="${li.qtd}" step="1" min="0" oninput="cfc(${i},'qtd',+this.value)"/></div>
     <div style="font-size:11px;color:#2c2c2c;font-weight:700;white-space:nowrap;padding-bottom:2px">${f?fmt(custoFer(f)*li.qtd):"-"}</div>
     <label class="tog" title="Exibir na descrição do orçamento" style="padding-bottom:2px">
       <input type="checkbox" ${ativo?"checked":""} onchange="cfc(${i},'ativoDescricao',this.checked)"/>
@@ -628,16 +802,94 @@ function renderComposicao(container){
         </div>
       </div>
     </div>
-    <div class="card">
+    <div class="card" id="card-faces">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <div class="card-title" style="margin-bottom:0">MATERIAIS (por m²)</div>
-        <span style="font-size:9px;color:${T.muted}">Toggle = exibir na descrição do orçamento</span>
+        <div class="card-title" style="margin-bottom:0">📐 FACES DO MÓVEL — MATERIAIS POR FACE</div>
+        <button class="btn btn-ghost btn-sm" onclick="adicionarFaceComp()">＋ Nova face</button>
       </div>
-      ${mRows}<button class="btn btn-ghost btn-sm" style="margin-top:6px" onclick="cmadd()">＋ Material</button>
+      <!-- Dimensões de referência -->
+      <div style="background:#f7f7f7;border:1px solid #e8e8e8;border-radius:8px;padding:12px 14px;margin-bottom:16px;">
+        <div style="font-size:10px;font-weight:700;color:#888;letter-spacing:1px;margin-bottom:8px;">DIMENSÕES DE REFERÊNCIA (apenas para visualização 3D — a medida real é definida no orçamento)</div>
+        <div class="grid3" style="gap:12px;max-width:480px">
+          <div>
+            <label class="label">LARGURA (mm)</label>
+            <input type="number" id="comp-larg" value="${compData.dimLarg||800}" step="1" min="0" onchange="onDimChange()"/>
+          </div>
+          <div>
+            <label class="label">ALTURA (mm)</label>
+            <input type="number" id="comp-alt" value="${compData.dimAlt||1800}" step="1" min="0" onchange="onDimChange()"/>
+          </div>
+          <div>
+            <label class="label">PROFUNDIDADE (mm)</label>
+            <input type="number" id="comp-prof" value="${compData.dimProf||600}" step="1" min="0" onchange="onDimChange()"/>
+          </div>
+        </div>
+      </div>
+      <!-- VISUALIZAÇÃO 3D -->
+      <div style="display:flex;gap:20px;align-items:flex-start;margin-bottom:16px;flex-wrap:wrap;">
+        <div id="movel-3d-wrap" style="width:320px;height:320px;border-radius:10px;background:#1a1a2e;border:1px solid #333;flex-shrink:0;position:relative;overflow:hidden;">
+          <canvas id="movel-3d" style="width:100%;height:100%;display:block;cursor:grab"></canvas>
+          <div style="position:absolute;bottom:8px;left:0;right:0;text-align:center;font-size:9px;color:#666;letter-spacing:1px">ARRASTE PARA GIRAR · SCROLL PARA ZOOM</div>
+        </div>
+        <div id="legenda-3d" style="font-size:12px;line-height:2.2;padding-top:8px;flex:1;min-width:160px"></div>
+      </div>
+      <!-- Faces -->
+      <div id="faces-lista">
+        ${(compData.faces||[]).map((f,i)=>renderFaceRow(f,i)).join("")}
+      </div>
+      <div style="margin-top:10px;background:#f7f7f7;border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;font-size:12px">
+        <span style="color:#666">Custo total de material das faces:</span>
+        <strong id="custo-total-faces" style="color:#2c2c2c;font-size:14px">${fmt(calcCustoFaces())}</strong>
+      </div>
+    </div>
+    <!-- RESUMO DE CONSUMO -->
+    <div class="card">
+      <div class="card-title">📊 RESUMO DE CONSUMO</div>
+      <table>
+        <thead><tr>
+          <th>Face</th>
+          <th>Material</th>
+          <th style="text-align:right">Área (m²)</th>
+          <th style="text-align:right">Preço/m²</th>
+          <th style="text-align:right">Custo</th>
+        </tr></thead>
+        <tbody id="resumo-consumo-tbody">
+          ${(()=>{
+            const dim={larg:compData.dimLarg||800,alt:compData.dimAlt||1800,prof:compData.dimProf||600};
+            return (compData.faces||[]).map(f=>{
+              const area=areaFaceComp(f,dim);
+              const mat=state.materiais.find(m=>String(m.id)===String(f.matId));
+              const custoUnit=mat?custoMat(mat):0;
+              const custo=custoUnit*area;
+              return `<tr>
+                <td style="font-weight:600">${esc(f.nome)}</td>
+                <td>${mat?esc(mat.nome):`<span style="color:#bbb">Não selecionado</span>`}</td>
+                <td style="text-align:right">${area.toFixed(4)}</td>
+                <td style="text-align:right">${custoUnit>0?fmt(custoUnit)+" /m²":"—"}</td>
+                <td style="text-align:right;font-weight:700;color:${custo>0?"#2c2c2c":"#bbb"}">${custo>0?fmt(custo):"—"}</td>
+              </tr>`;
+            }).join("");
+          })()}
+        </tbody>
+        <tfoot>
+          <tr style="border-top:2px solid #e4e4e4;background:#fafafa">
+            <td colspan="2" style="font-weight:700">TOTAL</td>
+            <td id="resumo-total-area" style="text-align:right;font-weight:700">${(()=>{
+              const dim={larg:compData.dimLarg||800,alt:compData.dimAlt||1800,prof:compData.dimProf||600};
+              return (compData.faces||[]).reduce((s,f)=>s+areaFaceComp(f,dim),0).toFixed(4);
+            })()}</td>
+            <td></td>
+            <td id="resumo-total-custo" style="text-align:right;font-weight:800;color:#2c2c2c;font-size:14px">${fmt(calcCustoFaces())}</td>
+          </tr>
+        </tfoot>
+      </table>
+      <div style="margin-top:10px;font-size:10px;color:#999">
+        * Custo calculado com base nas dimensões de referência acima. O valor real será recalculado no orçamento com as medidas do cliente.
+      </div>
     </div>
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <div class="card-title" style="margin-bottom:0">FERRAGENS (por m²)</div>
+        <div class="card-title" style="margin-bottom:0">FERRAGENS (por unidade)</div>
         <span style="font-size:9px;color:${T.muted}">Toggle = exibir na descrição do orçamento</span>
       </div>
       ${fRows}<button class="btn btn-ghost btn-sm" style="margin-top:6px" onclick="cfadd()">＋ Ferragem</button>
@@ -655,9 +907,18 @@ function refreshBdown(){
   // (o valor já foi atualizado no compData via oninput)
 }
 function abrirModalCatComp(){abrirModalCat(state.catComp,"Categorias de Composição");}
-function selComp(id){loadComp(id);renderTab();}
-function novoComp(){if(!state.catComp)state.catComp=["Cozinha","Dormitório/Closet","Banheiro/Lavanderia","Sala/Home/Comercial","Outros"];const c={id:genId(),nome:"Novo Tipo",catOrcamento:state.catComp[0]||"Outros",margemLucroPerc:45,horasM2:2.5,materiais:[],ferragens:[]};state.comps.push(c);loadComp(c.id);save();renderTab();}
-function salvarComp(){state.comps=state.comps.map(c=>c.id===compSel?{...c,...compData}:c);save();renderTab();}
+function selComp(id){loadComp(id);renderTab();setTimeout(desenhar3D,80);}
+function novoComp(){
+  if(!state.catComp)state.catComp=["Cozinha","Dormitório/Closet","Banheiro/Lavanderia","Sala/Home/Comercial","Outros"];
+  const c={id:genId(),nome:"Novo Tipo",catOrcamento:state.catComp[0]||"Outros",margemLucroPerc:45,horasM2:2.5,
+    dimLarg:800,dimAlt:1800,dimProf:600,faces:FACES_COMP_PADRAO(),materiais:[],ferragens:[]};
+  state.comps.push(c);loadComp(c.id);save();renderTab();
+}
+function salvarComp(){
+  atualizarMateriaisDesFaces();
+  state.comps=state.comps.map(c=>c.id===compSel?{...c,...compData}:c);
+  save();renderTab();setTimeout(desenhar3D,80);
+}
 function delComp(){if(!confirm("Excluir?"))return;state.comps=state.comps.filter(c=>c.id!==compSel);compSel=null;compData={};save();renderTab();}
 function cmadd(){compData.materiais.push({matId:state.materiais[0]?.id,qtd:1});renderTab();}
 function cmdel(i){compData.materiais.splice(i,1);renderTab();}
@@ -665,6 +926,593 @@ function cmc(i,k,v){compData.materiais[i][k]=v;renderTab();}
 function cfadd(){compData.ferragens.push({ferId:state.ferragens[0]?.id,qtd:1});renderTab();}
 function cfdel(i){compData.ferragens.splice(i,1);renderTab();}
 function cfc(i,k,v){compData.ferragens[i][k]=v;renderTab();}
+
+// ── FACES NA COMPOSIÇÃO ─────────────────────────────────────────
+function FACES_COMP_PADRAO(){
+  return [
+    {id:1,nome:"BASE",       eixo:"lp",tipo:"base",     espMm:15,altTravMm:0,matId:"",ativoDescricao:true},
+    {id:2,nome:"TOPO",       eixo:"lp",tipo:"topo",     espMm:15,altTravMm:0,matId:"",ativoDescricao:true},
+    {id:3,nome:"LATERAL ESQ",eixo:"ph",tipo:"lateral",  espMm:15,altTravMm:0,matId:"",ativoDescricao:true},
+    {id:4,nome:"LATERAL DIR",eixo:"ph",tipo:"lateral",  espMm:15,altTravMm:0,matId:"",ativoDescricao:true},
+    {id:5,nome:"TRASEIRA",   eixo:"lh",tipo:"traseira", espMm:6, altTravMm:0,matId:"",ativoDescricao:true},
+    {id:6,nome:"PORTA",      eixo:"lh",tipo:"porta",    espMm:18,altTravMm:0,matId:"",ativoDescricao:true}
+  ];
+}
+
+const TIPOS_FACE_PRESET=[
+  {tipo:"base",      nome:"BASE",        eixo:"lp", espMm:15},
+  {tipo:"topo",      nome:"TOPO",        eixo:"lp", espMm:15},
+  {tipo:"lateral",   nome:"LATERAL ESQ", eixo:"ph", espMm:15},
+  {tipo:"lateral",   nome:"LATERAL DIR", eixo:"ph", espMm:15},
+  {tipo:"traseira",  nome:"TRASEIRA",    eixo:"lh", espMm:6},
+  {tipo:"porta",     nome:"PORTA",       eixo:"lh", espMm:18},
+  {tipo:"travessa",  nome:"TRAVESSA",    eixo:"lp", espMm:15},
+  {tipo:"prateleira",nome:"PRATELEIRA",  eixo:"lp", espMm:15},
+  {tipo:"custom",    nome:"PERSONALIZAR",eixo:"lh", espMm:15}
+];
+
+function areaFaceComp(face,dim){
+  const l=dim.larg/1000, a=dim.alt/1000, p=dim.prof/1000;
+  if(face.tipo==="travessa"||face.tipo==="prateleira"){
+    const esp=(face.altTravMm||100)/1000; // largura da travessa
+    if(face.eixo==="lp") return l*p;         // deitada
+    if(face.eixo==="lh") return l*a;         // em pé eixo Z (L × A)
+    if(face.eixo==="ph") return p*a;         // em pé eixo X (P × A)
+  }
+  if(face.eixo==="lp") return l*p;
+  if(face.eixo==="ph") return p*a;
+  return l*a;
+}
+
+function renderFaceRow(f,i){
+  const dim={larg:compData.dimLarg||800,alt:compData.dimAlt||1800,prof:compData.dimProf||600};
+  const area=areaFaceComp(f,dim);
+  const matSel=state.materiais.find(m=>String(m.id)===String(f.matId));
+  const isRolo=matSel&&matSel.tipo==="rolo";
+  const metrosLin=f.metrosLin||1;
+  const qtdFace=isRolo?metrosLin:area; // rolo usa metros lineares, chapa usa área
+  const custo=matSel?custoMat(matSel)*qtdFace:0;
+  const esp=f.espMm||15;
+  const matOpts='<option value="">— Selecione material —</option>'+
+    state.materiais.map(m=>{
+      const isRolo=m.tipo==="rolo";
+      const unit=isRolo?"/m":"/m²";
+      return '<option value="'+m.id+'"'+(String(f.matId)===String(m.id)?' selected':'')+'>'+esc(m.nome)+' ('+fmt(custoMat(m))+unit+')'+(isRolo?' 🎞️':'')+'</option>';
+    }).join('');
+  const ativo=f.ativoDescricao!==false;
+  const isTrav=f.tipo==='travessa'||f.tipo==='prateleira';
+
+  const eixoOpts=isTrav
+    ? '<option value="lp"'+(f.eixo==='lp'?' selected':'')+'>Deitada (L × P)</option>'
+    + '<option value="lh"'+(f.eixo==='lh'?' selected':'')+'>Em pé — eixo Z (L × A)</option>'
+    + '<option value="ph"'+(f.eixo==='ph'?' selected':'')+'>Em pé — eixo X (P × A)</option>'
+    : '<option value="lp"'+(f.eixo==='lp'?' selected':'')+'>L × P (Base/Topo)</option>'
+    + '<option value="ph"'+(f.eixo==='ph'?' selected':'')+'>P × A (Lateral)</option>'
+    + '<option value="lh"'+(f.eixo==='lh'?' selected':'')+'>L × A (Frente/Tras.)</option>';
+
+  const espOpts=
+    '<option value="6"' +(esp===6 ?' selected':'')+'>6mm</option>'+
+    '<option value="15"'+(esp===15?' selected':'')+'>15mm</option>'+
+    '<option value="18"'+(esp===18?' selected':'')+'>18mm</option>'+
+    '<option value="25"'+(esp===25?' selected':'')+'>25mm</option>';
+
+  const altTravField=isTrav
+    ? '<div><label class="label">ALT. (mm)</label>'
+    + '<input type="number" id="alt-trav-'+i+'" value="'+(f.altTravMm||100)+'" min="1" step="1" style="text-align:center"'
+    + ' onchange="compData.faces['+i+'].altTravMm=+this.value;atualizarMateriaisDesFaces();atualizarResumoFaces();setTimeout(desenhar3D,80)"'
+    + ' oninput="compData.faces['+i+'].altTravMm=+this.value;atualizarMateriaisDesFaces();atualizarResumoFaces();"/></div>'
+    : '';
+
+  const roloField=isRolo
+    ? '<div><label class="label">METROS LINEARES</label>'
+    + '<input type="number" id="rolo-ml-'+i+'" value="'+metrosLin+'" min="0" step="0.1" style="text-align:center"'
+    + ' oninput="compData.faces['+i+'].metrosLin=+this.value;atualizarMateriaisDesFaces();atualizarResumoFaces()"/></div>'
+    : '';
+
+  const areaLabel=isRolo?(metrosLin.toFixed(2)+" m"):(area.toFixed(4)+" m²");
+  const cols='150px 1fr 140px '+(isTrav?'90px ':'')+( isRolo?'90px ':'')+' auto auto auto';
+
+  return '<div id="face-row-'+i+'" style="background:#fff;border:1px solid #eee;border-radius:7px;padding:10px 12px;margin-bottom:8px;">'
+    +'<div style="display:grid;grid-template-columns:'+cols+';gap:8px;align-items:end;">'
+    +'<div><label class="label">FACE</label>'
+    +'<input value="'+esc(f.nome)+'" style="text-transform:uppercase;font-weight:700"'
+    +' oninput="this.value=this.value.toUpperCase();compData.faces['+i+'].nome=this.value"/></div>'
+    +'<div><label class="label">MATERIAL</label>'
+    +'<select onchange="onFaceMatChange('+i+',this.value)">'+matOpts+'</select></div>'
+    +'<div><label class="label">POSIÇÃO</label>'
+    +'<select onchange="onFaceEixoChange('+i+',this.value)">'+eixoOpts+'</select></div>'
+    +altTravField
+    +roloField
+    +'<div id="face-area-'+i+'" style="font-size:10px;color:#888;white-space:nowrap;padding-bottom:4px">'+areaLabel+'</div>'
+    +'<div id="face-custo-'+i+'" style="font-size:11px;color:#2c2c2c;font-weight:700;white-space:nowrap;padding-bottom:4px">'+(custo>0?fmt(custo):'—')+'</div>'
+    +'<label class="tog" title="Exibir na descrição do orçamento" style="padding-bottom:4px">'
+    +'<input type="checkbox" '+(ativo?'checked':'')+' onchange="compData.faces['+i+'].ativoDescricao=this.checked"/>'
+    +'<div class="tog-track"></div></label>'
+    +'<button class="btn-icon danger" onclick="removerFaceComp('+i+')">✕</button>'
+    +'</div></div>';
+}
+
+function calcCustoFaces(){
+  const dim={larg:compData.dimLarg||800,alt:compData.dimAlt||1800,prof:compData.dimProf||600};
+  return (compData.faces||[]).reduce((s,f)=>{
+    const area=areaFaceComp(f,dim);
+    const mat=state.materiais.find(m=>String(m.id)===String(f.matId));
+    return s+(mat?custoMat(mat)*area:0);
+  },0);
+}
+
+function onDimChange(){
+  compData.dimLarg=+(document.getElementById("comp-larg")||{value:800}).value||800;
+  compData.dimAlt=+(document.getElementById("comp-alt")||{value:1800}).value||1800;
+  compData.dimProf=+(document.getElementById("comp-prof")||{value:600}).value||600;
+  atualizarMateriaisDesFaces();
+  atualizarResumoFaces();
+  setTimeout(desenhar3D,80);
+}
+
+function onFaceMatChange(i,val){
+  compData.faces[i].matId=val;
+  atualizarMateriaisDesFaces();
+  atualizarResumoFaces();
+  setTimeout(desenhar3D,80);
+}
+
+function onFaceEixoChange(i,val){
+  compData.faces[i].eixo=val;
+  atualizarMateriaisDesFaces();
+  atualizarResumoFaces();
+  setTimeout(desenhar3D,80);
+}
+
+function atualizarResumoFaces(){
+  // Atualiza área e custo por linha sem recriar DOM
+  const dim={larg:compData.dimLarg||800,alt:compData.dimAlt||1800,prof:compData.dimProf||600};
+  (compData.faces||[]).forEach((f,i)=>{
+    const mat=state.materiais.find(m=>String(m.id)===String(f.matId));
+    const isRolo=mat&&mat.tipo==="rolo";
+    const qtd=isRolo?(f.metrosLin||1):areaFaceComp(f,dim);
+    const custo=mat?custoMat(mat)*qtd:0;
+    const aEl=document.getElementById("face-area-"+i);
+    const cEl=document.getElementById("face-custo-"+i);
+    if(aEl) aEl.textContent=isRolo?(qtd.toFixed(2)+" m"):(qtd.toFixed(4)+" m²");
+    if(cEl) cEl.textContent=custo>0?fmt(custo):"—";
+  });
+  // Total
+  const tot=document.getElementById("custo-total-faces");
+  if(tot) tot.textContent=fmt(calcCustoFaces());
+  // Resumo de consumo
+  atualizarTabelaResumo();
+}
+
+function atualizarTabelaResumo(){
+  const tbody=document.getElementById("resumo-consumo-tbody");
+  const totArea=document.getElementById("resumo-total-area");
+  const totCusto=document.getElementById("resumo-total-custo");
+  if(!tbody) return;
+  const dim={larg:compData.dimLarg||800,alt:compData.dimAlt||1800,prof:compData.dimProf||600};
+  const faces=compData.faces||[];
+  let totalArea=0,totalCusto=0;
+  tbody.innerHTML=faces.map(f=>{
+    const area=areaFaceComp(f,dim);
+    const mat=state.materiais.find(m=>String(m.id)===String(f.matId));
+    const custoUnit=mat?custoMat(mat):0;
+    const custo=custoUnit*area;
+    totalArea+=area; totalCusto+=custo;
+    return `<tr>
+      <td style="font-weight:600">${esc(f.nome)}</td>
+      <td>${mat?esc(mat.nome):`<span style="color:#bbb">Não selecionado</span>`}</td>
+      <td style="text-align:right">${area.toFixed(4)}</td>
+      <td style="text-align:right">${custoUnit>0?fmt(custoUnit)+" /m²":"—"}</td>
+      <td style="text-align:right;font-weight:700;color:${custo>0?"#2c2c2c":"#bbb"}">${custo>0?fmt(custo):"—"}</td>
+    </tr>`;
+  }).join("");
+  if(totArea) totArea.textContent=totalArea.toFixed(4);
+  if(totCusto) totCusto.textContent=fmt(totalCusto);
+}
+
+function atualizarMateriaisDesFaces(){
+  if(!compData.faces) return;
+  const dim={larg:compData.dimLarg||800,alt:compData.dimAlt||1800,prof:compData.dimProf||600};
+  const agrupado={};
+  compData.faces.forEach(f=>{
+    if(!f.matId) return;
+    const key=String(f.matId);
+    const mat=state.materiais.find(m=>String(m.id)===key);
+    const isRolo=mat&&mat.tipo==="rolo";
+    const qtd=isRolo?(f.metrosLin||1):areaFaceComp(f,dim);
+    if(!agrupado[key]) agrupado[key]={matId:f.matId,qtd:0,ativoDescricao:f.ativoDescricao};
+    agrupado[key].qtd+=qtd;
+  });
+  compData.materiais=Object.values(agrupado);
+}
+function adicionarFaceComp(){
+  if(!compData.faces) compData.faces=FACES_COMP_PADRAO();
+  // Mostra menu de tipos pré-definidos
+  const existente=document.getElementById("menu-add-face");
+  if(existente){existente.remove();return;}
+  const btn=document.querySelector("[onclick='adicionarFaceComp()']");
+  const menu=document.createElement("div");
+  menu.id="menu-add-face";
+  menu.style.cssText="position:absolute;right:0;top:36px;background:#fff;border:1px solid #e0e0e0;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.12);z-index:999;min-width:200px;padding:6px 0;";
+  menu.innerHTML=TIPOS_FACE_PRESET.map(p=>`
+    <div onclick="adicionarFacePreset('${p.tipo}','${p.nome}','${p.eixo}',${p.espMm})"
+      style="padding:9px 16px;cursor:pointer;font-size:12px;font-weight:600;display:flex;justify-content:space-between;align-items:center;"
+      onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background=''">
+      <span>${p.nome}</span>
+      <span style="color:#aaa;font-size:10px;font-weight:400">${p.eixo==="lp"?"L×P":p.eixo==="ph"?"P×A":"L×A"} · ${p.espMm}mm</span>
+    </div>`).join('<hr style="margin:4px 0;border:none;border-top:1px solid #f0f0f0">');
+  btn.parentElement.style.position="relative";
+  btn.parentElement.appendChild(menu);
+  setTimeout(()=>document.addEventListener("click",function h(e){if(!menu.contains(e.target)&&e.target!==btn){menu.remove();document.removeEventListener("click",h);}},),50);
+}
+
+function adicionarFacePreset(tipo,nome,eixo,espMm){
+  document.getElementById("menu-add-face")?.remove();
+  if(!compData.faces) compData.faces=FACES_COMP_PADRAO();
+  const id=(compData.faces.length?Math.max(...compData.faces.map(f=>f.id)):0)+1;
+  const i=compData.faces.length;
+  const face={id,nome,eixo,tipo,espMm,altTravMm:(tipo==="travessa"||tipo==="prateleira")?100:0,matId:"",ativoDescricao:true};
+  if(tipo==="custom") face.nome="NOVA FACE";
+  compData.faces.push(face);
+  const lista=document.getElementById("faces-lista");
+  if(lista){
+    lista.insertAdjacentHTML("beforeend",renderFaceRow(face,i));
+    atualizarResumoFaces();
+    setTimeout(desenhar3D,80);
+  } else {
+    renderTab();setTimeout(desenhar3D,80);
+  }
+}
+function removerFaceComp(i){
+  if((compData.faces||[]).length<=1){alert("Mantenha ao menos uma face.");return;}
+  compData.faces.splice(i,1);
+  atualizarMateriaisDesFaces();
+  renderTab();setTimeout(desenhar3D,80);
+}
+
+// ── VISUALIZAÇÃO 3D DO MÓVEL (Three.js WebGL) ───────────────────
+const COR_LISTA=["#6aaef2","#4ab34a","#f2a84e","#c084f5","#f27070","#70d4d4","#f2e44e","#e87878"];
+let _threeCtx=null;
+
+function desenhar3D(){
+  const wrap=document.getElementById("movel-3d-wrap");
+  const canvas=document.getElementById("movel-3d");
+  const legEl=document.getElementById("legenda-3d");
+  if(!wrap||!canvas||!compData.faces) return;
+  // Legenda
+  if(legEl){
+    legEl.innerHTML=(compData.faces||[]).map((f,i)=>`
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:${COR_LISTA[i%COR_LISTA.length]};flex-shrink:0;box-shadow:0 1px 4px rgba(0,0,0,.3)"></span>
+        <span style="color:#333;font-weight:600">${esc(f.nome)}</span>
+        <span style="color:#999;font-size:10px">${f.eixo==="lp"?"L×P (Base/Topo)":f.eixo==="ph"?"P×A (Lateral)":"L×A (Frente/Tras.)"}</span>
+      </div>`).join("");
+  }
+  if(!window.THREE){
+    const s=document.createElement("script");
+    s.src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
+    s.onload=()=>_initThree(wrap,canvas);
+    document.head.appendChild(s);
+  } else {
+    _initThree(wrap,canvas);
+  }
+}
+
+function _initThree(wrap,canvas){
+  const THREE=window.THREE;
+  // Cancela animação anterior
+  if(_threeCtx){cancelAnimationFrame(_threeCtx.animId);_threeCtx.renderer.dispose();}
+  const W=wrap.clientWidth||320, H=wrap.clientHeight||320;
+  // Dimensões em metros
+  const lw=(compData.dimLarg||800)/1000;
+  const lh=(compData.dimAlt||1800)/1000;
+  const ld=(compData.dimProf||600)/1000;
+  const maxD=Math.max(lw,lh,ld)||1;
+  // Renderer
+  const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+  renderer.setSize(W,H);renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  renderer.setClearColor(0x1a1a2e,1);renderer.shadowMap.enabled=true;
+  // Cena
+  const scene=new THREE.Scene();
+  scene.fog=new THREE.Fog(0x1a1a2e,maxD*6,maxD*12);
+  // Câmera
+  const camera=new THREE.PerspectiveCamera(38,W/H,0.001,200);
+  // Câmera posicionada na frente e levemente acima, olhando para o centro
+  // up=(0,1,0) garante que Y+ fica sempre para cima na tela
+  camera.up.set(0,1,0);
+  camera.position.set(maxD*1.8, maxD*0.8, maxD*2.5);
+  camera.lookAt(0,0,0);
+  // Luzes
+  scene.add(new THREE.AmbientLight(0xffffff,0.5));
+  const d1=new THREE.DirectionalLight(0xffffff,0.9);d1.position.set(3,5,4);d1.castShadow=true;scene.add(d1);
+  const d2=new THREE.DirectionalLight(0x8899ff,0.35);d2.position.set(-3,-1,-3);scene.add(d2);
+  // Grid no chão — BASE do móvel
+  const grid=new THREE.GridHelper(maxD*4,12,0x334466,0x223355);grid.position.y=-lh/2-0.001;scene.add(grid);
+  // Pivot — sem rotação X para Y+ ficar sempre para cima
+  const pivot=new THREE.Group();pivot.rotation.x=0;pivot.rotation.y=Math.PI/6;scene.add(pivot);
+
+  // Agrupa faces por tipo/eixo
+  const fp={lp:[],ph:[],lh:[],travessa:[],prateleira:[]};
+  (compData.faces||[]).forEach((f,i)=>{
+    const bucket=(f.tipo==="travessa")?"travessa":(f.tipo==="prateleira")?"prateleira":(fp[f.eixo]?f.eixo:"lh");
+    fp[bucket].push({...f,cor:COR_LISTA[i%COR_LISTA.length]});
+  });
+  const x=lw/2,y=lh/2,z=ld/2;
+
+  // Cria plano simples sem espessura
+  function mkPanel(cx,cy,cz,sw,sh,sd,cor,op){
+    // Determina qual dimensão é a "espessura" (menor) para criar o plano correto
+    let geo;
+    if(sd<sw&&sd<sh)      geo=new THREE.PlaneGeometry(sw,sh); // plano XY
+    else if(sw<sh&&sw<sd) geo=new THREE.PlaneGeometry(sd,sh); // plano YZ
+    else                  geo=new THREE.PlaneGeometry(sw,sd); // plano XZ
+
+    const mat=new THREE.MeshPhongMaterial({color:new THREE.Color(cor),transparent:op<1,opacity:op,side:THREE.DoubleSide,shininess:60});
+    const mesh=new THREE.Mesh(geo,mat);
+
+    // Rotaciona o plano para alinhar com o eixo correto
+    if(sd<sw&&sd<sh){
+      // já no plano XY, sem rotação
+    } else if(sw<sh&&sw<sd){
+      mesh.rotation.y=Math.PI/2; // plano YZ
+    } else {
+      mesh.rotation.x=Math.PI/2; // plano XZ (horizontal)
+    }
+    mesh.position.set(cx,cy,cz);
+    pivot.add(mesh);
+
+    // Borda fina
+    const edge=new THREE.EdgesGeometry(geo);
+    const line=new THREE.LineSegments(edge,new THREE.LineBasicMaterial({color:0xffffff,opacity:0.3,transparent:true}));
+    line.rotation.copy(mesh.rotation);
+    line.position.set(cx,cy,cz);
+    pivot.add(line);
+  }
+
+  const THIN=0.001; // espessura visual mínima para identificar o plano
+  const lps=fp.lp,phs=fp.ph,lhs=fp.lh;
+  if(lps[0]) mkPanel(0,-y,0, lw,THIN,ld, lps[0].cor,0.92); // BASE
+  if(lps[1]) mkPanel(0, y,0, lw,THIN,ld, lps[1].cor,0.92); // TOPO
+  if(phs[0]) mkPanel(-x,0,0, THIN,lh,ld, phs[0].cor,0.88); // LAT ESQ
+  if(phs[1]) mkPanel( x,0,0, THIN,lh,ld, phs[1].cor,0.88); // LAT DIR
+  if(lhs[0]) mkPanel(0,0, z, lw,lh,THIN, lhs[0].cor,0.92); // FRENTE
+  if(lhs[1]) mkPanel(0,0,-z, lw,lh,THIN, lhs[1].cor,0.65); // TRASEIRA
+  lhs.slice(2).forEach((f,i)=>mkPanel(0,0,z*(0.3+i*0.15),lw,lh,THIN,f.cor,0.4));
+  fp.travessa.forEach((f,i)=>{
+    const yPos=-y+lh*(0.3+i*0.25);
+    if(f.eixo==='lp')      mkPanel(0,yPos,0,  lw,THIN,ld,   f.cor,0.88);
+    else if(f.eixo==='lh') mkPanel(0,0,z*0.1*i, lw,lh,THIN, f.cor,0.88);
+    else                   mkPanel(x*0.3*i,0,0, THIN,lh,ld,  f.cor,0.88);
+  });
+  fp.prateleira.forEach((f,i)=>{
+    const yPos=-y+lh*(0.5+i*0.2);
+    if(f.eixo==='lp')      mkPanel(0,yPos,0,  lw,THIN,ld,   f.cor,0.88);
+    else if(f.eixo==='lh') mkPanel(0,0,z*0.1*i, lw,lh,THIN, f.cor,0.88);
+    else                   mkPanel(x*0.3*i,0,0, THIN,lh,ld,  f.cor,0.88);
+  });
+
+  // Controles — rotação só no eixo Y ao arrastar horizontalmente
+  // rx limitado para não inverter o modelo
+  let drag=false,px=0,py=0,rx=0,ry=Math.PI/6;
+  canvas.style.cursor="grab";
+  canvas.onmousedown=e=>{drag=true;px=e.clientX;py=e.clientY;canvas.style.cursor="grabbing";};
+  canvas.onmousemove=e=>{
+    if(!drag)return;
+    ry+=(e.clientX-px)*0.008;
+    rx+=(e.clientY-py)*0.006;
+    rx=Math.max(-0.8,Math.min(0.8,rx)); // limita para não virar de cabeça pra baixo
+    pivot.rotation.y=ry;pivot.rotation.x=rx;
+    px=e.clientX;py=e.clientY;
+  };
+  canvas.onmouseup=canvas.onmouseleave=()=>{drag=false;canvas.style.cursor="grab";};
+  canvas.onwheel=e=>{e.preventDefault();camera.position.multiplyScalar(1+e.deltaY*0.001);};
+  let tx=0,ty=0;
+  canvas.ontouchstart=e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY;};
+  canvas.ontouchmove=e=>{
+    e.preventDefault();
+    ry+=(e.touches[0].clientX-tx)*0.008;
+    rx+=(e.touches[0].clientY-ty)*0.006;
+    rx=Math.max(-0.8,Math.min(0.8,rx));
+    pivot.rotation.y=ry;pivot.rotation.x=rx;
+    tx=e.touches[0].clientX;ty=e.touches[0].clientY;
+  };
+
+  // Botão reset vista isométrica
+  const btnReset=wrap.querySelector(".btn-reset-iso")||document.createElement("button");
+  btnReset.className="btn-reset-iso";
+  btnReset.textContent="⟳ ISO";
+  btnReset.style.cssText="position:absolute;top:8px;right:8px;background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:5px;padding:4px 10px;font-size:11px;cursor:pointer;font-weight:600;letter-spacing:.5px;";
+  btnReset.onmousedown=e=>e.stopPropagation();
+  btnReset.onclick=()=>{rx=0;ry=Math.PI/6;pivot.rotation.x=0;pivot.rotation.y=Math.PI/6;camera.position.set(maxD*1.8,maxD*0.8,maxD*2.5);camera.lookAt(0,0,0);};
+  if(!wrap.querySelector(".btn-reset-iso")) wrap.appendChild(btnReset);
+
+  // Loop de animação
+  let animId;
+  (function animate(){animId=requestAnimationFrame(animate);renderer.render(scene,camera);})();
+  _threeCtx={renderer,animId};
+}
+
+// Chama 3D após renderTab quando está na composição
+function renderTabComDesenho(){
+  renderTab();
+  if(currentTab===3) setTimeout(desenhar3D,80);
+}
+
+// ── CALCULADORA DE MÓVEL ────────────────────────────────────────
+const FACES_PADRAO = [
+  {nome:"Base",        eixo:"lp"}, // largura × profundidade
+  {nome:"Topo",        eixo:"lp"},
+  {nome:"Lateral Esq", eixo:"ph"}, // profundidade × altura
+  {nome:"Lateral Dir", eixo:"ph"},
+  {nome:"Traseira",    eixo:"lh"}, // largura × altura
+  {nome:"Porta",       eixo:"lh"}
+];
+
+let calcFaces=[];
+let calcDim={larg:800,alt:1800,prof:600};
+
+function iniciarCalc(){
+  if(!calcFaces.length){
+    calcFaces=FACES_PADRAO.map((f,i)=>({id:i+1,nome:f.nome,eixo:f.eixo,matId:"",ativo:true}));
+  }
+}
+
+function areaFace(face,dim){
+  const l=dim.larg/1000, a=dim.alt/1000, p=dim.prof/1000;
+  if(face.eixo==="lp") return l*p;
+  if(face.eixo==="ph") return p*a;
+  if(face.eixo==="lh") return l*a;
+  return (face.largCm||0)/100 * (face.altCm||0)/100;
+}
+
+function calcularResultado(){
+  const dim=calcDim;
+  const mats=state.materiais;
+  return calcFaces.filter(f=>f.ativo).map(f=>{
+    const area=areaFace(f,dim);
+    const mat=mats.find(m=>String(m.id)===String(f.matId));
+    const custoUnit=mat?custoMat(mat):0;
+    const custo=custoUnit*area;
+    return{...f,area,mat,custoUnit,custo};
+  });
+}
+
+function renderCalculadora(c){
+  iniciarCalc();
+  const mats=state.materiais;
+  const matOpts=`<option value="">— Selecione —</option>`+mats.map(m=>`<option value="${m.id}">${esc(m.nome)} (${fmt(custoMat(m))}/${m.unidade})</option>`).join("");
+  const resultado=calcularResultado();
+  const totalArea=resultado.reduce((s,r)=>s+r.area,0);
+  const totalCusto=resultado.reduce((s,r)=>s+r.custo,0);
+
+  c.innerHTML=`<div class="flex-col">
+
+  <!-- DIMENSÕES -->
+  <div class="card">
+    <div class="card-title">📐 DIMENSÕES DO MÓVEL (mm)</div>
+    <div class="grid3" style="gap:14px;max-width:480px">
+      <div>
+        <label class="label">LARGURA (mm)</label>
+        <input type="number" id="calc-larg" value="${calcDim.larg}" step="1" min="0" oninput="calcDim.larg=+this.value;renderTab()" />
+      </div>
+      <div>
+        <label class="label">ALTURA (mm)</label>
+        <input type="number" id="calc-alt" value="${calcDim.alt}" step="1" min="0" oninput="calcDim.alt=+this.value;renderTab()" />
+      </div>
+      <div>
+        <label class="label">PROFUNDIDADE (mm)</label>
+        <input type="number" id="calc-prof" value="${calcDim.prof}" step="1" min="0" oninput="calcDim.prof=+this.value;renderTab()" />
+      </div>
+    </div>
+    <div style="margin-top:10px;font-size:11px;color:#888;">
+      ${(calcDim.larg/1000).toFixed(3)}m × ${(calcDim.prof/1000).toFixed(3)}m × ${(calcDim.alt/1000).toFixed(3)}m
+    </div>
+  </div>
+
+  <!-- FACES -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title" style="margin-bottom:0">🧩 FACES DO MÓVEL</div>
+      <button class="btn btn-ghost btn-sm" onclick="adicionarFaceCalc()">＋ Nova face</button>
+    </div>
+    <table>
+      <thead><tr>
+        <th style="width:30px">Ativo</th>
+        <th>Face</th>
+        <th>Dimensão</th>
+        <th>Material (chapa)</th>
+        <th style="text-align:right">Área (m²)</th>
+        <th style="text-align:right">Custo</th>
+        <th></th>
+      </tr></thead>
+      <tbody>
+        ${calcFaces.map((f,i)=>{
+          const area=areaFace(f,calcDim);
+          const mat=mats.find(m=>String(m.id)===String(f.matId));
+          const custo=mat?custoMat(mat)*area:0;
+          const eixoLabel=f.eixo==="lp"?"L × P":f.eixo==="ph"?"P × A":f.eixo==="lh"?"L × A":"Personalizado";
+          return `<tr style="${f.ativo?'':'opacity:0.4'}">
+            <td><input type="checkbox" ${f.ativo?"checked":""} onchange="calcFaces[${i}].ativo=this.checked;renderTab()" style="width:auto;accent-color:#2c2c2c"/></td>
+            <td>
+              <input value="${esc(f.nome)}" style="background:transparent;border:none;border-bottom:1px solid #e8e8e8;border-radius:0;padding:4px;font-weight:600;max-width:140px"
+                onchange="calcFaces[${i}].nome=this.value"/>
+            </td>
+            <td>
+              <select style="max-width:140px;font-size:11px" onchange="calcFaces[${i}].eixo=this.value;renderTab()">
+                <option value="lp"${f.eixo==="lp"?" selected":""}>L × P (Base/Topo)</option>
+                <option value="ph"${f.eixo==="ph"?" selected":""}>P × A (Lateral)</option>
+                <option value="lh"${f.eixo==="lh"?" selected":""}>L × A (Frente/Traseira)</option>
+              </select>
+            </td>
+            <td>
+              <select style="max-width:220px;font-size:11px" onchange="calcFaces[${i}].matId=this.value;renderTab()">
+                ${`<option value="">— Selecione —</option>`+mats.map(m=>`<option value="${m.id}"${String(f.matId)===String(m.id)?" selected":""}>${esc(m.nome)} (${fmt(custoMat(m))}/${m.unidade})</option>`).join("")}
+              </select>
+            </td>
+            <td style="text-align:right;font-weight:600">${area.toFixed(4)}</td>
+            <td style="text-align:right;color:${custo>0?"#2c2c2c":"#bbb"};font-weight:700">${custo>0?fmt(custo):"—"}</td>
+            <td><button class="btn-icon danger" onclick="removerFaceCalc(${i})" title="Remover">✕</button></td>
+          </tr>`;
+        }).join("")}
+      </tbody>
+    </table>
+    <div style="margin-top:12px;background:#f7f7f7;border-radius:8px;padding:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+      <div style="font-size:12px;color:#666">
+        Área total: <strong style="color:#2c2c2c">${totalArea.toFixed(4)} m²</strong>
+        &nbsp;·&nbsp; Faces ativas: <strong>${resultado.length}</strong>
+      </div>
+      <div style="font-size:16px;font-weight:800;color:#2c2c2c">
+        CUSTO TOTAL DE MATERIAL: ${fmt(totalCusto)}
+      </div>
+    </div>
+  </div>
+
+  <!-- TABELA RESULTADO -->
+  ${resultado.length?`
+  <div class="card">
+    <div class="card-title">📊 RESUMO DE CONSUMO</div>
+    <table>
+      <thead><tr>
+        <th>Face</th>
+        <th>Material</th>
+        <th style="text-align:right">Área (m²)</th>
+        <th style="text-align:right">Preço/m²</th>
+        <th style="text-align:right">Custo</th>
+      </tr></thead>
+      <tbody>
+        ${resultado.map(r=>`<tr>
+          <td style="font-weight:600">${esc(r.nome)}</td>
+          <td>${r.mat?esc(r.mat.nome):`<span style="color:#bbb">Não selecionado</span>`}</td>
+          <td style="text-align:right">${r.area.toFixed(4)}</td>
+          <td style="text-align:right">${r.custoUnit>0?fmt(r.custoUnit)+"/ m²":"—"}</td>
+          <td style="text-align:right;font-weight:700;color:${r.custo>0?"#2c2c2c":"#bbb"}">${r.custo>0?fmt(r.custo):"—"}</td>
+        </tr>`).join("")}
+        <tr style="border-top:2px solid #e4e4e4;background:#fafafa">
+          <td colspan="2" style="font-weight:700">TOTAL</td>
+          <td style="text-align:right;font-weight:700">${totalArea.toFixed(4)}</td>
+          <td></td>
+          <td style="text-align:right;font-weight:800;color:#2c2c2c;font-size:14px">${fmt(totalCusto)}</td>
+        </tr>
+      </tbody>
+    </table>
+    <div style="margin-top:12px;font-size:11px;color:#888">
+      * Os custos incluem a margem e percentual de perda configurados em cada material.
+    </div>
+  </div>`:""}
+
+  </div>`;
+}
+
+function adicionarFaceCalc(){
+  const id=(calcFaces.length?Math.max(...calcFaces.map(f=>f.id)):0)+1;
+  calcFaces.push({id,nome:"Nova Face",eixo:"lh",matId:"",ativo:true});
+  renderTab();
+}
+function removerFaceCalc(i){
+  if(calcFaces.length<=1){alert("Mantenha ao menos uma face.");return;}
+  calcFaces.splice(i,1);
+  renderTab();
+}
 
 // ── CONFIG ─────────────────────────────────────────────────────
 function renderConfig(container){
