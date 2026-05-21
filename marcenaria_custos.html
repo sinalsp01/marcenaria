@@ -83,8 +83,8 @@ tr:hover td{background:#f9f9f9}
       <div style="color:#666;font-size:9px;letter-spacing:2px;margin-top:4px">GESTÃO DE CUSTOS</div>
     </div>
     <div class="flex-col">
-      <div><label class="label">USUÁRIO</label><input id="inp-login" placeholder="seu.login" onkeydown="if(event.key==='Enter')doLogin()"/></div>
-      <div><label class="label">SENHA</label><input id="inp-senha" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+      <div><label class="label">USUÁRIO</label><input id="inp-login" class="no-upper" placeholder="seu.login" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+      <div><label class="label">SENHA</label><input id="inp-senha" class="no-upper" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/></div>
       <div id="login-err" style="font-size:11px;color:#a33333;text-align:center;display:none"></div>
       <button class="btn btn-primary" style="margin-top:6px;padding:11px;font-size:13px;border-radius:8px;width:100%" onclick="doLogin()">ENTRAR →</button>
     </div>
@@ -185,6 +185,9 @@ const DEF={
     ],
     overheadPerc:12,
     impostoVendaPerc:6,
+    freteCustoKm:3.5,
+    freteLocalKm:20,
+    freteMinimo:0,
   }
 };
 
@@ -298,6 +301,12 @@ async function sincronizar(){
 
   await db.ref('marc_prices').set(prices);
   await db.ref('marc_extras').set(extras);
+  // Sincroniza configurações de frete
+  await db.ref('marc_frete_cfg').set({
+    freteCustoKm: state.config.freteCustoKm||3.5,
+    freteLocalKm: state.config.freteLocalKm||20,
+    freteMinimo:  state.config.freteMinimo||0
+  });
   const sm=ge("sync-msg");sm.textContent="✅ Sincronizado!";sm.style.display="inline";
   setTimeout(()=>{sm.style.display="none";},4000);
 }
@@ -578,6 +587,7 @@ function renderMateriais(c){
   </div></div>`;
 }
 let _matTempTipo=null;
+function novaCategoriaMat(){abrirModalCat(state.catMat,"Categorias de Materiais");}
 function onChangeTipoMat(val){
   // Salva dados atuais do formulário antes de re-renderizar
   _matTempTipo=val;
@@ -660,10 +670,12 @@ function renderFerragens(c){
   const f=ferEditId?state.ferragens.find(x=>x.id===ferEditId)||{}:{};
   const cats=state.catFer||[];
   const lista=ferFilter==="Todos"?state.ferragens:state.ferragens.filter(x=>x.cat===ferFilter);
+  const und=f.unidade||"un";
+  const UNDS=["un","m","cm","par","cx","kg"];
   c.innerHTML=`<div class="flex-col">
   <div class="card">
     <div class="card-title">${ferEditId?"EDITAR FERRAGEM":"NOVA FERRAGEM"}</div>
-    <div style="display:grid;grid-template-columns:2fr 1fr;gap:10px;margin-bottom:10px">
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;margin-bottom:10px">
       <div><label class="label">NOME</label><input id="f-nome" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()" value="${esc(f.nome||"")}" placeholder="EX: DOBRADIÇA SOFT CLOSE 35MM"/></div>
       <div><label class="label">CATEGORIA</label>
         <div class="flex" style="gap:6px">
@@ -671,11 +683,14 @@ function renderFerragens(c){
           <button class="btn-icon" title="Nova categoria" onclick="novaFerCat()">＋</button>
         </div>
       </div>
+      <div><label class="label">UNIDADE DE MEDIDA</label>
+        <select id="f-und">${UNDS.map(u=>`<option value="${u}"${und===u?" selected":""}>${u}</option>`).join("")}</select>
+      </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:12px">
-      <div><label class="label">CUSTO (R$/un)</label><input id="f-custo" type="number" value="${f.custoCompra||""}" placeholder="0.00" step="0.01" oninput="updFP()"/></div>
+      <div><label class="label">CUSTO (R$/<span id="f-und-label">${und}</span>)</label><input id="f-custo" type="number" value="${f.custoCompra||""}" placeholder="0.00" step="0.01" oninput="updFP()"/></div>
       <div><label class="label">MARGEM GANHO (%)</label><input id="f-marg" type="number" value="${f.margemPerc??30}" step="0.5" oninput="updFP()"/></div>
-      <div><label class="label">PREÇO FINAL/un</label><div id="f-prev" style="padding:8px 10px;background:#f5f5f5;color:#2c2c2c;font-weight:700;border-radius:7px;font-size:12px;border:1px solid #e8e8e8">${f.custoCompra?fmt(custoFer(f)):"—"}</div></div>
+      <div><label class="label">PREÇO FINAL/<span id="f-und-label2">${und}</span></label><div id="f-prev" style="padding:8px 10px;background:#f5f5f5;color:#2c2c2c;font-weight:700;border-radius:7px;font-size:12px;border:1px solid #e8e8e8">${f.custoCompra?fmt(custoFer(f)):"—"}</div></div>
       <div><label class="label">EXIBIR EM ITENS ADICIONAIS</label>
         <label class="tog" style="margin-top:6px">
           <input type="checkbox" id="f-ativo" ${f.ativoOrcamento!==false?"checked":""}/>
@@ -695,13 +710,14 @@ function renderFerragens(c){
       <div style="display:flex;gap:5px;flex-wrap:wrap">${["Todos",...cats].map(cat=>`<button class="pill${ferFilter===cat?" active":""}" onclick="setFerFilter('${esc(cat)}')">${esc(cat)}</button>`).join("")}</div>
     </div>
     ${lista.length===0?`<div class="empty">Nenhuma ferragem.</div>`:`
-    <table><thead><tr><th>Nome</th><th>Categoria</th><th>Custo</th><th>Margem</th><th>Preço Final</th><th>Itens Adicionais</th><th></th></tr></thead>
+    <table><thead><tr><th>Nome</th><th>Categoria</th><th>Unidade</th><th>Custo</th><th>Margem</th><th>Preço Final</th><th>Itens Adicionais</th><th></th></tr></thead>
     <tbody>${lista.map(fer=>`<tr>
       <td style="color:#2c2c2c;font-weight:600">${esc(fer.nome)}</td>
       <td><span class="tag">${esc(fer.cat)}</span></td>
-      <td>${fmt(fer.custoCompra)}</td>
+      <td style="color:${T.muted};font-size:11px;font-weight:600">${fer.unidade||"un"}</td>
+      <td>${fmt(fer.custoCompra)}/${fer.unidade||"un"}</td>
       <td style="color:${T.muted}">${pct(fer.margemPerc||0)}</td>
-      <td style="color:#2c2c2c;font-weight:700">${fmt(custoFer(fer))}</td>
+      <td style="color:#2c2c2c;font-weight:700">${fmt(custoFer(fer))}/${fer.unidade||"un"}</td>
       <td><span style="font-size:11px;color:${fer.ativoOrcamento!==false?"#4a7a5a":"#bbb"}">${fer.ativoOrcamento!==false?"✓ Ativo":"✕ Inativo"}</span></td>
       <td><div class="flex"><button class="btn-icon" onclick="editFer(${fer.id})">✏</button><button class="btn-icon danger" onclick="delFer(${fer.id})">✕</button></div></td>
     </tr>`).join("")}</tbody></table>`}
@@ -709,6 +725,13 @@ function renderFerragens(c){
   // atualizar label do toggle ao mudar
   const chk=ge("f-ativo");
   if(chk)chk.addEventListener('change',()=>{const lbl=ge("f-ativo-lbl");if(lbl)lbl.textContent=chk.checked?"Ativo":"Inativo";});
+  // atualizar labels de unidade ao mudar
+  const undSel=ge("f-und");
+  if(undSel)undSel.addEventListener('change',()=>{
+    const v=undSel.value;
+    const l1=ge("f-und-label"); if(l1) l1.textContent=v;
+    const l2=ge("f-und-label2"); if(l2) l2.textContent=v;
+  });
 }
 function novaFerCat(){abrirModalCat(state.catFer,"Categorias de Ferragens");}
 function updFP(){const c=+ge("f-custo").value,mg=+ge("f-marg").value;ge("f-prev").textContent=c?fmt(c*(1+mg/100)):"—";}
@@ -716,7 +739,7 @@ function setFerFilter(cat){ferFilter=cat;renderTab();}
 function saveFer(){
   const nome=ge("f-nome").value.trim().toUpperCase(),custo=ge("f-custo").value;
   if(!nome||!custo)return;
-  const d={nome,cat:ge("f-cat").value,custoCompra:+custo,margemPerc:+ge("f-marg").value,ativoOrcamento:ge("f-ativo").checked};
+  const d={nome,cat:ge("f-cat").value,unidade:ge("f-und").value||"un",custoCompra:+custo,margemPerc:+ge("f-marg").value,ativoOrcamento:ge("f-ativo").checked};
   if(ferEditId){state.ferragens=state.ferragens.map(f=>f.id===ferEditId?{...f,...d}:f);ferEditId=null;}
   else state.ferragens.push({...d,id:genId()});
   save();renderTab();
@@ -1549,6 +1572,28 @@ function renderConfig(container){
       <td><button class="btn-icon danger" onclick="delOV(${i})">✕</button></td>
     </tr>`).join("")}</tbody></table>
   </div>
+  <!-- FRETE -->
+  <div class="card">
+    <div class="card-title">🚚 CONFIGURAÇÕES DE FRETE</div>
+    <div style="font-size:11px;color:${T.muted};margin-bottom:14px;">Cálculo automático por rota (OSRM) — partindo de Cajamar-SP</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+      <div>
+        <div style="font-size:13px;font-weight:600;color:#2c2c2c;margin-bottom:4px">Custo por km (R$/km)</div>
+        <div style="font-size:10px;color:${T.muted};margin-bottom:8px">Ida e volta já incluído no cálculo</div>
+        <input type="number" value="${cfg.freteCustoKm||3.5}" step="0.10" min="0" style="max-width:120px;text-align:right" onchange="setCfg('freteCustoKm',+this.value)"/>
+      </div>
+      <div>
+        <div style="font-size:13px;font-weight:600;color:#2c2c2c;margin-bottom:4px">Raio local sem frete (km)</div>
+        <div style="font-size:10px;color:${T.muted};margin-bottom:8px">Entregas dentro desse raio = sem cobrança</div>
+        <input type="number" value="${cfg.freteLocalKm||20}" step="1" min="0" style="max-width:120px;text-align:right" onchange="setCfg('freteLocalKm',+this.value)"/>
+      </div>
+      <div>
+        <div style="font-size:13px;font-weight:600;color:#2c2c2c;margin-bottom:4px">Frete mínimo (R$)</div>
+        <div style="font-size:10px;color:${T.muted};margin-bottom:8px">Valor mínimo cobrado por entrega</div>
+        <input type="number" value="${cfg.freteMinimo||0}" step="1" min="0" style="max-width:120px;text-align:right" onchange="setCfg('freteMinimo',+this.value)"/>
+      </div>
+    </div>
+  </div>
   <!-- OUTROS PARÂMETROS -->
   <div class="card">
     <div class="card-title">📄 OUTROS PARÂMETROS</div>
@@ -1584,8 +1629,8 @@ function renderUsuarios(container){
   <div class="card"><div class="card-title">${userEditId?"EDITAR":"NOVO USUÁRIO"}</div>
   <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:12px">
     <div><label class="label">NOME</label><input id="u-nome" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()" value="${esc(f.nome||"")}" placeholder="JOÃO SILVA"/></div>
-    <div><label class="label">LOGIN</label><input id="u-login" value="${esc(f.login||"")}" placeholder="joao.silva"/></div>
-    <div><label class="label">${userEditId?"NOVA SENHA":"SENHA"}</label><input id="u-senha" type="password" value="" placeholder="••••••••"/></div>
+    <div><label class="label">LOGIN</label><input id="u-login" class="no-upper" value="${esc(f.login||"")}" placeholder="joao.silva"/></div>
+    <div><label class="label">${userEditId?"NOVA SENHA":"SENHA"}</label><input id="u-senha" class="no-upper" type="password" value="" placeholder="••••••••"/></div>
     <div><label class="label">SETOR</label><select id="u-setor">${SETORES.map(s=>`<option value="${s.id}"${(f.setor||"vendas")===s.id?" selected":""}>${s.nome}</option>`).join("")}</select></div>
   </div>
   <div class="flex"><button class="btn btn-primary" onclick="saveUser()">${userEditId?"💾 Salvar":"＋ Criar"}</button>${userEditId?`<button class="btn btn-ghost" onclick="cancelUserEdit()">Cancelar</button>`:""}</div></div>
@@ -1615,6 +1660,17 @@ const EMBEDDED_CFG = {
 };
 localStorage.setItem('marc_fb_cfg', JSON.stringify(EMBEDDED_CFG));
 initFb(EMBEDDED_CFG);
+
+// Força maiúsculo em todos os campos de texto ao sair do campo
+document.addEventListener('input', function(e) {
+  const t = e.target;
+  if (t.classList.contains('no-upper') || t.type === 'password') return;
+  if ((t.tagName === 'INPUT' && ['text','tel','email','search',''].includes(t.type||'')) || t.tagName === 'TEXTAREA') {
+    const pos = t.selectionStart;
+    t.value = t.value.toUpperCase();
+    try { t.setSelectionRange(pos, pos); } catch(err) {}
+  }
+});
 </script>
 </body>
 </html>

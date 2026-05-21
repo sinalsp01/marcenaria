@@ -19,6 +19,8 @@
     --warn: #c0392b;
   }
   * { box-sizing: border-box; }
+  input[type="text"]:not(.no-upper), input[type="tel"], input[type="email"]:not(.no-upper), input:not([type]):not(.no-upper), textarea:not(.no-upper) { text-transform: uppercase; }
+
   body {
     margin: 0;
     font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
@@ -292,7 +294,7 @@
         </div>
         <div>
           <label>E-mail</label>
-          <input type="email" id="cli-email" placeholder="cliente@email.com" />
+          <input type="email" id="cli-email" class="no-upper" placeholder="cliente@email.com" />
         </div>
         <div style="grid-column:1/-1;">
           <label>Endereço da obra</label>
@@ -425,14 +427,16 @@
 
     <div class="card">
       <h2>Condições</h2>
+      <input type="hidden" id="orc-acresc" value="0" />
       <div class="grid grid-3">
         <div>
           <label>Desconto (%)</label>
           <input type="number" id="orc-desc" step="0.01" min="0" value="0" />
         </div>
         <div>
-          <label>Acréscimo (%) — frete, taxas etc.</label>
-          <input type="number" id="orc-acresc" step="0.01" min="0" value="0" />
+          <label>Frete (R$)</label>
+          <input type="number" id="orc-frete" step="0.01" min="0" value="0" placeholder="0,00" />
+          <div class="hint" id="frete-sugestao" style="cursor:pointer;color:#2f7d32;display:none;" onclick="usarFreteSugerido()"></div>
         </div>
         <div>
           <label>Validade do orçamento (dias)</label>
@@ -611,11 +615,11 @@
         </div>
         <div>
           <label>E-mail Financeiro</label>
-          <input type="email" id="emp-email-fin" placeholder="financeiro@empresa.com" />
+          <input type="email" id="emp-email-fin" class="no-upper" placeholder="financeiro@empresa.com" />
         </div>
         <div>
           <label>E-mail Comercial</label>
-          <input type="email" id="emp-email-com" placeholder="comercial@empresa.com" />
+          <input type="email" id="emp-email-com" class="no-upper" placeholder="comercial@empresa.com" />
         </div>
         <div>
           <!-- espaço reservado -->
@@ -814,8 +818,7 @@ function renderEmpresa() {
   document.getElementById('emp-end').value = e.end || '';
   if (e.logo) {
     const img = document.getElementById('emp-logo-prev');
-    img.src = e.logo;
-    img.style.display = 'block';
+    img.src = e.logo; img.style.display = 'block';
   }
   document.getElementById('empresa-nome-header').textContent = e.nome || 'Configure os dados da empresa';
 }
@@ -826,9 +829,7 @@ function salvarEmpresa() {
   data.empresa.emailFinanceiro = document.getElementById('emp-email-fin').value.trim();
   data.empresa.emailComercial = document.getElementById('emp-email-com').value.trim();
   data.empresa.end = document.getElementById('emp-end').value.trim();
-  salvar();
-  renderEmpresa();
-  alert('Dados da empresa salvos!');
+  salvar(); renderEmpresa(); alert('Dados da empresa salvos!');
 }
 document.getElementById('emp-logo').addEventListener('change', evt => {
   const file = evt.target.files[0];
@@ -1114,79 +1115,130 @@ function onCepInput(val) {
    FRETE — usa tabela do Sistema de Custos (Firebase)
    ===================================================== */
 let freteTimer = null;
+// Coordenadas da empresa — Cajamar-SP
+const FRETE_ORIG_LAT = -23.3586, FRETE_ORIG_LNG = -46.8783;
+
+function haversineKm(lat1,lng1,lat2,lng2){
+  const R=6371, dLat=(lat2-lat1)*Math.PI/180, dLng=(lng2-lng1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+function exibirFrete(freteEl, cidade, uf, distKm, durMin, estimativa) {
+  const custoPorKm = parseFloat(data.empresa.freteCustoKm || 3.5);
+  const freteLocal = parseFloat(data.empresa.freteLocalKm || 20);
+  const freteMin   = parseFloat(data.empresa.freteMinimo  || 0);
+  const freteCalc  = Math.max(distKm * 2 * custoPorKm, freteMin);
+  const horas = Math.floor(durMin/60), mins = Math.round(durMin%60);
+  const durStr = horas > 0 ? `${horas}h${mins > 0 ? mins+'min' : ''}` : `${mins}min`;
+
+  let msg = `📍 <strong>${cidade}/${uf}</strong>`;
+  if (distKm > 0) {
+    msg += ` — <strong>${distKm.toFixed(1)} km</strong>`;
+    if (durMin > 0) msg += ` · ${durStr}`;
+    if (estimativa) msg += ` <span style="color:#aaa;font-size:10px;">(estimativa)</span>`;
+  }
+
+  // Guarda valor calculado para sugestão
+  window._freteSugerido = distKm <= freteLocal ? 0 : freteCalc;
+
+  if (distKm <= freteLocal && distKm > 0) {
+    msg += ` &nbsp;·&nbsp; 🚚 <strong style="color:#2f7d32;">Entrega local — sem frete</strong>`;
+    // Zera o campo de frete
+    const fc = document.getElementById('orc-frete'); if(fc) fc.value = '0';
+    atualizarTotais();
+  } else if (distKm > 0) {
+    msg += ` &nbsp;·&nbsp; 🚚 <strong style="color:#2f7d32;">Frete estimado: ${fmt(freteCalc)}</strong>`;
+    msg += ` <span style="color:#888;font-size:11px;">(${distKm.toFixed(1)}km × 2 × R$${(custoPorKm).toFixed(2)}/km)</span>`;
+    // Mostra sugestão clicável
+    const sug = document.getElementById('frete-sugestao');
+    if (sug) {
+      sug.textContent = `↑ Usar ${fmt(freteCalc)} como frete`;
+      sug.style.display = 'block';
+    }
+  }
+  freteEl.innerHTML = msg;
+  freteEl.style.display = 'block';
+}
+
+function usarFreteSugerido() {
+  const fc = document.getElementById('orc-frete');
+  if (fc && window._freteSugerido !== undefined) {
+    fc.value = window._freteSugerido.toFixed(2);
+    atualizarTotais();
+    const sug = document.getElementById('frete-sugestao');
+    if (sug) sug.style.display = 'none';
+  }
+}
+
 function calcularFrete(cep) {
   clearTimeout(freteTimer);
   freteTimer = setTimeout(() => {
     const freteEl = document.getElementById('frete-info');
     if (!cep || cep.length !== 8) { freteEl.style.display = 'none'; return; }
 
+    freteEl.innerHTML = `<span style="color:#aaa;font-size:11px;">🔄 Calculando frete...</span>`;
+    freteEl.style.display = 'block';
+
+    // Passo 1: ViaCEP → endereço
     fetch(`https://viacep.com.br/ws/${cep}/json/`)
       .then(r => r.json())
       .then(d => {
         if (d.erro) { freteEl.style.display = 'none'; return; }
-        // Preenche campos se vieram vazios
-        if (!document.getElementById('cli-rua').value && d.logradouro) {
+
+        if (!document.getElementById('cli-rua').value && d.logradouro)
           document.getElementById('cli-rua').value = d.logradouro;
-        }
-        if (!document.getElementById('cli-bairro').value && d.bairro) {
+        if (!document.getElementById('cli-bairro').value && d.bairro)
           document.getElementById('cli-bairro').value = d.bairro;
-        }
-        if (!document.getElementById('cli-cidade').value && d.localidade) {
+        if (!document.getElementById('cli-cidade').value && d.localidade)
           document.getElementById('cli-cidade').value = d.localidade + (d.uf ? ' – ' + d.uf : '');
-        }
         montarEnderecoCompleto();
 
-        const cidade = (d.localidade || '').toLowerCase().trim();
-        const uf = (d.uf || '').toLowerCase().trim();
+        const cidade = d.localidade || '';
+        const uf = d.uf || '';
+        const query = `${d.logradouro||''}, ${d.bairro||''}, ${cidade}, ${uf}, Brasil`;
 
-        // Buscar tabela de frete no Firebase (marc_frete)
-        if (db) {
-          db.ref('marc_frete').once('value').then(snap => {
-            let valorFrete = null;
-            let descFrete = '';
+        // Passo 2: Nominatim → coordenadas do destino
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&countrycodes=br`, {
+          headers: {'Accept-Language':'pt-BR','User-Agent':'SinalSP-Orcamento/1.0'}
+        })
+          .then(r => r.json())
+          .then(res => {
+            if (!res || !res[0]) {
+              // Sem coordenadas — só mostra cidade
+              freteEl.innerHTML = `📍 <strong>${cidade}/${uf}</strong> — CEP: ${d.cep}`;
+              freteEl.style.display = 'block';
+              return;
+            }
+            const lat2 = parseFloat(res[0].lat);
+            const lng2 = parseFloat(res[0].lon);
 
-            if (snap.exists()) {
-              const tabela = snap.val();
-              const arr = Array.isArray(tabela) ? tabela : Object.values(tabela);
-              // Tenta match por cidade, UF ou CEP prefixo
-              const match = arr.find(f => {
-                if (!f) return false;
-                const fc = (f.cidade || f.localidade || '').toLowerCase().trim();
-                const fuf = (f.uf || f.estado || '').toLowerCase().trim();
-                const fcep = (f.cep || '').replace(/\D/g,'');
-                if (fcep && cep.startsWith(fcep.slice(0,5))) return true;
-                if (fc && fc === cidade) return true;
-                if (fuf && fuf === uf && !fc) return true;
-                return false;
+            // Passo 3: OSRM → rota real por estrada
+            fetch(`https://router.project-osrm.org/route/v1/driving/${FRETE_ORIG_LNG},${FRETE_ORIG_LAT};${lng2},${lat2}?overview=false`)
+              .then(r => r.json())
+              .then(osrm => {
+                if (osrm.routes && osrm.routes[0]) {
+                  const distKm = osrm.routes[0].distance / 1000;
+                  const durMin = osrm.routes[0].duration / 60;
+                  exibirFrete(freteEl, cidade, uf, distKm, durMin, false);
+                } else {
+                  // OSRM sem rota — fallback Haversine
+                  const distKm = haversineKm(FRETE_ORIG_LAT, FRETE_ORIG_LNG, lat2, lng2) * 1.35;
+                  exibirFrete(freteEl, cidade, uf, distKm, distKm * 1.2, true);
+                }
+              })
+              .catch(() => {
+                // OSRM falhou — fallback Haversine
+                const distKm = haversineKm(FRETE_ORIG_LAT, FRETE_ORIG_LNG, lat2, lng2) * 1.35;
+                exibirFrete(freteEl, cidade, uf, distKm, distKm * 1.2, true);
               });
-
-              if (match) {
-                valorFrete = parseFloat(match.preco || match.valor || match.frete || 0);
-                descFrete = match.descricao || match.nome || match.tipo || '';
-              }
-            }
-
-            let msg = `📍 <strong>${d.localidade}/${d.uf}</strong> — CEP: ${d.cep}`;
-            if (valorFrete !== null && valorFrete > 0) {
-              msg += ` &nbsp;·&nbsp; 🚚 <strong style="color:#2f7d32;">Frete: ${fmt(valorFrete)}</strong>`;
-              if (descFrete) msg += ` <span style="color:#888;font-size:11px;">(${descFrete})</span>`;
-            } else if (cidade === 'cajamar') {
-              msg += ` &nbsp;·&nbsp; 🚚 <strong style="color:#2f7d32;">Entrega local — verificar frete</strong>`;
-            } else {
-              msg += ` &nbsp;·&nbsp; 🚚 <span style="color:#c0392b;">Frete não cadastrado para esta cidade</span>`;
-            }
-            freteEl.innerHTML = msg;
-            freteEl.style.display = 'block';
-          }).catch(() => {
-            freteEl.innerHTML = `📍 <strong>${d.localidade}/${d.uf}</strong> — frete a consultar`;
+          })
+          .catch(() => {
+            freteEl.innerHTML = `📍 <strong>${cidade}/${uf}</strong> — CEP: ${d.cep}`;
             freteEl.style.display = 'block';
           });
-        } else {
-          freteEl.innerHTML = `📍 <strong>${d.localidade}/${d.uf}</strong> — CEP: ${d.cep}`;
-          freteEl.style.display = 'block';
-        }
       }).catch(() => { freteEl.style.display = 'none'; });
-  }, 600);
+  }, 800);
 }
 
 /* =====================================================
@@ -1231,7 +1283,7 @@ function calcularCustoFacesMovel(tipoId, largMm, altMm, profMm) {
     const areaRef = L * A;
     if (tipo.ferragens && tipo.ferragens.length) {
       tipo.ferragens.forEach(fer => {
-        totalFerragens += (fer.custoM2 || 0) * areaRef;
+        totalFerragens += (fer.precoUn || fer.custoM2 || 0) * (fer.qtd || 0);
       });
     }
 
@@ -1684,22 +1736,25 @@ function atualizarTotais() {
   const subAdc = orcamentoAtual.adicionais.reduce((s,m) => s + m.subtotal, 0);
   const sub = subMov + subAdc;
   const descPct = parseFloat(document.getElementById('orc-desc').value) || 0;
-  const acrPct = parseFloat(document.getElementById('orc-acresc').value) || 0;
+  const acrPct  = parseFloat(document.getElementById('orc-acresc').value) || 0;
+  const freteV  = parseFloat((document.getElementById('orc-frete')||{value:0}).value)  || 0;
   const descV = sub * descPct / 100;
-  const acrV = sub * acrPct / 100;
-  const total = sub - descV + acrV;
+  const acrV  = sub * acrPct  / 100;
+  const total = sub - descV + acrV + freteV;
 
   document.getElementById('totais').innerHTML = `
     <div class="line"><span>Subtotal móveis + itens</span><span>${fmt(subMov)}</span></div>
     ${subAdc > 0 ? `<div class="line"><span>Subtotal itens adicionais globais</span><span>${fmt(subAdc)}</span></div>` : ''}
     <div class="line"><span>Subtotal geral</span><span><strong>${fmt(sub)}</strong></span></div>
     ${descPct > 0 ? `<div class="line" style="color:#2f7d32"><span>Desconto (${fmtNum(descPct)}%)</span><span>− ${fmt(descV)}</span></div>` : ''}
-    ${acrPct > 0 ? `<div class="line" style="color:#c0392b"><span>Acréscimo (${fmtNum(acrPct)}%)</span><span>+ ${fmt(acrV)}</span></div>` : ''}
+    ${acrPct  > 0 ? `<div class="line" style="color:#c0392b"><span>Acréscimo (${fmtNum(acrPct)}%)</span><span>+ ${fmt(acrV)}</span></div>` : ''}
+    ${freteV  > 0 ? `<div class="line" style="color:#1565c0"><span>🚚 Frete</span><span>+ ${fmt(freteV)}</span></div>` : ''}
     <div class="line grand"><span>TOTAL</span><span>${fmt(total)}</span></div>`;
 }
 
-['orc-desc','orc-acresc'].forEach(id => {
-  document.getElementById(id).addEventListener('input', atualizarTotais);
+['orc-desc','orc-acresc','orc-frete'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('input', atualizarTotais);
 });
 
 function limparOrcamento() {
@@ -1714,6 +1769,7 @@ function limparOrcamento() {
   document.getElementById('orc-pagto').value = '';
   document.getElementById('orc-desc').value = 0;
   document.getElementById('orc-acresc').value = 0;
+  const freteEl = document.getElementById('orc-frete'); if(freteEl) freteEl.value = 0;
   document.getElementById('orc-validade').value = 15;
   document.getElementById('orc-data').valueAsDate = new Date();
   renderMoveis();
@@ -1731,8 +1787,9 @@ function coletarOrcamento() {
   const subAdc = orcamentoAtual.adicionais.reduce((s,m) => s + m.subtotal, 0);
   const sub = subMov + subAdc;
   const descPct = parseFloat(document.getElementById('orc-desc').value) || 0;
-  const acrPct = parseFloat(document.getElementById('orc-acresc').value) || 0;
-  const total = sub * (1 - descPct/100) + sub * acrPct/100;
+  const acrPct  = parseFloat(document.getElementById('orc-acresc').value) || 0;
+  const freteV  = parseFloat((document.getElementById('orc-frete')||{value:0}).value)  || 0;
+  const total = sub * (1 - descPct/100) + sub * acrPct/100 + freteV;
   return {
     numero: 0,
     data: document.getElementById('orc-data').value || new Date().toISOString().slice(0,10),
@@ -1750,7 +1807,7 @@ function coletarOrcamento() {
     },
     moveis: JSON.parse(JSON.stringify(orcamentoAtual.moveis)),
     adicionais: JSON.parse(JSON.stringify(orcamentoAtual.adicionais)),
-    descPct, acrPct,
+    descPct, acrPct, freteV,
     subtotal: sub,
     total,
     validade: parseInt(document.getElementById('orc-validade').value) || 15,
@@ -1838,6 +1895,7 @@ function editarOrcamento(id) {
   document.getElementById('orc-data').value = o.data;
   document.getElementById('orc-desc').value = o.descPct;
   document.getElementById('orc-acresc').value = o.acrPct;
+  document.getElementById('orc-frete').value = o.freteV || 0;
   document.getElementById('orc-validade').value = o.validade;
   document.getElementById('orc-prazo').value = o.prazo || '';
   document.getElementById('orc-pagto').value = o.pagto || '';
@@ -1878,6 +1936,7 @@ function carregarOrcamento(id) {
   document.getElementById('orc-data').value = o.data;
   document.getElementById('orc-desc').value = o.descPct;
   document.getElementById('orc-acresc').value = o.acrPct;
+  document.getElementById('orc-frete').value = o.freteV || 0;
   document.getElementById('orc-validade').value = o.validade;
   document.getElementById('orc-prazo').value = o.prazo;
   document.getElementById('orc-pagto').value = o.pagto || '';
@@ -2013,7 +2072,8 @@ function montarImpressao(o) {
   html += `<div class="pa-totals">
     <div>Subtotal: ${fmt(sub)}</div>
     ${o.descPct > 0 ? `<div>Desconto (${fmtNum(o.descPct)}%): − ${fmt(descV)}</div>` : ''}
-    ${o.acrPct > 0 ? `<div>Acréscimo (${fmtNum(o.acrPct)}%): + ${fmt(acrV)}</div>` : ''}
+    ${o.acrPct  > 0 ? `<div>Acréscimo (${fmtNum(o.acrPct)}%): + ${fmt(acrV)}</div>` : ''}
+    ${o.freteV  > 0 ? `<div>🚚 Frete: + ${fmt(o.freteV)}</div>` : ''}
     <div class="grand">TOTAL: ${fmt(o.total)}</div>
   </div>`;
 
@@ -2075,11 +2135,19 @@ function importarDoCustos() {
   Promise.all([
     db.ref('marc_prices').once('value'),
     db.ref('marc_extras').once('value'),
-    db.ref('marc_composition').once('value')
-  ]).then(([snapP, snapE, snapC]) => {
+    db.ref('marc_composition').once('value'),
+    db.ref('marc_frete_cfg').once('value')
+  ]).then(([snapP, snapE, snapC, snapF]) => {
     const marcPrices = snapP.exists() ? snapP.val() : null;
     const marcExtras = snapE.exists() ? snapE.val() : null;
-    const marcComp = snapC.exists() ? snapC.val() : null;
+    const marcComp   = snapC.exists() ? snapC.val() : null;
+    const marcFrete  = snapF.exists() ? snapF.val() : null;
+    // Aplica configurações de frete
+    if (marcFrete) {
+      data.empresa.freteCustoKm = marcFrete.freteCustoKm || 3.5;
+      data.empresa.freteLocalKm = marcFrete.freteLocalKm || 20;
+      data.empresa.freteMinimo  = marcFrete.freteMinimo  || 0;
+    }
     const syncEl = document.getElementById('sync-status');
     if (!marcPrices && !marcExtras && !marcComp) {
       syncEl.style.color = '#c0392b';
@@ -2195,6 +2263,17 @@ const EMBEDDED_CFG = {
 };
 localStorage.setItem('marc_fb_cfg', JSON.stringify(EMBEDDED_CFG));
 initFbOrc(EMBEDDED_CFG);
+
+// Força maiúsculo em todos os campos de texto ao sair do campo
+document.addEventListener('input', function(e) {
+  const t = e.target;
+  if (t.classList.contains('no-upper') || t.type === 'password') return;
+  if ((t.tagName === 'INPUT' && ['text','tel','email','search',''].includes(t.type||'')) || t.tagName === 'TEXTAREA') {
+    const pos = t.selectionStart;
+    t.value = t.value.toUpperCase();
+    try { t.setSelectionRange(pos, pos); } catch(err) {}
+  }
+});
 </script>
 </body>
 </html>
