@@ -250,13 +250,19 @@ async function sincronizar(){
     // Monta faces com custo por m² de cada material
     const faces=(c.faces||[]).map(f=>{
       const mat=state.materiais.find(m=>String(m.id)===String(f.matId));
+      const fita=state.materiais.find(m=>String(m.id)===String(f.fitaId||''));
       const custoM2=mat?Math.round(custoMat(mat)*100)/100:0;
+      const custoFitaM=fita?Math.round(custoMat(fita)*100)/100:0;
       return {
         nome:f.nome,
         eixo:f.eixo,
         matId:f.matId,
         matNome:mat?mat.nome:'',
         custoM2,
+        fitaId:f.fitaId||'',
+        fitaNome:fita?fita.nome:'',
+        metrosFita:f.metrosFita||0,
+        custoFitaM,
         ativoDescricao:f.ativoDescricao!==false
       };
     });
@@ -764,7 +770,11 @@ function loadComp(id){
     dimProf:c.dimProf||600,
     faces:c.faces?c.faces.map(x=>({...x})):FACES_COMP_PADRAO(),
     materiais:[...( c.materiais||[]).map(x=>({...x}))],
-    ferragens:[...(c.ferragens||[]).map(x=>({...x}))]
+    ferragens:[...(c.ferragens||[]).map(x=>({...x}))],
+    nPrateleiras:c.nPrateleiras||0,
+    matPrateleira:c.matPrateleira||'',
+    fitaPrateleira:c.fitaPrateleira||'',
+    metrosFitaPrat:c.metrosFitaPrat||0
   };
 }
 function renderComposicao(container){
@@ -772,21 +782,86 @@ function renderComposicao(container){
   const comp=compSel?{...compData}:null;
   const prev=comp?calcPreco(comp):null;
   const cfg=state.config;
-  const sidebar=state.comps.map(c=>{const{final}=calcPreco(c);return`<div class="comp-item${compSel===c.id?" active":""}" onclick="selComp(${c.id})">
+
+  // Categorias únicas dos tipos
+  const cats=[...new Set(state.comps.map(c=>c.catOrcamento||"Outros"))].sort();
+  const filtCat=window._compCatFilter||"Todos";
+  const compsFiltered=filtCat==="Todos"?state.comps:state.comps.filter(c=>(c.catOrcamento||"Outros")===filtCat);
+
+  // Pills de categoria
+  const catPills=['Todos',...cats].map(cat=>`
+    <button onclick="window._compCatFilter='${esc(cat)}';renderTab()"
+      style="font-size:9px;padding:3px 8px;border-radius:10px;border:1px solid #e0e0e0;cursor:pointer;font-weight:600;letter-spacing:.5px;
+      background:${filtCat===cat?'#2c2c2c':'#fff'};color:${filtCat===cat?'#fff':'#666'};">${esc(cat)}</button>`).join('');
+
+  const sidebar=compsFiltered.map(c=>{const{final}=calcPreco(c);return`<div class="comp-item${compSel===c.id?" active":""}" onclick="selComp(${c.id})">
     <div style="font-size:12px;font-weight:700;color:${compSel===c.id?"#fff":"#2c2c2c"}">${esc(c.nome)}</div>
     <div style="font-size:10px;color:#4a7a5a;margin-top:2px">${fmt(final)}/m²</div>
     <div style="font-size:9px;color:${T.muted};margin-top:2px">${esc(c.catOrcamento||"Outros")}</div>
   </div>`;}).join("");
-  const fRows=(compData.ferragens||[]).map((li,i)=>{const f=state.ferragens.find(x=>x.id===li.ferId);const opts=state.ferragens.map(x=>`<option value="${x.id}"${x.id===li.ferId?" selected":""}>${esc(x.nome)}</option>`).join("");const ativo=li.ativoDescricao!==false;return`<div style="display:grid;grid-template-columns:2fr 1fr auto auto auto;gap:8px;align-items:end;margin-bottom:8px">
-    <select onchange="cfc(${i},'ferId',+this.value)">${opts}</select>
-    <div><label class="label">QTD (un)</label><input type="number" value="${li.qtd}" step="1" min="0" oninput="cfc(${i},'qtd',+this.value)"/></div>
-    <div style="font-size:11px;color:#2c2c2c;font-weight:700;white-space:nowrap;padding-bottom:2px">${f?fmt(custoFer(f)*li.qtd):"-"}</div>
-    <label class="tog" title="Exibir na descrição do orçamento" style="padding-bottom:2px">
-      <input type="checkbox" ${ativo?"checked":""} onchange="cfc(${i},'ativoDescricao',this.checked)"/>
-      <div class="tog-track"></div>
-    </label>
-    <button class="btn-icon danger" onclick="cfdel(${i})">✕</button>
-  </div>`;}).join("");
+  const fRows=(compData.ferragens||[]).map((li,i)=>{
+    const f=state.ferragens.find(x=>String(x.id)===String(li.ferId));
+    const und=f?f.unidade||'un':'un';
+    const opts=state.ferragens.map(x=>`<option value="${x.id}"${String(x.id)===String(li.ferId)?" selected":""}>${esc(x.nome)} (${x.unidade||'un'})</option>`).join("");
+    const ativo=li.ativoDescricao!==false;
+    return `<div style="display:grid;grid-template-columns:2fr 1fr auto auto auto;gap:8px;align-items:end;margin-bottom:8px">
+      <div><label class="label">FERRAGEM</label><select onchange="cfc(${i},'ferId',this.value)">${opts}</select></div>
+      <div><label class="label">QTD (${und})</label><input type="number" value="${li.qtd}" step="1" min="0" oninput="cfc(${i},'qtd',+this.value)"/></div>
+      <div style="font-size:11px;color:#2c2c2c;font-weight:700;white-space:nowrap;padding-bottom:2px">${f?fmt(custoFer(f)*li.qtd):"-"}</div>
+      <label class="tog" title="Exibir na descrição do orçamento" style="padding-bottom:2px">
+        <input type="checkbox" ${ativo?"checked":""} onchange="cfc(${i},'ativoDescricao',this.checked)"/>
+        <div class="tog-track"></div>
+      </label>
+      <button class="btn-icon danger" onclick="cfdel(${i})">✕</button>
+    </div>`;
+  }).join("");
+
+  // Prateleiras distribuídas
+  const nPrat=compData.nPrateleiras||0;
+  const matPratId=compData.matPrateleira||'';
+  const matPratSel=state.materiais.find(m=>String(m.id)===String(matPratId));
+  const pratPreview=gerarPreviewPrateleiras(nPrat);
+  const matOpts2='<option value="">— Selecione —</option>'+state.materiais.filter(m=>m.tipo!=='rolo').map(m=>`<option value="${m.id}"${String(matPratId)===String(m.id)?' selected':''}>${esc(m.nome)} (${fmt(custoMat(m))}/m²)</option>`).join('');
+  const fitaOpts2='<option value="">— Sem fita —</option>'+state.materiais.filter(m=>m.tipo==="rolo").map(m=>`<option value="${m.id}"${String(compData.fitaPrateleira||'')===String(m.id)?' selected':''}>${esc(m.nome)} (${fmt(custoMat(m))}/m)</option>`).join('');
+  const fitaPratSel=state.materiais.find(m=>String(m.id)===String(compData.fitaPrateleira||''));
+  const metrosFitaPrat=compData.metrosFitaPrat||0;
+  const custoFitaPrat=fitaPratSel&&nPrat>0&&metrosFitaPrat>0?custoMat(fitaPratSel)*metrosFitaPrat*nPrat:0;
+  const pratRows=`<div class="card">
+    <div class="card-title">📐 PRATELEIRAS (distribuição automática)</div>
+    <div style="display:grid;grid-template-columns:100px 1fr 100px;gap:12px;align-items:end;margin-bottom:12px">
+      <div>
+        <label class="label">QTD</label>
+        <input type="number" value="${nPrat}" min="0" max="20" step="1" style="text-align:center"
+          onchange="compData.nPrateleiras=+this.value;renderTab();setTimeout(desenhar3D,80)"/>
+      </div>
+      <div>
+        <label class="label">MATERIAL DA PRATELEIRA</label>
+        <select onchange="compData.matPrateleira=this.value;renderTab();setTimeout(desenhar3D,80)">${matOpts2}</select>
+      </div>
+      <div>
+        <label class="label">CUSTO ESTIMADO</label>
+        <div style="padding:8px 10px;background:#f5f5f5;border-radius:7px;font-size:12px;font-weight:700;border:1px solid #e8e8e8">
+          ${matPratSel&&nPrat>0?fmt(calcCustoPrateleiras(nPrat,matPratSel)+custoFitaPrat):'—'}
+        </div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 100px;gap:12px;align-items:end;margin-bottom:12px">
+      <div>
+        <label class="label">🎞️ FITA DE BORDO DA PRATELEIRA (opcional)</label>
+        <select onchange="compData.fitaPrateleira=this.value;renderTab()">${fitaOpts2}</select>
+      </div>
+      ${fitaPratSel?`<div>
+        <label class="label">METROS/PRAT.</label>
+        <input type="number" value="${metrosFitaPrat}" min="0" step="0.1" style="text-align:center"
+          oninput="compData.metrosFitaPrat=+this.value;renderTab()"/>
+      </div>`:'<div></div>'}
+    </div>
+    ${nPrat>0?`<div style="font-size:11px;color:#666;background:#f9f9f9;border-radius:6px;padding:10px 12px">
+      ${pratPreview.map((y,j)=>`<span style="display:inline-block;margin:2px 6px;background:#e8e8e8;border-radius:4px;padding:2px 8px;font-size:11px">
+        Prateleira ${j+1} — ${y}mm da base
+      </span>`).join('')}
+    </div>`:'<div style="font-size:11px;color:#aaa;font-style:italic">Nenhuma prateleira configurada</div>'}
+  </div>`;
   const bdown=prev?`<div class="card"><div class="card-title">BREAKDOWN — PRÉVIA</div>
   <div class="grid2">${[["Materiais",prev.cm,"#555"],["Ferragens",prev.cf,"#555"],["Mão de Obra",prev.mao,"#555"],["Overhead por hora",prev.ov,"#777"],[`Overhead estrutural (${cfg.overheadPerc}%)`,prev.comOv-prev.sub,T.muted],[`Imposto (${cfg.impostoVendaPerc}%)`,prev.comImp-prev.comOv,T.muted]].map(([l,v,cl])=>`
   <div class="info-box" style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:10px;color:${T.muted}">${l}</span><span style="font-size:13px;font-weight:700;color:${cl}">${fmt(v)}</span></div>`).join("")}</div>
@@ -795,11 +870,12 @@ function renderComposicao(container){
     <div style="font-size:26px;font-weight:800;color:#2c2c2c">${fmt(prev.final)}</div>
   </div></div>`:"";
   // Categorias do orçamento (personalizáveis)
-  const cats=state.catComp||["Cozinha","Dormitório/Closet","Banheiro/Lavanderia","Sala/Home/Comercial","Outros"];
+  const catsComp=state.catComp||["Cozinha","Dormitório/Closet","Banheiro/Lavanderia","Sala/Home/Comercial","Outros"];
   container.innerHTML=`<div class="comp-layout">
   <div class="comp-sidebar">
     <div class="card">
       <div class="card-title">TIPOS</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px">${catPills}</div>
       ${sidebar}
       <button class="btn btn-primary" style="margin-top:8px;width:100%;font-size:11px" onclick="novoComp()">＋ Novo Tipo</button>
     </div>
@@ -813,7 +889,7 @@ function renderComposicao(container){
         </div>
         <div><label class="label">CATEGORIA</label>
           <div class="flex" style="gap:6px">
-            <select style="flex:1" onchange="compData.catOrcamento=this.value">${cats.map(o=>`<option${(compData.catOrcamento||"Outros")===o?" selected":""}>${esc(o)}</option>`).join("")}</select>
+            <select style="flex:1" onchange="compData.catOrcamento=this.value">${catsComp.map(o=>`<option${(compData.catOrcamento||"Outros")===o?" selected":""}>${esc(o)}</option>`).join("")}</select>
             <button class="btn-icon" title="Gerenciar categorias" onclick="abrirModalCatComp()">＋</button>
           </div>
         </div>
@@ -910,6 +986,7 @@ function renderComposicao(container){
         * Custo calculado com base nas dimensões de referência acima. O valor real será recalculado no orçamento com as medidas do cliente.
       </div>
     </div>
+    ${pratRows}
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
         <div class="card-title" style="margin-bottom:0">FERRAGENS (por unidade)</div>
@@ -946,9 +1023,16 @@ function delComp(){if(!confirm("Excluir?"))return;state.comps=state.comps.filter
 function cmadd(){compData.materiais.push({matId:state.materiais[0]?.id,qtd:1});renderTab();}
 function cmdel(i){compData.materiais.splice(i,1);renderTab();}
 function cmc(i,k,v){compData.materiais[i][k]=v;renderTab();}
-function cfadd(){compData.ferragens.push({ferId:state.ferragens[0]?.id,qtd:1});renderTab();}
+function cfadd(){
+  const firstFer=state.ferragens[0];
+  compData.ferragens.push({ferId:firstFer?firstFer.id:null,qtd:1});
+  renderTab();
+}
 function cfdel(i){compData.ferragens.splice(i,1);renderTab();}
-function cfc(i,k,v){compData.ferragens[i][k]=v;renderTab();}
+function cfc(i,k,v){
+  compData.ferragens[i][k]=k==='qtd'?+v:v;
+  renderTab();
+}
 
 // ── FACES NA COMPOSIÇÃO ─────────────────────────────────────────
 function FACES_COMP_PADRAO(){
@@ -976,14 +1060,16 @@ const TIPOS_FACE_PRESET=[
 
 function areaFaceComp(face,dim){
   const l=dim.larg/1000, a=dim.alt/1000, p=dim.prof/1000;
+  const eixo=face.eixo||'lh';
   if(face.tipo==="travessa"||face.tipo==="prateleira"){
-    const esp=(face.altTravMm||100)/1000; // largura da travessa
-    if(face.eixo==="lp") return l*p;         // deitada
-    if(face.eixo==="lh") return l*a;         // em pé eixo Z (L × A)
-    if(face.eixo==="ph") return p*a;         // em pé eixo X (P × A)
+    const larg=(face.travLargMm||100)/1000;
+    if(eixo==="lp") return l*p;
+    if(eixo==="lh_topo"||eixo==="lh_base"||eixo==="lh_meio") return l*larg;
+    if(eixo==="ph_esq"||eixo==="ph_dir"||eixo==="ph_meio") return p*larg;
+    return l*p;
   }
-  if(face.eixo==="lp") return l*p;
-  if(face.eixo==="ph") return p*a;
+  if(eixo==="lp") return l*p;
+  if(eixo==="ph") return p*a;
   return l*a;
 }
 
@@ -1006,9 +1092,13 @@ function renderFaceRow(f,i){
   const isTrav=f.tipo==='travessa'||f.tipo==='prateleira';
 
   const eixoOpts=isTrav
-    ? '<option value="lp"'+(f.eixo==='lp'?' selected':'')+'>Deitada (L × P)</option>'
-    + '<option value="lh"'+(f.eixo==='lh'?' selected':'')+'>Em pé — eixo Z (L × A)</option>'
-    + '<option value="ph"'+(f.eixo==='ph'?' selected':'')+'>Em pé — eixo X (P × A)</option>'
+    ? '<option value="lp"'+(f.eixo==='lp'?' selected':'')+'>Horizontal — deitada (L × P)</option>'
+    + '<option value="lh_topo"'+(f.eixo==='lh_topo'?' selected':'')+'>Vertical eixo Z — travada no TOPO</option>'
+    + '<option value="lh_base"'+(f.eixo==='lh_base'?' selected':'')+'>Vertical eixo Z — travada na BASE</option>'
+    + '<option value="lh_meio"'+(f.eixo==='lh_meio'?' selected':'')+'>Vertical eixo Z — posição livre</option>'
+    + '<option value="ph_esq"'+(f.eixo==='ph_esq'?' selected':'')+'>Horizontal eixo Z — lateral ESQ</option>'
+    + '<option value="ph_dir"'+(f.eixo==='ph_dir'?' selected':'')+'>Horizontal eixo Z — lateral DIR</option>'
+    + '<option value="ph_meio"'+(f.eixo==='ph_meio'?' selected':'')+'>Horizontal eixo Z — posição livre</option>'
     : '<option value="lp"'+(f.eixo==='lp'?' selected':'')+'>L × P (Base/Topo)</option>'
     + '<option value="ph"'+(f.eixo==='ph'?' selected':'')+'>P × A (Lateral)</option>'
     + '<option value="lh"'+(f.eixo==='lh'?' selected':'')+'>L × A (Frente/Tras.)</option>';
@@ -1032,8 +1122,43 @@ function renderFaceRow(f,i){
     + ' oninput="compData.faces['+i+'].metrosLin=+this.value;atualizarMateriaisDesFaces();atualizarResumoFaces()"/></div>'
     : '';
 
+  // Fitas de bordo = materiais do tipo rolo
+  const fitas=state.materiais.filter(m=>m.tipo==="rolo");
+  const fitaOpts='<option value="">— Sem fita —</option>'+
+    fitas.map(m=>'<option value="'+m.id+'"'+(String(f.fitaId||'')===String(m.id)?' selected':'')+'>'+esc(m.nome)+' ('+fmt(custoMat(m))+'/m)</option>').join('');
+
+  // Custo da fita: metros lineares de borda × custo/m
+  const fitaSel=state.materiais.find(m=>String(m.id)===String(f.fitaId||''));
+  const metrosFita=f.metrosFita||0;
+  const custoFita=fitaSel&&metrosFita>0?custoMat(fitaSel)*metrosFita:0;
+  const custoTotal=custo+custoFita;
+
+  const fitaField='<div style="display:flex;gap:8px;align-items:center;margin-top:6px;padding-top:6px;border-top:1px dashed #f0f0f0;flex-wrap:wrap;">'
+    +'<span style="font-size:10px;font-weight:700;color:#aaa;white-space:nowrap;">🎞️ FITA:</span>'
+    +'<select style="flex:1;min-width:160px;max-width:300px;font-size:12px;" onchange="onFaceFitaChange('+i+',this.value)">'+fitaOpts+'</select>'
+    +'<div class="fita-extras" style="display:flex;gap:6px;align-items:center;">'
+    +(fitaSel?
+      '<input class="fita-metros-input" type="number" value="'+(metrosFita||0)+'" min="0" step="0.1" style="width:70px;text-align:center;font-size:12px;" placeholder="0"'
+      +' oninput="compData.faces['+i+'].metrosFita=+this.value;atualizarMateriaisDesFaces();atualizarResumoFaces()"/>'
+      +'<span style="font-size:10px;color:#888;white-space:nowrap;"> m = '+(custoFita>0?fmt(custoFita):'—')+'</span>'
+      :'')
+    +'</div>'
+    +'</div>';
+
+  // Travessa: largura da peça e posição
+  const travLargField=isTrav
+    ? '<div><label class="label">LARG. (mm)</label>'
+    + '<input type="number" id="trav-larg-'+i+'" value="'+(f.travLargMm||100)+'" min="1" step="1" style="text-align:center"'
+    + ' oninput="compData.faces['+i+'].travLargMm=+this.value;atualizarMateriaisDesFaces();atualizarResumoFaces();setTimeout(desenhar3D,80)"/></div>'
+    : '';
+  const travPosField=(isTrav&&(f.eixo==='lh_meio'||f.eixo==='ph_meio'))
+    ? '<div><label class="label">POS. (mm base)</label>'
+    + '<input type="number" id="trav-pos-'+i+'" value="'+(f.travPosMm||500)+'" min="0" step="1" style="text-align:center"'
+    + ' oninput="compData.faces['+i+'].travPosMm=+this.value;setTimeout(desenhar3D,80)"/></div>'
+    : '';
+
   const areaLabel=isRolo?(metrosLin.toFixed(2)+" m"):(area.toFixed(4)+" m²");
-  const cols='150px 1fr 140px '+(isTrav?'90px ':'')+( isRolo?'90px ':'')+' auto auto auto';
+  const cols='140px 1fr 160px '+(isTrav?'80px ':'')+(isTrav?'80px ':'')+( roloField?'90px ':'')+' auto auto auto';
 
   return '<div id="face-row-'+i+'" style="background:#fff;border:1px solid #eee;border-radius:7px;padding:10px 12px;margin-bottom:8px;">'
     +'<div style="display:grid;grid-template-columns:'+cols+';gap:8px;align-items:end;">'
@@ -1045,14 +1170,74 @@ function renderFaceRow(f,i){
     +'<div><label class="label">POSIÇÃO</label>'
     +'<select onchange="onFaceEixoChange('+i+',this.value)">'+eixoOpts+'</select></div>'
     +altTravField
+    +travLargField
+    +travPosField
     +roloField
     +'<div id="face-area-'+i+'" style="font-size:10px;color:#888;white-space:nowrap;padding-bottom:4px">'+areaLabel+'</div>'
-    +'<div id="face-custo-'+i+'" style="font-size:11px;color:#2c2c2c;font-weight:700;white-space:nowrap;padding-bottom:4px">'+(custo>0?fmt(custo):'—')+'</div>'
+    +'<div id="face-custo-'+i+'" style="font-size:11px;color:#2c2c2c;font-weight:700;white-space:nowrap;padding-bottom:4px">'+(custoTotal>0?fmt(custoTotal):'—')+'</div>'
     +'<label class="tog" title="Exibir na descrição do orçamento" style="padding-bottom:4px">'
     +'<input type="checkbox" '+(ativo?'checked':'')+' onchange="compData.faces['+i+'].ativoDescricao=this.checked"/>'
     +'<div class="tog-track"></div></label>'
     +'<button class="btn-icon danger" onclick="removerFaceComp('+i+')">✕</button>'
-    +'</div></div>';
+    +'</div>'
+    +fitaField
+    +'</div>';
+}
+
+function gerarPreviewPrateleiras(n){
+  if(!n||n<=0) return [];
+  const alt=compData.dimAlt||1800;
+  const step=Math.round(alt/(n+1));
+  return Array.from({length:n},(_,i)=>Math.round(step*(i+1)));
+}
+
+function calcCustoPrateleiras(n,mat){
+  if(!n||!mat) return 0;
+  const dim={larg:compData.dimLarg||800,alt:compData.dimAlt||1800,prof:compData.dimProf||600};
+  const areaUma=(dim.larg/1000)*(dim.prof/1000);
+  return custoMat(mat)*areaUma*n;
+}
+
+// Injeta prateleiras como faces virtuais no 3D
+function facesComPrateleiras(){
+  const faces=[...(compData.faces||[])];
+  const n=compData.nPrateleiras||0;
+  if(!n) return faces;
+  const matId=compData.matPrateleira||'';
+  const posicoes=gerarPreviewPrateleiras(n);
+  posicoes.forEach((yMm,i)=>{
+    faces.push({
+      id:'prat_'+i,
+      nome:'PRATELEIRA '+(i+1),
+      eixo:'lp',
+      tipo:'prateleira_auto',
+      matId,
+      yMm, // posição Y em mm da base
+      ativoDescricao:true,
+      _virtual:true
+    });
+  });
+  return faces;
+}
+
+function onFaceFitaChange(i,val){
+  compData.faces[i].fitaId=val;
+  compData.faces[i].metrosFita=compData.faces[i].metrosFita||0;
+  atualizarMateriaisDesFaces();
+  // Mostra/esconde campo de metros sem recriar o DOM
+  const rowEl=document.getElementById('face-row-'+i);
+  if(!rowEl) return;
+  const container=rowEl.querySelector('.fita-extras');
+  if(!container) return;
+  const fitaSel=state.materiais.find(m=>String(m.id)===String(val));
+  if(fitaSel){
+    container.innerHTML='<input class="fita-metros-input" type="number" value="'+(compData.faces[i].metrosFita||0)+'" min="0" step="0.1" style="width:70px;text-align:center;font-size:12px;" placeholder="0"'
+      +' oninput="compData.faces['+i+'].metrosFita=+this.value;atualizarMateriaisDesFaces();atualizarResumoFaces()"/>'
+      +'<span style="font-size:10px;color:#888;white-space:nowrap;"> m</span>';
+  } else {
+    container.innerHTML='';
+  }
+  atualizarResumoFaces();
 }
 
 function calcCustoFaces(){
@@ -1060,7 +1245,10 @@ function calcCustoFaces(){
   return (compData.faces||[]).reduce((s,f)=>{
     const area=areaFaceComp(f,dim);
     const mat=state.materiais.find(m=>String(m.id)===String(f.matId));
-    return s+(mat?custoMat(mat)*area:0);
+    const fita=state.materiais.find(m=>String(m.id)===String(f.fitaId||''));
+    const custoMaterial=mat?custoMat(mat)*area:0;
+    const custoFita=fita&&f.metrosFita>0?custoMat(fita)*f.metrosFita:0;
+    return s+custoMaterial+custoFita;
   },0);
 }
 
@@ -1092,9 +1280,12 @@ function atualizarResumoFaces(){
   const dim={larg:compData.dimLarg||800,alt:compData.dimAlt||1800,prof:compData.dimProf||600};
   (compData.faces||[]).forEach((f,i)=>{
     const mat=state.materiais.find(m=>String(m.id)===String(f.matId));
+    const fita=state.materiais.find(m=>String(m.id)===String(f.fitaId||''));
     const isRolo=mat&&mat.tipo==="rolo";
     const qtd=isRolo?(f.metrosLin||1):areaFaceComp(f,dim);
-    const custo=mat?custoMat(mat)*qtd:0;
+    const custoMaterial=mat?custoMat(mat)*qtd:0;
+    const custoFita=fita&&f.metrosFita>0?custoMat(fita)*f.metrosFita:0;
+    const custo=custoMaterial+custoFita;
     const aEl=document.getElementById("face-area-"+i);
     const cEl=document.getElementById("face-custo-"+i);
     if(aEl) aEl.textContent=isRolo?(qtd.toFixed(2)+" m"):(qtd.toFixed(4)+" m²");
@@ -1118,15 +1309,19 @@ function atualizarTabelaResumo(){
   tbody.innerHTML=faces.map(f=>{
     const area=areaFaceComp(f,dim);
     const mat=state.materiais.find(m=>String(m.id)===String(f.matId));
+    const fita=state.materiais.find(m=>String(m.id)===String(f.fitaId||''));
     const custoUnit=mat?custoMat(mat):0;
     const custo=custoUnit*area;
-    totalArea+=area; totalCusto+=custo;
+    const custoFita=fita&&f.metrosFita>0?custoMat(fita)*f.metrosFita:0;
+    totalArea+=area; totalCusto+=custo+custoFita;
     return `<tr>
       <td style="font-weight:600">${esc(f.nome)}</td>
-      <td>${mat?esc(mat.nome):`<span style="color:#bbb">Não selecionado</span>`}</td>
+      <td>${mat?esc(mat.nome):`<span style="color:#bbb">Não selecionado</span>`}
+        ${fita?`<br><span style="font-size:10px;color:#888;">🎞️ ${esc(fita.nome)} × ${f.metrosFita||0}m = ${fmt(custoFita)}</span>`:''}
+      </td>
       <td style="text-align:right">${area.toFixed(4)}</td>
       <td style="text-align:right">${custoUnit>0?fmt(custoUnit)+" /m²":"—"}</td>
-      <td style="text-align:right;font-weight:700;color:${custo>0?"#2c2c2c":"#bbb"}">${custo>0?fmt(custo):"—"}</td>
+      <td style="text-align:right;font-weight:700;color:${(custo+custoFita)>0?"#2c2c2c":"#bbb"}">${(custo+custoFita)>0?fmt(custo+custoFita):"—"}</td>
     </tr>`;
   }).join("");
   if(totArea) totArea.textContent=totalArea.toFixed(4);
@@ -1138,13 +1333,21 @@ function atualizarMateriaisDesFaces(){
   const dim={larg:compData.dimLarg||800,alt:compData.dimAlt||1800,prof:compData.dimProf||600};
   const agrupado={};
   compData.faces.forEach(f=>{
-    if(!f.matId) return;
-    const key=String(f.matId);
-    const mat=state.materiais.find(m=>String(m.id)===key);
-    const isRolo=mat&&mat.tipo==="rolo";
-    const qtd=isRolo?(f.metrosLin||1):areaFaceComp(f,dim);
-    if(!agrupado[key]) agrupado[key]={matId:f.matId,qtd:0,ativoDescricao:f.ativoDescricao};
-    agrupado[key].qtd+=qtd;
+    // Material principal
+    if(f.matId){
+      const key=String(f.matId);
+      const mat=state.materiais.find(m=>String(m.id)===key);
+      const isRolo=mat&&mat.tipo==="rolo";
+      const qtd=isRolo?(f.metrosLin||1):areaFaceComp(f,dim);
+      if(!agrupado[key]) agrupado[key]={matId:f.matId,qtd:0,ativoDescricao:f.ativoDescricao};
+      agrupado[key].qtd+=qtd;
+    }
+    // Fita de bordo
+    if(f.fitaId&&f.metrosFita>0){
+      const key='fita_'+String(f.fitaId);
+      if(!agrupado[key]) agrupado[key]={matId:f.fitaId,qtd:0,ativoDescricao:f.ativoDescricao};
+      agrupado[key].qtd+=f.metrosFita;
+    }
   });
   compData.materiais=Object.values(agrupado);
 }
@@ -1301,17 +1504,34 @@ function _initThree(wrap,canvas){
   if(lhs[0]) mkPanel(0,0, z, lw,lh,THIN, lhs[0].cor,0.92); // FRENTE
   if(lhs[1]) mkPanel(0,0,-z, lw,lh,THIN, lhs[1].cor,0.65); // TRASEIRA
   lhs.slice(2).forEach((f,i)=>mkPanel(0,0,z*(0.3+i*0.15),lw,lh,THIN,f.cor,0.4));
+  // Prateleiras automáticas
+  const nPrat=compData.nPrateleiras||0;
+  if(nPrat>0){
+    const posicoes=gerarPreviewPrateleiras(nPrat);
+    const matPrat=state.materiais.find(m=>String(m.id)===String(compData.matPrateleira||''));
+    const corPrat=matPrat?'#a8d8a8':'#cccccc';
+    posicoes.forEach(yMm=>{
+      const yPos=-lh/2+(yMm/1000);
+      mkPanel(0,yPos,0, lw,THIN,ld, corPrat,0.85);
+    });
+  }
   fp.travessa.forEach((f,i)=>{
-    const yPos=-y+lh*(0.3+i*0.25);
-    if(f.eixo==='lp')      mkPanel(0,yPos,0,  lw,THIN,ld,   f.cor,0.88);
-    else if(f.eixo==='lh') mkPanel(0,0,z*0.1*i, lw,lh,THIN, f.cor,0.88);
-    else                   mkPanel(x*0.3*i,0,0, THIN,lh,ld,  f.cor,0.88);
+    const larg=Math.max((f.travLargMm||100)/1000, 0.005);
+    const eixo=f.eixo||'lp';
+    const posY=f.travPosMm!==undefined?(-lh/2+(f.travPosMm/1000)):(-y+lh*(0.3+i*0.25));
+    if(eixo==='lp')           mkPanel(0, posY, 0,        lw,THIN,ld, f.cor,0.88);
+    else if(eixo==='lh_topo') mkPanel(0, y-larg/2, 0,   lw,larg,ld, f.cor,0.92);
+    else if(eixo==='lh_base') mkPanel(0, -y+larg/2, 0,  lw,larg,ld, f.cor,0.92);
+    else if(eixo==='lh_meio') mkPanel(0, posY, 0,        lw,larg,ld, f.cor,0.88);
+    else if(eixo==='ph_esq')  mkPanel(-x+larg/2, 0, 0,  larg,lh,ld, f.cor,0.92);
+    else if(eixo==='ph_dir')  mkPanel(x-larg/2, 0, 0,   larg,lh,ld, f.cor,0.92);
+    else if(eixo==='ph_meio') mkPanel(posY, 0, 0,        larg,lh,ld, f.cor,0.88);
+    else mkPanel(0, posY, 0, lw,THIN,ld, f.cor,0.88);
   });
   fp.prateleira.forEach((f,i)=>{
+    const larg=Math.max((f.travLargMm||15)/1000, 0.005);
     const yPos=-y+lh*(0.5+i*0.2);
-    if(f.eixo==='lp')      mkPanel(0,yPos,0,  lw,THIN,ld,   f.cor,0.88);
-    else if(f.eixo==='lh') mkPanel(0,0,z*0.1*i, lw,lh,THIN, f.cor,0.88);
-    else                   mkPanel(x*0.3*i,0,0, THIN,lh,ld,  f.cor,0.88);
+    mkPanel(0,yPos,0, lw,larg,ld, f.cor,0.88);
   });
 
   // Controles — rotação só no eixo Y ao arrastar horizontalmente
@@ -1664,6 +1884,7 @@ initFb(EMBEDDED_CFG);
 // Força maiúsculo em todos os campos de texto ao sair do campo
 document.addEventListener('input', function(e) {
   const t = e.target;
+  if (t.tagName === 'SELECT') return;
   if (t.classList.contains('no-upper') || t.type === 'password') return;
   if ((t.tagName === 'INPUT' && ['text','tel','email','search',''].includes(t.type||'')) || t.tagName === 'TEXTAREA') {
     const pos = t.selectionStart;

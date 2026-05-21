@@ -2267,6 +2267,7 @@ initFbOrc(EMBEDDED_CFG);
 // Força maiúsculo em todos os campos de texto ao sair do campo
 document.addEventListener('input', function(e) {
   const t = e.target;
+  if (t.tagName === 'SELECT') return;
   if (t.classList.contains('no-upper') || t.type === 'password') return;
   if ((t.tagName === 'INPUT' && ['text','tel','email','search',''].includes(t.type||'')) || t.tagName === 'TEXTAREA') {
     const pos = t.selectionStart;
