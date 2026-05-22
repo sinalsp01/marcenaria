@@ -428,6 +428,7 @@
     <div class="card">
       <h2>Condições</h2>
       <input type="hidden" id="orc-acresc" value="0" />
+      <input type="hidden" id="orc-frete-tipo" value="externo" />
       <div class="grid grid-3">
         <div>
           <label>Desconto (%)</label>
@@ -1124,6 +1125,23 @@ function haversineKm(lat1,lng1,lat2,lng2){
   return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 
+// Municípios da Região Metropolitana de São Paulo
+const RMSP = new Set([
+  'SAO PAULO','SANTO ANDRE','SAO BERNARDO DO CAMPO','SAO CAETANO DO SUL',
+  'DIADEMA','MAUA','RIBEIRAO PIRES','RIO GRANDE DA SERRA',
+  'GUARULHOS','ARUJA','ITAQUAQUECETUBA','POA','FERRAZ DE VASCONCELOS','SUZANO','MOGI DAS CRUZES','SALESOPOLIS','BIRITIBA MIRIM',
+  'OSASCO','CARAPICUIBA','BARUERI','SANTANA DE PARNAIBA','PIRAPORA DO BOM JESUS','CAJAMAR',
+  'COTIA','EMBU DAS ARTES','EMBU GUACU','ITAPECERICA DA SERRA','JUQUITIBA','SAO LOURENCO DA SERRA','VARGEM GRANDE PAULISTA',
+  'TABOAO DA SERRA','ITAPEVI','JANDIRA','CAMPO LIMPO PAULISTA','VARZEA PAULISTA','JARINU','LOUVEIRA',
+  'FRANCO DA ROCHA','CAIEIRAS','FRANCISCO MORATO',
+  'MOGI GUACU','MAIRIPORA','NAZARE PAULISTA',
+  'CUBATAO','SANTOS','SAO VICENTE','PRAIA GRANDE','ITANHAEM','MONGAGUA','PERUIBE',
+  'GUARUJA','BERTIOGA',
+]);
+
+function normCity(s){ return (s||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim(); }
+function isRMSP(cidade){ return RMSP.has(normCity(cidade)); }
+
 function exibirFrete(freteEl, cidade, uf, distKm, durMin, estimativa) {
   const custoPorKm = parseFloat(data.empresa.freteCustoKm || 3.5);
   const freteLocal = parseFloat(data.empresa.freteLocalKm || 20);
@@ -1131,6 +1149,7 @@ function exibirFrete(freteEl, cidade, uf, distKm, durMin, estimativa) {
   const freteCalc  = Math.max(distKm * 2 * custoPorKm, freteMin);
   const horas = Math.floor(durMin/60), mins = Math.round(durMin%60);
   const durStr = horas > 0 ? `${horas}h${mins > 0 ? mins+'min' : ''}` : `${mins}min`;
+  const rmsp = isRMSP(cidade);
 
   let msg = `📍 <strong>${cidade}/${uf}</strong>`;
   if (distKm > 0) {
@@ -1139,23 +1158,33 @@ function exibirFrete(freteEl, cidade, uf, distKm, durMin, estimativa) {
     if (estimativa) msg += ` <span style="color:#aaa;font-size:10px;">(estimativa)</span>`;
   }
 
-  // Guarda valor calculado para sugestão
-  window._freteSugerido = distKm <= freteLocal ? 0 : freteCalc;
-
-  if (distKm <= freteLocal && distKm > 0) {
-    msg += ` &nbsp;·&nbsp; 🚚 <strong style="color:#2f7d32;">Entrega local — sem frete</strong>`;
-    // Zera o campo de frete
+  if (rmsp) {
+    // RMSP: frete diluído nos itens — invisível no PDF
+    window._freteSugerido = freteCalc;
+    window._freteRMSP = true;
+    window._freteRMSPValor = freteCalc;
+    msg += ` &nbsp;·&nbsp; 🏙️ <strong style="color:#1565c0;">Região Metropolitana SP — frete diluído nos itens</strong>`;
+    msg += ` <span style="color:#888;font-size:11px;">(${fmt(freteCalc)} distribuído proporcionalmente)</span>`;
+    // Marca frete como RMSP (zera campo visível)
     const fc = document.getElementById('orc-frete'); if(fc) fc.value = '0';
+    const fd = document.getElementById('orc-frete-tipo'); if(fd) fd.value = 'rmsp';
+    atualizarTotais();
+    // Esconde sugestão normal
+    const sug = document.getElementById('frete-sugestao'); if(sug) sug.style.display='none';
+  } else if (distKm <= freteLocal && distKm > 0) {
+    window._freteRMSP = false;
+    msg += ` &nbsp;·&nbsp; 🚚 <strong style="color:#2f7d32;">Entrega local — sem frete</strong>`;
+    const fc = document.getElementById('orc-frete'); if(fc) fc.value = '0';
+    const fd = document.getElementById('orc-frete-tipo'); if(fd) fd.value = 'local';
     atualizarTotais();
   } else if (distKm > 0) {
+    window._freteRMSP = false;
+    window._freteSugerido = freteCalc;
     msg += ` &nbsp;·&nbsp; 🚚 <strong style="color:#2f7d32;">Frete estimado: ${fmt(freteCalc)}</strong>`;
     msg += ` <span style="color:#888;font-size:11px;">(${distKm.toFixed(1)}km × 2 × R$${(custoPorKm).toFixed(2)}/km)</span>`;
-    // Mostra sugestão clicável
+    const fd = document.getElementById('orc-frete-tipo'); if(fd) fd.value = 'externo';
     const sug = document.getElementById('frete-sugestao');
-    if (sug) {
-      sug.textContent = `↑ Usar ${fmt(freteCalc)} como frete`;
-      sug.style.display = 'block';
-    }
+    if (sug) { sug.textContent = `↑ Usar ${fmt(freteCalc)} como frete`; sug.style.display = 'block'; }
   }
   freteEl.innerHTML = msg;
   freteEl.style.display = 'block';
@@ -1735,12 +1764,14 @@ function atualizarTotais() {
   }, 0);
   const subAdc = orcamentoAtual.adicionais.reduce((s,m) => s + m.subtotal, 0);
   const sub = subMov + subAdc;
-  const descPct = parseFloat(document.getElementById('orc-desc').value) || 0;
-  const acrPct  = parseFloat(document.getElementById('orc-acresc').value) || 0;
-  const freteV  = parseFloat((document.getElementById('orc-frete')||{value:0}).value)  || 0;
+  const descPct  = parseFloat(document.getElementById('orc-desc').value) || 0;
+  const acrPct   = parseFloat(document.getElementById('orc-acresc').value) || 0;
+  const freteV   = parseFloat((document.getElementById('orc-frete')||{value:0}).value) || 0;
+  const freteTipo= (document.getElementById('orc-frete-tipo')||{value:'externo'}).value;
+  const freteRMSP= freteTipo === 'rmsp' ? (window._freteRMSPValor || 0) : 0;
   const descV = sub * descPct / 100;
   const acrV  = sub * acrPct  / 100;
-  const total = sub - descV + acrV + freteV;
+  const total = sub - descV + acrV + freteV + freteRMSP;
 
   document.getElementById('totais').innerHTML = `
     <div class="line"><span>Subtotal móveis + itens</span><span>${fmt(subMov)}</span></div>
@@ -1749,6 +1780,7 @@ function atualizarTotais() {
     ${descPct > 0 ? `<div class="line" style="color:#2f7d32"><span>Desconto (${fmtNum(descPct)}%)</span><span>− ${fmt(descV)}</span></div>` : ''}
     ${acrPct  > 0 ? `<div class="line" style="color:#c0392b"><span>Acréscimo (${fmtNum(acrPct)}%)</span><span>+ ${fmt(acrV)}</span></div>` : ''}
     ${freteV  > 0 ? `<div class="line" style="color:#1565c0"><span>🚚 Frete</span><span>+ ${fmt(freteV)}</span></div>` : ''}
+    ${freteRMSP > 0 ? `<div class="line" style="color:#1565c0"><span>🏙️ Entrega SP (inclusa)</span><span>+ ${fmt(freteRMSP)}</span></div>` : ''}
     <div class="line grand"><span>TOTAL</span><span>${fmt(total)}</span></div>`;
 }
 
@@ -1786,10 +1818,12 @@ function coletarOrcamento() {
   }, 0);
   const subAdc = orcamentoAtual.adicionais.reduce((s,m) => s + m.subtotal, 0);
   const sub = subMov + subAdc;
-  const descPct = parseFloat(document.getElementById('orc-desc').value) || 0;
-  const acrPct  = parseFloat(document.getElementById('orc-acresc').value) || 0;
-  const freteV  = parseFloat((document.getElementById('orc-frete')||{value:0}).value)  || 0;
-  const total = sub * (1 - descPct/100) + sub * acrPct/100 + freteV;
+  const descPct   = parseFloat(document.getElementById('orc-desc').value) || 0;
+  const acrPct    = parseFloat(document.getElementById('orc-acresc').value) || 0;
+  const freteV    = parseFloat((document.getElementById('orc-frete')||{value:0}).value) || 0;
+  const freteTipo = (document.getElementById('orc-frete-tipo')||{value:'externo'}).value;
+  const freteRMSP = freteTipo === 'rmsp' ? (window._freteRMSPValor || 0) : 0;
+  const total = sub * (1 - descPct/100) + sub * acrPct/100 + freteV + freteRMSP;
   return {
     numero: 0,
     data: document.getElementById('orc-data').value || new Date().toISOString().slice(0,10),
@@ -1807,7 +1841,7 @@ function coletarOrcamento() {
     },
     moveis: JSON.parse(JSON.stringify(orcamentoAtual.moveis)),
     adicionais: JSON.parse(JSON.stringify(orcamentoAtual.adicionais)),
-    descPct, acrPct, freteV,
+    descPct, acrPct, freteV, freteTipo, freteRMSP,
     subtotal: sub,
     total,
     validade: parseInt(document.getElementById('orc-validade').value) || 15,
@@ -2073,7 +2107,7 @@ function montarImpressao(o) {
     <div>Subtotal: ${fmt(sub)}</div>
     ${o.descPct > 0 ? `<div>Desconto (${fmtNum(o.descPct)}%): − ${fmt(descV)}</div>` : ''}
     ${o.acrPct  > 0 ? `<div>Acréscimo (${fmtNum(o.acrPct)}%): + ${fmt(acrV)}</div>` : ''}
-    ${o.freteV  > 0 ? `<div>🚚 Frete: + ${fmt(o.freteV)}</div>` : ''}
+    ${o.freteV  > 0 && o.freteTipo !== 'rmsp' ? `<div>🚚 Frete: + ${fmt(o.freteV)}</div>` : ''}
     <div class="grand">TOTAL: ${fmt(o.total)}</div>
   </div>`;
 

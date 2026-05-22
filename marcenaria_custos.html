@@ -453,6 +453,7 @@ function renderTabs(){
 }
 function switchTab(i){currentTab=i;renderTabs();renderTab();if(i===3)setTimeout(desenhar3D,80);}
 function renderTab(){
+  const scrollY=window.scrollY;
   const c=ge("content");h(c,"");
   if(currentTab===0)renderPainel(c);
   else if(currentTab===1)renderMateriais(c);
@@ -461,6 +462,7 @@ function renderTab(){
   else if(currentTab===4)renderConfig(c);
   else if(currentTab===5)renderUsuarios(c);
   if(currentTab===3) setTimeout(desenhar3D,80);
+  requestAnimationFrame(()=>window.scrollTo(0,scrollY));
 }
 
 // ── PAINEL ──────────────────────────────────────────────────────
@@ -807,7 +809,7 @@ function renderComposicao(container){
     return `<div style="display:grid;grid-template-columns:2fr 1fr auto auto auto;gap:8px;align-items:end;margin-bottom:8px">
       <div><label class="label">FERRAGEM</label><select onchange="cfc(${i},'ferId',this.value)">${opts}</select></div>
       <div><label class="label">QTD (${und})</label><input type="number" value="${li.qtd}" step="1" min="0" oninput="cfc(${i},'qtd',+this.value)"/></div>
-      <div style="font-size:11px;color:#2c2c2c;font-weight:700;white-space:nowrap;padding-bottom:2px">${f?fmt(custoFer(f)*li.qtd):"-"}</div>
+      <div id="fer-custo-${i}" style="font-size:11px;color:#2c2c2c;font-weight:700;white-space:nowrap;padding-bottom:2px">${f?fmt(custoFer(f)*li.qtd):"-"}</div>
       <label class="tog" title="Exibir na descrição do orçamento" style="padding-bottom:2px">
         <input type="checkbox" ${ativo?"checked":""} onchange="cfc(${i},'ativoDescricao',this.checked)"/>
         <div class="tog-track"></div>
@@ -853,7 +855,7 @@ function renderComposicao(container){
       ${fitaPratSel?`<div>
         <label class="label">METROS/PRAT.</label>
         <input type="number" value="${metrosFitaPrat}" min="0" step="0.1" style="text-align:center"
-          oninput="compData.metrosFitaPrat=+this.value;renderTab()"/>
+          onchange="compData.metrosFitaPrat=+this.value;renderTab()"/>
       </div>`:'<div></div>'}
     </div>
     ${nPrat>0?`<div style="font-size:11px;color:#666;background:#f9f9f9;border-radius:6px;padding:10px 12px">
@@ -1031,7 +1033,15 @@ function cfadd(){
 function cfdel(i){compData.ferragens.splice(i,1);renderTab();}
 function cfc(i,k,v){
   compData.ferragens[i][k]=k==='qtd'?+v:v;
-  renderTab();
+  // Atualiza só o custo da linha, sem recriar o DOM
+  if(k==='qtd'){
+    const li=compData.ferragens[i];
+    const f=state.ferragens.find(x=>String(x.id)===String(li.ferId));
+    const el=document.getElementById('fer-custo-'+i);
+    if(el) el.textContent=f?fmt(custoFer(f)*(+v)):'-';
+  } else {
+    renderTab();
+  }
 }
 
 // ── FACES NA COMPOSIÇÃO ─────────────────────────────────────────
