@@ -236,7 +236,7 @@
     #print-area .pa-sign div span {
       display: block; border-top: 1px solid #000; padding-top: 4px; font-size: 11px;
     }
-    @page { margin: 14mm; }
+    @page { margin: 10mm; size: A4; }
   }
 </style>
 </head>
@@ -338,7 +338,11 @@
           <input type="text" id="mov-desc" placeholder="Ex.: Cozinha, Quarto 1" list="ambientes-list" />
           <datalist id="ambientes-list"></datalist>
         </div>
-        <div style="grid-column:3/5;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+        <div style="grid-column:3/5;display:grid;grid-template-columns:60px 1fr 1fr 1fr;gap:10px;">
+          <div>
+            <label>Qtd.</label>
+            <input type="number" id="mov-qtd" step="1" min="1" value="1" style="text-align:center;" />
+          </div>
           <div>
             <label>Largura (mm)</label>
             <input type="number" id="mov-larg" step="1" min="0" placeholder="0" oninput="previewCustoMovel()" />
@@ -1396,6 +1400,7 @@ function adicionarMovel() {
   const largMm = parseFloat(document.getElementById('mov-larg').value);
   const altMm = parseFloat(document.getElementById('mov-alt').value);
   const profMm = parseFloat(document.getElementById('mov-prof').value) || 0;
+  const qtd = parseInt(document.getElementById('mov-qtd').value) || 1;
   if (!tipoId) { alert('Selecione o tipo de móvel.'); return; }
   if (!largMm || !altMm || largMm <= 0 || altMm <= 0) { alert('Informe largura e altura em mm.'); return; }
   const tipo = data.tipos.find(t => t.id === tipoId);
@@ -1407,8 +1412,10 @@ function adicionarMovel() {
     cat: tipo.cat,
     desc, obs,
     largMm, altMm, profMm,
+    qtd,
     faces: result.faces,
-    subtotal: result.subtotal,
+    subtotal: result.subtotal * qtd,
+    subtotalUnit: result.subtotal,
     itensAdicionais: JSON.parse(JSON.stringify(itensPendentesMovel))
   });
   itensPendentesMovel = [];
@@ -1418,6 +1425,7 @@ function adicionarMovel() {
   document.getElementById('mov-larg').value = '';
   document.getElementById('mov-alt').value = '';
   document.getElementById('mov-prof').value = '';
+  document.getElementById('mov-qtd').value = '1';
   document.getElementById('mov-faces-preview').style.display = 'none';
   renderMoveis();
 }
@@ -1525,7 +1533,7 @@ function renderMoveis() {
       const obsHtml = m.obs ? `<div style="font-size:11px;color:#888;font-style:italic;margin-top:2px;">📝 ${m.obs}</div>` : '';
       return `<tr>
         <td><strong>${m.tipoNome}</strong>${obsHtml}${itensHtml}</td>
-        <td class="center" style="font-size:12px;color:#888;">${m.largMm} × ${m.altMm}${m.profMm ? ' × ' + m.profMm : ''} mm</td>
+        <td class="center" style="font-size:12px;color:#888;">${m.qtd && m.qtd > 1 ? `<strong>${m.qtd}×</strong> ` : ''}${m.largMm} × ${m.altMm}${m.profMm ? ' × ' + m.profMm : ''} mm</td>
         <td class="right"><strong>${fmt(totalMovel)}</strong></td>
         <td class="row-actions">
           <button class="btn small secondary" onclick="abrirEdicaoMovel('${m.id}')">✏️ Editar</button>
@@ -2057,15 +2065,16 @@ function montarImpressao(o) {
     Object.entries(ambientes).forEach(([amb, moveis]) => {
       html += `<div style="font-weight:700;font-size:11.5px;background:#eeeeee;padding:4px 8px;margin-top:8px;border:1px solid #cccccc;">🏠 ${amb.toUpperCase()}</div>
         <table><thead><tr>
-          <th>Tipo / Itens Adicionais</th>
-          <th style="width:100px; text-align:right;">Valor</th>
+          <th>Descrição</th>
+          <th style="width:80px; text-align:right;">Valor</th>
         </tr></thead><tbody>`;
       moveis.forEach(m => {
         const subtotalItens = (m.itensAdicionais || []).reduce((s,i) => s + i.subtotal, 0);
         const totalMovel = m.subtotal + subtotalItens;
+        const qtdLabel = (m.qtd && m.qtd > 1) ? ` <span style="color:#888;font-size:10px;">× ${m.qtd}</span>` : '';
+        const dimLabel = `${m.largMm}×${m.altMm}${m.profMm?'×'+m.profMm:''} mm`;
         html += `<tr>
-          <td><strong>${m.tipoNome}</strong>${m.obs ? `<br><span style="font-size:10px;color:#555;font-style:italic;">${m.obs}</span>` : ''}</td>
-          <td style="text-align:right;font-size:10px;color:#888;">${m.largMm}×${m.altMm}${m.profMm?'×'+m.profMm:''} mm</td>
+          <td><strong>${m.tipoNome}</strong>${qtdLabel}<br><span style="font-size:10px;color:#888;">${dimLabel}</span>${m.obs ? `<br><span style="font-size:10px;color:#555;font-style:italic;">${m.obs}</span>` : ''}</td>
           <td style="text-align:right"><strong>${fmt(totalMovel)}</strong></td>
         </tr>`;
         if (m.itensAdicionais && m.itensAdicionais.length) {
@@ -2122,11 +2131,6 @@ function montarImpressao(o) {
   html += `<div class="pa-sign">
     <div><br><br><span>${e.nome || 'Marcenaria'}</span></div>
     <div><br><br><span>${o.cliente.nome} — Cliente</span></div>
-  </div>`;
-
-  html += `<div class="pa-foot">
-    Orçamento válido por ${o.validade} dias a contar de ${formatarData(o.data)}.
-    ${e.nome ? '· ' + e.nome : ''} ${e.tel ? '· ' + e.tel : ''}
   </div>`;
 
   document.getElementById('print-area').innerHTML = html;
