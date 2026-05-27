@@ -1470,39 +1470,7 @@ function renderItensPendentes() {
       </span>`).join('');
 }
 
-function adicionarMovel() {
-  const tipoId = document.getElementById('mov-tipo').value;
-  const desc = document.getElementById('mov-desc').value.trim();
-  const obs = document.getElementById('mov-obs').value.trim();
-  const largMm = parseFloat(document.getElementById('mov-larg').value);
-  const altMm = parseFloat(document.getElementById('mov-alt').value);
-  if (!tipoId) { alert('Selecione o tipo de móvel.'); return; }
-  if (!largMm || !altMm || largMm <= 0 || altMm <= 0) { alert('Informe largura e altura em mm.'); return; }
-  const tipo = data.tipos.find(t => t.id === tipoId);
-  const largM = largMm / 1000;
-  const altM = altMm / 1000;
-  const area = largM * altM;
-  orcamentoAtual.moveis.push({
-    id: uid(),
-    tipoNome: tipo.nome,
-    cat: tipo.cat,
-    desc,
-    obs,
-    largMm, altMm,
-    larg: largM, alt: altM,
-    area,
-    precoM2: tipo.preco,
-    subtotal: area * tipo.preco,
-    itensAdicionais: JSON.parse(JSON.stringify(itensPendentesMovel))
-  });
-  itensPendentesMovel = [];
-  document.getElementById('mov-itens-preview').innerHTML = '';
-  document.getElementById('mov-desc').value = '';
-  document.getElementById('mov-obs').value = '';
-  document.getElementById('mov-larg').value = '';
-  document.getElementById('mov-alt').value = '';
-  renderMoveis();
-}
+
 
 function removerMovel(id) {
   orcamentoAtual.moveis = orcamentoAtual.moveis.filter(m => m.id !== id);
@@ -1577,7 +1545,14 @@ function abrirEdicaoMovel(id) {
   const modal = document.getElementById('modal-edicao-movel');
   modal.innerHTML = `
     <div style="background:#fff;border-radius:10px;padding:24px;max-width:640px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.18);position:relative;">
-      <h3 style="margin:0 0 16px;font-size:16px;">✏️ Editar Móvel</h3>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap;">
+        <h3 style="margin:0;font-size:16px;">✏️ Editar Móvel</h3>
+        <div style="display:flex;gap:8px;">
+          <button class="btn secondary" onclick="fecharEdicaoMovel()">Cancelar</button>
+          <button class="btn" onclick="salvarEdicaoMovel()">💾 Salvar alterações</button>
+        </div>
+      </div>
 
       <div class="grid grid-2" style="gap:12px;margin-bottom:12px;">
         <div style="grid-column:1/-1;">
@@ -1602,11 +1577,17 @@ function abrirEdicaoMovel(id) {
           <label>Profundidade (mm)</label>
           <input type="number" id="edit-mov-prof" value="${m.profMm || ''}" style="width:100%;padding:8px;border:1px solid #e0e0e0;border-radius:5px;font-size:14px;" placeholder="0" />
         </div>
+        <div>
+          <label>Quantidade</label>
+          <input type="number" id="edit-mov-qtd" value="${m.qtd || 1}" min="1" step="1" style="width:100%;padding:8px;border:1px solid #e0e0e0;border-radius:5px;font-size:14px;text-align:center;" />
+        </div>
         <div style="grid-column:1/-1;">
           <label>Descrição opcional (aparece no PDF)</label>
           <input type="text" id="edit-mov-obs" value="${m.obs || ''}" style="width:100%;padding:8px;border:1px solid #e0e0e0;border-radius:5px;font-size:14px;" placeholder="Ex.: MDF Branco TX, com soft close..." />
         </div>
-      </div>border:1px solid #e0e0e0;border-radius:6px;padding:12px;margin-bottom:14px;">
+      </div>
+
+      <div style="border:1px solid #e0e0e0;border-radius:6px;padding:12px;margin-bottom:14px;">
         <label style="font-size:12px;color:#666;font-weight:600;">Itens adicionais</label>
         <div id="edit-itens-lista" style="margin:8px 0;min-height:24px;"></div>
         <div class="grid grid-4" style="gap:8px;margin-top:8px;">
@@ -1628,10 +1609,6 @@ function abrirEdicaoMovel(id) {
         <button class="btn small secondary" style="margin-top:8px;" onclick="adicionarItemEdicaoMovel()">+ Adicionar item</button>
       </div>
 
-      <div style="display:flex;gap:10px;justify-content:flex-end;">
-        <button class="btn secondary" onclick="fecharEdicaoMovel()">Cancelar</button>
-        <button class="btn" onclick="salvarEdicaoMovel()">💾 Salvar alterações</button>
-      </div>
     </div>`;
   modal.style.display = 'flex';
   renderItensEdicaoMovel();
@@ -1684,6 +1661,7 @@ function salvarEdicaoMovel() {
   const largMm = parseFloat(document.getElementById('edit-mov-larg').value);
   const altMm = parseFloat(document.getElementById('edit-mov-alt').value);
   const profMm = parseFloat(document.getElementById('edit-mov-prof').value) || 0;
+  const qtd = parseInt(document.getElementById('edit-mov-qtd').value) || 1;
   if (!largMm || !altMm || largMm <= 0 || altMm <= 0) { alert('Informe largura e altura em mm.'); return; }
   const tipo = data.tipos.find(t => t.id === tipoId);
   const result = calcularCustoFacesMovel(tipoId, largMm, altMm, profMm);
@@ -1692,9 +1670,10 @@ function salvarEdicaoMovel() {
     orcamentoAtual.moveis[idx] = {
       ...orcamentoAtual.moveis[idx],
       tipoNome: tipo.nome, cat: tipo.cat,
-      desc, obs, largMm, altMm, profMm,
+      desc, obs, largMm, altMm, profMm, qtd,
       faces: result.faces,
-      subtotal: result.subtotal,
+      subtotalUnit: result.subtotal,
+      subtotal: result.subtotal * qtd,
       itensAdicionais: JSON.parse(JSON.stringify(itensEdicaoMovel))
     };
   }
@@ -1865,21 +1844,36 @@ function salvarOrcamento() {
   salvarClienteSeNovo();
 
   if (editandoOrcamentoId) {
-    // Atualiza orçamento existente, mantendo número e id originais
-    const idx = data.orcamentos.findIndex(x => x.id === editandoOrcamentoId);
-    if (idx !== -1) {
-      o.id = editandoOrcamentoId;
-      o.numero = data.orcamentos[idx].numero;
-      data.orcamentos[idx] = o;
+    // Em vez de sobrescrever, cria uma REVISÃO do orçamento original
+    const original = data.orcamentos.find(x => x.id === editandoOrcamentoId);
+    if (original) {
+      // Descobrir o número de revisão mais alto para este número de orçamento
+      const baseNumero = original.numero;
+      const revisoesExistentes = data.orcamentos.filter(x =>
+        x.numero === baseNumero || x.numeroBase === baseNumero
+      );
+      const maxRev = revisoesExistentes.reduce((max, x) => Math.max(max, x.revisao || 0), 0);
+      const novaRev = maxRev + 1;
+      const revStr = String(novaRev).padStart(2, '0');
+
+      o.id = uid();
+      o.numero = baseNumero;
+      o.numeroBase = baseNumero;
+      o.revisao = novaRev;
+      o.revisaoStr = `REV ${revStr}`;
+      o.dataRevisao = new Date().toISOString().slice(0, 10);
+      data.orcamentos.unshift(o);
+
+      editandoOrcamentoId = null;
+      const banner = document.getElementById('edit-banner');
+      if (banner) banner.style.display = 'none';
+      salvar();
+      alert(`Orçamento Nº ${String(o.numero)} — REV ${revStr} salvo! O orçamento anterior foi preservado.`);
     }
-    editandoOrcamentoId = null;
-    const banner = document.getElementById('edit-banner');
-    if (banner) banner.style.display = 'none';
-    salvar();
-    alert(`Orçamento Nº ${String(o.numero)} atualizado!`);
   } else {
     o.numero = data.contador++;
     o.id = uid();
+    o.revisao = 0;
     data.orcamentos.unshift(o);
     salvar();
     alert(`Orçamento Nº ${String(o.numero)} salvo!`);
@@ -1894,10 +1888,16 @@ function renderSalvos() {
     return;
   }
   data.orcamentos.forEach(o => {
+    const revBadge = o.revisaoStr
+      ? `<span style="display:inline-block;margin-left:6px;background:#1565c0;color:#fff;font-size:10px;font-weight:700;padding:1px 7px;border-radius:10px;">${o.revisaoStr}</span>`
+      : '';
+    const dataExib = o.revisaoStr && o.dataRevisao
+      ? formatarData(o.dataRevisao)
+      : formatarData(o.data);
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td><strong>Nº ${String(o.numero)}</strong></td>
-      <td>${formatarData(o.data)}</td>
+      <td><strong>Nº ${String(o.numero)}</strong>${revBadge}</td>
+      <td>${dataExib}</td>
       <td>${o.cliente.nome}<div class="hint">${o.cliente.tel || ''}</div></td>
       <td class="right"><strong>${fmt(o.total)}</strong></td>
       <td class="row-actions">
@@ -1954,7 +1954,7 @@ function editarOrcamento(id) {
     banner.style.cssText = 'background:#fff3cd;border:1px solid #ffc107;border-radius:6px;padding:10px 16px;margin-bottom:14px;font-size:13px;font-weight:600;color:#856404;display:flex;justify-content:space-between;align-items:center;';
     document.querySelector('#tab-orcamento').prepend(banner);
   }
-  banner.innerHTML = `✏️ Editando Orçamento Nº ${String(o.numero)} — ${o.cliente.nome}
+  banner.innerHTML = `✏️ Editando Orçamento Nº ${String(o.numero)} — ${o.cliente.nome} &nbsp;<span style="font-size:11px;font-weight:400;color:#6d4c00;">Ao salvar, será criada uma nova REV — o original é preservado.</span>
     <button class="btn small danger" onclick="cancelarEdicaoOrcamento()">Cancelar edição</button>`;
   banner.style.display = 'flex';
 }
@@ -2037,8 +2037,9 @@ function montarImpressao(o) {
   </div></div>`;
 
   const numStr = typeof o.numero === 'number' ? String(o.numero) : o.numero;
+  const revStr = o.revisaoStr ? ` — ${o.revisaoStr}` : '';
   html += `<div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:6px;">
-    <div><strong>ORÇAMENTO Nº ${numStr}</strong></div>
+    <div><strong>ORÇAMENTO Nº ${numStr}${revStr}</strong></div>
     <div>Data: ${formatarData(o.data)} · Validade: ${o.validade} dias</div>
   </div>`;
 
@@ -2066,23 +2067,30 @@ function montarImpressao(o) {
       html += `<div style="font-weight:700;font-size:11.5px;background:#eeeeee;padding:4px 8px;margin-top:8px;border:1px solid #cccccc;">🏠 ${amb.toUpperCase()}</div>
         <table><thead><tr>
           <th>Descrição</th>
-          <th style="width:80px; text-align:right;">Valor</th>
+          <th style="width:55px; text-align:center;">Qtd</th>
+          <th style="width:90px; text-align:right;">Valor Unit.</th>
+          <th style="width:90px; text-align:right;">Total</th>
         </tr></thead><tbody>`;
       moveis.forEach(m => {
+        const qtd = m.qtd || 1;
         const subtotalItens = (m.itensAdicionais || []).reduce((s,i) => s + i.subtotal, 0);
-        const totalMovel = m.subtotal + subtotalItens;
-        const qtdLabel = (m.qtd && m.qtd > 1) ? ` <span style="color:#888;font-size:10px;">× ${m.qtd}</span>` : '';
+        const totalMovelUnit = m.subtotalUnit !== undefined ? m.subtotalUnit : (m.subtotal / qtd);
+        const totalMovel = totalMovelUnit * qtd + subtotalItens;
         const dimLabel = `${m.largMm}×${m.altMm}${m.profMm?'×'+m.profMm:''} mm`;
         html += `<tr>
-          <td><strong>${m.tipoNome}</strong>${qtdLabel}<br><span style="font-size:10px;color:#888;">${dimLabel}</span>${m.obs ? `<br><span style="font-size:10px;color:#555;font-style:italic;">${m.obs}</span>` : ''}</td>
+          <td><strong>${m.tipoNome}</strong><br><span style="font-size:10px;color:#888;">${dimLabel}</span>${m.obs ? `<br><span style="font-size:10px;color:#555;font-style:italic;">${m.obs}</span>` : ''}</td>
+          <td style="text-align:center"><strong>${qtd}</strong></td>
+          <td style="text-align:right">${fmt(totalMovelUnit)}</td>
           <td style="text-align:right"><strong>${fmt(totalMovel)}</strong></td>
         </tr>`;
         if (m.itensAdicionais && m.itensAdicionais.length) {
           m.itensAdicionais.forEach(it => {
             html += `<tr style="background:#fafafa;">
               <td style="padding-left:20px;font-size:10.5px;color:#444;border-top:none;">
-                ↳ ${it.nome}${it.desc ? ' — ' + it.desc : ''} &nbsp;×&nbsp; ${fmtNum(it.qtd)} ${it.un}
+                ↳ ${it.nome}${it.desc ? ' — ' + it.desc : ''}
               </td>
+              <td style="text-align:center;font-size:10.5px;color:#444;border-top:none;">${fmtNum(it.qtd)} ${it.un}</td>
+              <td style="text-align:right;font-size:10.5px;color:#444;border-top:none;">${fmt(it.preco)}</td>
               <td style="text-align:right;font-size:10.5px;color:#444;border-top:none;">${fmt(it.subtotal)}</td>
             </tr>`;
           });
