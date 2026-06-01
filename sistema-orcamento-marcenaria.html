@@ -336,6 +336,13 @@
             <button title="Buscar dados atualizados do Sistema de Custos" onclick="sincronizarTipoSelecionado()" style="padding:8px 10px;border:1px solid #e0e0e0;border-radius:6px;background:#fff;cursor:pointer;font-size:14px;white-space:nowrap;">🔄</button>
           </div>
           <div id="tipo-sync-status" style="font-size:10px;color:#888;margin-top:3px;"></div>
+          <div style="font-size:10px;color:#aaa;margin-top:2px;display:flex;align-items:center;gap:6px;">
+            Limite por módulo:
+            <input type="number" id="mov-limite-modulo" min="100" step="50"
+              style="width:70px;padding:2px 6px;font-size:11px;border:1px solid #ddd;border-radius:4px;text-align:center;"
+              onchange="data.empresa.maxChapaLarg=+this.value;salvar();previewCustoMovel();" />
+            <span>mm</span>
+          </div>
         </div>
         <div>
           <label>Ambiente</label>
@@ -913,6 +920,9 @@ function renderTipos() {
     });
     sel.appendChild(og);
   });
+  // Inicializa campo de limite inline
+  const limEl = document.getElementById('mov-limite-modulo');
+  if (limEl) limEl.value = data.empresa.maxChapaLarg || 1200;
 }
 function salvarTipo() {
   const cat = document.getElementById('tipo-cat').value;
@@ -1306,6 +1316,9 @@ function onTipoMovelChange() {
   const dl = document.getElementById('ambientes-list');
   const ambientes = [...new Set(orcamentoAtual.moveis.map(m => m.desc).filter(Boolean))];
   dl.innerHTML = ambientes.map(a => `<option value="${a}">`).join('');
+  // Atualiza campo de limite inline
+  const limEl = document.getElementById('mov-limite-modulo');
+  if (limEl) limEl.value = data.empresa.maxChapaLarg || 1200;
   // Sempre busca dados atualizados do Firebase ao selecionar tipo
   sincronizarTipoSelecionado(true);
   previewCustoMovel();
@@ -1356,6 +1369,13 @@ function sincronizarTipoSelecionado(silencioso) {
         dimLarg: match.dimLarg || 800,
         dimAlt: match.dimAlt || 1800,
         dimProf: match.dimProf || 600,
+        nPrateleiras: match.nPrateleiras || 0,
+        matPratNome: match.matPratNome || '',
+        custoM2Prat: match.custoM2Prat || 0,
+        fitaPratNome: match.fitaPratNome || '',
+        custoFitaPratM: match.custoFitaPratM || 0,
+        metrosFitaPrat: match.metrosFitaPrat || 0,
+        nPortas: match.nPortas || 1,
       };
     }
     if (statusEl) statusEl.innerHTML = '✅ <strong>Custos atualizados</strong> do Sistema de Gestão';
@@ -1429,7 +1449,28 @@ function calcularCustoFacesMovel(tipoId, largMm, altMm, profMm) {
     totalMaoObra  = (tipo.custoMaoObraHora  || 0) * horasM2;
     totalOverhead = (tipo.custoOverheadHora || 0) * horasM2;
 
-    // Overhead estrutural + imposto + margem
+    // Prateleiras automáticas
+    const nPrat = tipo.nPrateleiras || 0;
+    if (nPrat > 0 && tipo.custoM2Prat > 0) {
+      const step = A / (nPrat + 1);
+      for (let i = 0; i < nPrat; i++) {
+        const areaPrat = L * P;
+        const custoPrat = tipo.custoM2Prat * areaPrat;
+        // Fita da prateleira
+        const metrosFitaPrat = tipo.metrosFitaPrat || 0;
+        const custoFitaPrat = (tipo.custoFitaPratM || 0) * metrosFitaPrat;
+        totalMaterial += custoPrat + custoFitaPrat;
+        faces.push({
+          nome: `PRATELEIRA ${i+1}`,
+          matNome: tipo.matPratNome || '',
+          area: areaPrat,
+          custo: custoPrat + custoFitaPrat,
+          fitaNome: tipo.fitaPratNome || '',
+          metrosFita: metrosFitaPrat,
+          custoFita: custoFitaPrat
+        });
+      }
+    }
     const sub = totalMaterial + totalFerragens + totalMaoObra + totalOverhead;
     const comOv = sub * (1 + (tipo.overheadPerc || 0) / 100);
     const comImp = comOv * (1 + (tipo.impostoPerc || 0) / 100);
@@ -1522,24 +1563,18 @@ function adicionarMovel() {
   const tipo = data.tipos.find(t => t.id === tipoId);
   const maxLarg = data.empresa.maxChapaLarg || 1200;
 
-  // Verifica se largura excede o limite da chapa
+  // Se largura excede o limite, divide automaticamente em módulos
   if (largMm > maxLarg) {
     const nModulos = Math.ceil(largMm / maxLarg);
     const largPorModulo = Math.round(largMm / nModulos);
-    const confirmMsg = `A largura ${largMm}mm excede o máximo por módulo (${maxLarg}mm).\n\nDeseja dividir automaticamente em ${nModulos} módulos de ${largPorModulo}mm cada?`;
-    if (!confirm(confirmMsg)) return;
 
-    // Adiciona N módulos
     for (let i = 0; i < nModulos; i++) {
       const result = calcularCustoFacesMovel(tipoId, largPorModulo, altMm, profMm);
       orcamentoAtual.moveis.push({
-        id: uid(),
-        tipoNome: tipo.nome,
-        cat: tipo.cat,
+        id: uid(), tipoNome: tipo.nome, cat: tipo.cat,
         desc,
         obs: `MÓDULO ${i + 1}/${nModulos}${obs ? ' — ' + obs : ''}`,
-        largMm: largPorModulo, altMm, profMm,
-        qtd,
+        largMm: largPorModulo, altMm, profMm, qtd,
         faces: result.faces,
         subtotal: result.subtotal * qtd,
         subtotalUnit: result.subtotal,
@@ -2351,6 +2386,10 @@ function importarDoCustos() {
       data.empresa.freteCustoKm = marcFrete.freteCustoKm || 3.5;
       data.empresa.freteLocalKm = marcFrete.freteLocalKm || 20;
       data.empresa.freteMinimo  = marcFrete.freteMinimo  || 0;
+      data.empresa.maxChapaLarg = marcFrete.maxChapaLarg || 1200;
+      // Atualiza campo inline se estiver visível
+      const limEl = document.getElementById('mov-limite-modulo');
+      if (limEl) limEl.value = data.empresa.maxChapaLarg;
     }
     const syncEl = document.getElementById('sync-status');
     if (!marcPrices && !marcExtras && !marcComp) {
