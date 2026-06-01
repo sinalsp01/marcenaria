@@ -188,6 +188,7 @@ const DEF={
     freteCustoKm:3.5,
     freteLocalKm:20,
     freteMinimo:0,
+    maxChapaLarg:1200,
   }
 };
 
@@ -270,11 +271,12 @@ async function sincronizar(){
     // Monta ferragens com quantidade e preço por unidade
     const ferragens=(c.ferragens||[]).map(li=>{
       const fer=state.ferragens.find(x=>String(x.id)===String(li.ferId));
+      const qtdReal = li.porPorta ? li.qtd * (c.nPortas||1) : li.qtd;
       return {
         nome:fer?fer.nome:'',
         precoUn:fer?Math.round(custoFer(fer)*100)/100:0,
-        qtd:li.qtd,
-        custoTotal:fer?Math.round(custoFer(fer)*li.qtd*100)/100:0,
+        qtd:qtdReal,
+        custoTotal:fer?Math.round(custoFer(fer)*qtdReal*100)/100:0,
         ativoDescricao:li.ativoDescricao!==false
       };
     });
@@ -293,6 +295,14 @@ async function sincronizar(){
       faces,
       // ferragens com custo/m²
       ferragens,
+      // prateleiras automáticas
+      nPrateleiras: c.nPrateleiras||0,
+      matPratNome: (()=>{ const m=state.materiais.find(x=>String(x.id)===String(c.matPrateleira||'')); return m?m.nome:''; })(),
+      custoM2Prat: (()=>{ const m=state.materiais.find(x=>String(x.id)===String(c.matPrateleira||'')); return m?Math.round(custoMat(m)*100)/100:0; })(),
+      fitaPratNome: (()=>{ const m=state.materiais.find(x=>String(x.id)===String(c.fitaPrateleira||'')); return m?m.nome:''; })(),
+      custoFitaPratM: (()=>{ const m=state.materiais.find(x=>String(x.id)===String(c.fitaPrateleira||'')); return m?Math.round(custoMat(m)*100)/100:0; })(),
+      metrosFitaPrat: c.metrosFitaPrat||0,
+      nPortas: c.nPortas||1,
       // parâmetros de custo
       horasM2:c.horasM2||0,
       custoMaoObraHora:Math.round(calcMaoObra()*100)/100,
@@ -311,7 +321,8 @@ async function sincronizar(){
   await db.ref('marc_frete_cfg').set({
     freteCustoKm: state.config.freteCustoKm||3.5,
     freteLocalKm: state.config.freteLocalKm||20,
-    freteMinimo:  state.config.freteMinimo||0
+    freteMinimo:  state.config.freteMinimo||0,
+    maxChapaLarg: state.config.maxChapaLarg||1200
   });
   const sm=ge("sync-msg");sm.textContent="✅ Sincronizado!";sm.style.display="inline";
   setTimeout(()=>{sm.style.display="none";},4000);
@@ -338,7 +349,13 @@ function calcOverheadHora(){
 function calcPreco(comp){
   const mats=state.materiais,fers=state.ferragens,cfg=state.config;
   const cm=(comp.materiais||[]).reduce((a,li)=>{const m=mats.find(x=>String(x.id)===String(li.matId));return a+(m?custoMat(m)*li.qtd:0);},0);
-  const cf=(comp.ferragens||[]).reduce((a,li)=>{const f=fers.find(x=>String(x.id)===String(li.ferId));return a+(f?custoFer(f)*li.qtd:0);},0);
+  const nPortasCalc = comp.nPortas || 1;
+  const cf=(comp.ferragens||[]).reduce((a,li)=>{
+    const f=fers.find(x=>String(x.id)===String(li.ferId));
+    if(!f) return a;
+    const qtd = li.porPorta ? li.qtd * nPortasCalc : li.qtd;
+    return a + custoFer(f) * qtd;
+  },0);
   const maoH=calcMaoObra();
   const mao=maoH*(comp.horasM2||0);
   const ovH=calcOverheadHora();
@@ -776,7 +793,8 @@ function loadComp(id){
     nPrateleiras:c.nPrateleiras||0,
     matPrateleira:c.matPrateleira||'',
     fitaPrateleira:c.fitaPrateleira||'',
-    metrosFitaPrat:c.metrosFitaPrat||0
+    metrosFitaPrat:c.metrosFitaPrat||0,
+    nPortas:c.nPortas||1
   };
 }
 function renderComposicao(container){
@@ -801,15 +819,23 @@ function renderComposicao(container){
     <div style="font-size:10px;color:#4a7a5a;margin-top:2px">${fmt(final)}/m²</div>
     <div style="font-size:9px;color:${T.muted};margin-top:2px">${esc(c.catOrcamento||"Outros")}</div>
   </div>`;}).join("");
+  const nPortas = compData.nPortas || 1;
   const fRows=(compData.ferragens||[]).map((li,i)=>{
     const f=state.ferragens.find(x=>String(x.id)===String(li.ferId));
     const und=f?f.unidade||'un':'un';
     const opts=state.ferragens.map(x=>`<option value="${x.id}"${String(x.id)===String(li.ferId)?" selected":""}>${esc(x.nome)} (${x.unidade||'un'})</option>`).join("");
     const ativo=li.ativoDescricao!==false;
-    return `<div style="display:grid;grid-template-columns:2fr 1fr auto auto auto;gap:8px;align-items:end;margin-bottom:8px">
+    const porPorta=li.porPorta===true;
+    const qtdReal = porPorta ? li.qtd * nPortas : li.qtd;
+    const custoTotal = f ? fmt(custoFer(f) * qtdReal) : '-';
+    return `<div style="display:grid;grid-template-columns:2fr 1fr auto auto auto auto;gap:8px;align-items:end;margin-bottom:8px">
       <div><label class="label">FERRAGEM</label><select onchange="cfc(${i},'ferId',this.value)">${opts}</select></div>
-      <div><label class="label">QTD (${und})</label><input type="number" value="${li.qtd}" step="1" min="0" oninput="cfc(${i},'qtd',+this.value)"/></div>
-      <div id="fer-custo-${i}" style="font-size:11px;color:#2c2c2c;font-weight:700;white-space:nowrap;padding-bottom:2px">${f?fmt(custoFer(f)*li.qtd):"-"}</div>
+      <div><label class="label">QTD${porPorta?` <span style="color:#e67e22;font-size:9px">(×${nPortas} portas)</span>`:''} (${und})</label><input type="number" value="${li.qtd}" step="1" min="0" oninput="cfc(${i},'qtd',+this.value)"/></div>
+      <div id="fer-custo-${i}" style="font-size:11px;color:#2c2c2c;font-weight:700;white-space:nowrap;padding-bottom:2px">${custoTotal}</div>
+      <label title="Multiplicar pela quantidade de portas" style="display:flex;flex-direction:column;align-items:center;gap:2px;padding-bottom:2px;cursor:pointer">
+        <span style="font-size:8px;color:#e67e22;font-weight:700">🚪/PORTA</span>
+        <input type="checkbox" ${porPorta?"checked":""} onchange="cfc(${i},'porPorta',this.checked);renderTab()"/>
+      </label>
       <label class="tog" title="Exibir na descrição do orçamento" style="padding-bottom:2px">
         <input type="checkbox" ${ativo?"checked":""} onchange="cfc(${i},'ativoDescricao',this.checked)"/>
         <div class="tog-track"></div>
@@ -992,6 +1018,13 @@ function renderComposicao(container){
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
         <div class="card-title" style="margin-bottom:0">FERRAGENS (por unidade)</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:11px;color:#888;font-weight:600;">Nº DE PORTAS:</span>
+          <button onclick="compData.nPortas=1;renderTab()" style="padding:4px 12px;border-radius:20px;border:2px solid #2c2c2c;cursor:pointer;font-size:12px;font-weight:700;
+            background:${nPortas===1?'#2c2c2c':'#fff'};color:${nPortas===1?'#fff':'#2c2c2c'}">1 Porta</button>
+          <button onclick="compData.nPortas=2;renderTab()" style="padding:4px 12px;border-radius:20px;border:2px solid #2c2c2c;cursor:pointer;font-size:12px;font-weight:700;
+            background:${nPortas===2?'#2c2c2c':'#fff'};color:${nPortas===2?'#fff':'#2c2c2c'}">2 Portas</button>
+        </div>
         <span style="font-size:9px;color:${T.muted}">Toggle = exibir na descrição do orçamento</span>
       </div>
       ${fRows}<button class="btn btn-ghost btn-sm" style="margin-top:6px" onclick="cfadd()">＋ Ferragem</button>
@@ -1511,9 +1544,24 @@ function _initThree(wrap,canvas){
   if(lps[1]) mkPanel(0, y,0, lw,THIN,ld, lps[1].cor,0.92); // TOPO
   if(phs[0]) mkPanel(-x,0,0, THIN,lh,ld, phs[0].cor,0.88); // LAT ESQ
   if(phs[1]) mkPanel( x,0,0, THIN,lh,ld, phs[1].cor,0.88); // LAT DIR
-  if(lhs[0]) mkPanel(0,0, z, lw,lh,THIN, lhs[0].cor,0.92); // FRENTE
-  if(lhs[1]) mkPanel(0,0,-z, lw,lh,THIN, lhs[1].cor,0.65); // TRASEIRA
-  lhs.slice(2).forEach((f,i)=>mkPanel(0,0,z*(0.3+i*0.15),lw,lh,THIN,f.cor,0.4));
+  // Separa faces lh entre painéis estruturais e portas
+  const portaFaces3D = fp.lh.filter(f => f.tipo === 'porta' || f.nome.toUpperCase().includes('PORTA'));
+  const painelFaces3D = fp.lh.filter(f => f.tipo !== 'porta' && !f.nome.toUpperCase().includes('PORTA'));
+
+  if(painelFaces3D[0]) mkPanel(0,0, z,  lw,lh,THIN, painelFaces3D[0].cor, 0.55); // FUNDO/TRASEIRA (atrás)
+  if(painelFaces3D[1]) mkPanel(0,0,-z,  lw,lh,THIN, painelFaces3D[1].cor, 0.45); // painel extra
+
+  // Portas — na frente do móvel
+  const nPortas3D = compData.nPortas || 1;
+  portaFaces3D.forEach((f)=>{
+    if(nPortas3D >= 2){
+      // 2 portas lado a lado, cada uma com metade da largura
+      mkPanel(-lw/4, 0, z*1.02, lw/2-0.003, lh, THIN, f.cor, 0.88);
+      mkPanel( lw/4, 0, z*1.02, lw/2-0.003, lh, THIN, f.cor, 0.88);
+    } else {
+      mkPanel(0, 0, z*1.02, lw, lh, THIN, f.cor, 0.88);
+    }
+  });
   // Prateleiras automáticas
   const nPrat=compData.nPrateleiras||0;
   if(nPrat>0){
@@ -1806,7 +1854,7 @@ function renderConfig(container){
   <div class="card">
     <div class="card-title">🚚 CONFIGURAÇÕES DE FRETE</div>
     <div style="font-size:11px;color:${T.muted};margin-bottom:14px;">Cálculo automático por rota (OSRM) — partindo de Cajamar-SP</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px">
       <div>
         <div style="font-size:13px;font-weight:600;color:#2c2c2c;margin-bottom:4px">Custo por km (R$/km)</div>
         <div style="font-size:10px;color:${T.muted};margin-bottom:8px">Ida e volta já incluído no cálculo</div>
@@ -1821,6 +1869,11 @@ function renderConfig(container){
         <div style="font-size:13px;font-weight:600;color:#2c2c2c;margin-bottom:4px">Frete mínimo (R$)</div>
         <div style="font-size:10px;color:${T.muted};margin-bottom:8px">Valor mínimo cobrado por entrega</div>
         <input type="number" value="${cfg.freteMinimo||0}" step="1" min="0" style="max-width:120px;text-align:right" onchange="setCfg('freteMinimo',+this.value)"/>
+      </div>
+      <div>
+        <div style="font-size:13px;font-weight:600;color:#2c2c2c;margin-bottom:4px">Largura máx. por módulo (mm)</div>
+        <div style="font-size:10px;color:${T.muted};margin-bottom:8px">Divide o móvel em módulos ao exceder</div>
+        <input type="number" value="${cfg.maxChapaLarg||1200}" step="50" min="100" style="max-width:120px;text-align:right" onchange="setCfg('maxChapaLarg',+this.value)"/>
       </div>
     </div>
   </div>
