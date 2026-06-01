@@ -331,7 +331,11 @@
       <div class="grid grid-4">
         <div>
           <label>Tipo de móvel</label>
-          <select id="mov-tipo" onchange="onTipoMovelChange()"></select>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <select id="mov-tipo" onchange="onTipoMovelChange()" style="flex:1;"></select>
+            <button title="Buscar dados atualizados do Sistema de Custos" onclick="sincronizarTipoSelecionado()" style="padding:8px 10px;border:1px solid #e0e0e0;border-radius:6px;background:#fff;cursor:pointer;font-size:14px;white-space:nowrap;">🔄</button>
+          </div>
+          <div id="tipo-sync-status" style="font-size:10px;color:#888;margin-top:3px;"></div>
         </div>
         <div>
           <label>Ambiente</label>
@@ -638,6 +642,21 @@
           <input type="file" id="emp-logo" accept="image/*" />
           <img id="emp-logo-prev" class="logo-preview" style="display:none" />
         </div>
+        <div style="grid-column:1/-1;margin-top:8px;padding-top:12px;border-top:1px solid #eee;">
+          <div style="font-size:11px;font-weight:700;color:#888;letter-spacing:.5px;margin-bottom:10px;">📐 LIMITE DE CHAPA MDF</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div>
+              <label>Largura máxima da chapa (mm)</label>
+              <input type="number" id="emp-chapa-larg" value="1200" min="100" step="1" placeholder="1200" />
+              <div class="hint">Padrão: 1200mm — ao exceder, divide em módulos automaticamente</div>
+            </div>
+            <div>
+              <label>Altura máxima da chapa (mm)</label>
+              <input type="number" id="emp-chapa-alt" value="2750" min="100" step="1" placeholder="2750" />
+              <div class="hint">Padrão: 2750mm</div>
+            </div>
+          </div>
+        </div>
       </div>
       <div style="margin-top: 12px;">
         <button class="btn" onclick="salvarEmpresa()">Salvar dados da empresa</button>
@@ -821,6 +840,8 @@ function renderEmpresa() {
   document.getElementById('emp-email-fin').value = e.emailFinanceiro || '';
   document.getElementById('emp-email-com').value = e.emailComercial || '';
   document.getElementById('emp-end').value = e.end || '';
+  document.getElementById('emp-chapa-larg').value = e.maxChapaLarg || 1850;
+  document.getElementById('emp-chapa-alt').value = e.maxChapaAlt || 2750;
   if (e.logo) {
     const img = document.getElementById('emp-logo-prev');
     img.src = e.logo; img.style.display = 'block';
@@ -834,6 +855,8 @@ function salvarEmpresa() {
   data.empresa.emailFinanceiro = document.getElementById('emp-email-fin').value.trim();
   data.empresa.emailComercial = document.getElementById('emp-email-com').value.trim();
   data.empresa.end = document.getElementById('emp-end').value.trim();
+  data.empresa.maxChapaLarg = parseFloat(document.getElementById('emp-chapa-larg').value) || 1200;
+  data.empresa.maxChapaAlt = parseFloat(document.getElementById('emp-chapa-alt').value) || 2750;
   salvar(); renderEmpresa(); alert('Dados da empresa salvos!');
 }
 document.getElementById('emp-logo').addEventListener('change', evt => {
@@ -1283,7 +1306,65 @@ function onTipoMovelChange() {
   const dl = document.getElementById('ambientes-list');
   const ambientes = [...new Set(orcamentoAtual.moveis.map(m => m.desc).filter(Boolean))];
   dl.innerHTML = ambientes.map(a => `<option value="${a}">`).join('');
+  // Sempre busca dados atualizados do Firebase ao selecionar tipo
+  sincronizarTipoSelecionado(true);
   previewCustoMovel();
+}
+
+function sincronizarTipoSelecionado(silencioso) {
+  if (!db) { if (!silencioso) alert('Firebase não conectado.'); return; }
+  const tipoId = document.getElementById('mov-tipo').value;
+  if (!tipoId) return;
+  const tipo = data.tipos.find(t => t.id === tipoId);
+  if (!tipo) return;
+  const statusEl = document.getElementById('tipo-sync-status');
+  if (statusEl) statusEl.textContent = '🔄 Buscando dados do Sistema de Custos...';
+
+  db.ref('marc_prices').once('value').then(snap => {
+    if (!snap.exists()) {
+      if (statusEl) statusEl.textContent = '⚠ Nenhum dado no Firebase. Sincronize o Sistema de Custos.';
+      return;
+    }
+    const prices = snap.val();
+    const arr = Array.isArray(prices) ? prices : Object.values(prices);
+
+    // Tenta encontrar pelo nome ou pelo id original
+    const match = arr.find(p =>
+      p.nome && tipo.nome &&
+      p.nome.trim().toUpperCase() === tipo.nome.trim().toUpperCase()
+    );
+
+    if (!match) {
+      if (statusEl) statusEl.textContent = `⚠ Tipo "${tipo.nome}" não encontrado no Sistema de Custos.`;
+      return;
+    }
+
+    // Atualiza o tipo com os dados mais recentes
+    const idx = data.tipos.findIndex(t => t.id === tipoId);
+    if (idx !== -1) {
+      data.tipos[idx] = {
+        ...data.tipos[idx],
+        preco: match.preco || data.tipos[idx].preco,
+        faces: match.faces || [],
+        ferragens: match.ferragens || [],
+        horasM2: match.horasM2 || 0,
+        custoMaoObraHora: match.custoMaoObraHora || 0,
+        custoOverheadHora: match.custoOverheadHora || 0,
+        overheadPerc: match.overheadPerc || 0,
+        impostoPerc: match.impostoPerc || 0,
+        margemPerc: match.margemPerc || 0,
+        dimLarg: match.dimLarg || 800,
+        dimAlt: match.dimAlt || 1800,
+        dimProf: match.dimProf || 600,
+      };
+    }
+    if (statusEl) statusEl.innerHTML = '✅ <strong>Custos atualizados</strong> do Sistema de Gestão';
+    setTimeout(() => { if (statusEl) statusEl.textContent = ''; }, 4000);
+    previewCustoMovel();
+    salvar();
+  }).catch(() => {
+    if (statusEl) statusEl.textContent = '⚠ Erro ao buscar dados.';
+  });
 }
 
 function calcularCustoFacesMovel(tipoId, largMm, altMm, profMm) {
@@ -1304,12 +1385,33 @@ function calcularCustoFacesMovel(tipoId, largMm, altMm, profMm) {
   if (tipo.faces && tipo.faces.length > 0) {
     let totalMaterial = 0, totalFerragens = 0, totalMaoObra = 0, totalOverhead = 0;
 
-    // Custo de material por face
+    // Custo de material por face (incluindo fita de bordo calculada pelas dimensões reais)
     const faces = tipo.faces.map(f => {
       const area = areaFace(f.eixo);
-      const custo = (f.custoM2 || 0) * area;
+      const custoMaterial = (f.custoM2 || 0) * area;
+
+      // Calcula metros de fita a partir das dimensões reais do móvel
+      let metrosFitaCalc = 0;
+      if (f.fitaNome || f.fitaId) {
+        const eixo = f.eixo || 'lh';
+        if (eixo === 'lp')      metrosFitaCalc = 2 * (L + P); // base/topo: 2 × (larg + prof)
+        else if (eixo === 'ph') metrosFitaCalc = 2 * (P + A); // lateral: 2 × (prof + alt)
+        else                    metrosFitaCalc = 2 * (L + A); // frente/porta: 2 × (larg + alt)
+        metrosFitaCalc = Math.round(metrosFitaCalc * 100) / 100;
+      }
+
+      const custoFita = (f.custoFitaM || 0) * metrosFitaCalc;
+      const custo = custoMaterial + custoFita;
       totalMaterial += custo;
-      return { nome: f.nome, matNome: f.matNome || '', area, custo };
+      return {
+        nome: f.nome,
+        matNome: f.matNome || '',
+        area,
+        custo,
+        fitaNome: f.fitaNome || '',
+        metrosFita: metrosFitaCalc,
+        custoFita
+      };
     });
 
     // Custo de ferragens (por m² de área total de frente)
@@ -1366,11 +1468,22 @@ function previewCustoMovel() {
   const preview = document.getElementById('mov-faces-preview');
   if (!tipoId || !largMm || !altMm) { preview.style.display = 'none'; return; }
 
+  // Aviso de limite de chapa
+  const maxLarg = data.empresa.maxChapaLarg || 1200;
+  const statusEl = document.getElementById('tipo-sync-status');
+  if (largMm > maxLarg) {
+    const nMod = Math.ceil(largMm / maxLarg);
+    const largMod = Math.round(largMm / nMod);
+    if (statusEl) statusEl.innerHTML = `⚠️ <strong>Largura excede o máximo por módulo (${maxLarg}mm)</strong> — será dividido em <strong>${nMod} módulos de ${largMod}mm</strong>`;
+  } else {
+    if (statusEl && statusEl.innerHTML.includes('excede')) statusEl.innerHTML = '';
+  }
+
   const result = calcularCustoFacesMovel(tipoId, largMm, altMm, profMm);
   const tbody = document.getElementById('mov-faces-tbody');
   tbody.innerHTML = result.faces.map(f => `
     <tr>
-      <td>${f.nome}</td>
+      <td>${f.nome}${f.fitaNome ? `<br><span style="font-size:10px;color:#888;">🎞️ ${f.fitaNome} × ${f.metrosFita}m</span>` : ''}</td>
       <td style="color:#666;font-size:11px;">${f.matNome}</td>
       <td class="right">${f.area.toFixed(4)} m²</td>
       <td class="right"><strong>${fmt(f.custo)}</strong></td>
@@ -1405,23 +1518,55 @@ function adicionarMovel() {
   const qtd = parseInt(document.getElementById('mov-qtd').value) || 1;
   if (!tipoId) { alert('Selecione o tipo de móvel.'); return; }
   if (!largMm || !altMm || largMm <= 0 || altMm <= 0) { alert('Informe largura e altura em mm.'); return; }
-  const tipo = data.tipos.find(t => t.id === tipoId);
-  const result = calcularCustoFacesMovel(tipoId, largMm, altMm, profMm);
 
-  orcamentoAtual.moveis.push({
-    id: uid(),
-    tipoNome: tipo.nome,
-    cat: tipo.cat,
-    desc, obs,
-    largMm, altMm, profMm,
-    qtd,
-    faces: result.faces,
-    subtotal: result.subtotal * qtd,
-    subtotalUnit: result.subtotal,
-    maoObra: (result.breakdown.maoObra || 0) * qtd,
-    itensAdicionais: JSON.parse(JSON.stringify(itensPendentesMovel))
-  });
-  itensPendentesMovel = [];
+  const tipo = data.tipos.find(t => t.id === tipoId);
+  const maxLarg = data.empresa.maxChapaLarg || 1200;
+
+  // Verifica se largura excede o limite da chapa
+  if (largMm > maxLarg) {
+    const nModulos = Math.ceil(largMm / maxLarg);
+    const largPorModulo = Math.round(largMm / nModulos);
+    const confirmMsg = `A largura ${largMm}mm excede o máximo por módulo (${maxLarg}mm).\n\nDeseja dividir automaticamente em ${nModulos} módulos de ${largPorModulo}mm cada?`;
+    if (!confirm(confirmMsg)) return;
+
+    // Adiciona N módulos
+    for (let i = 0; i < nModulos; i++) {
+      const result = calcularCustoFacesMovel(tipoId, largPorModulo, altMm, profMm);
+      orcamentoAtual.moveis.push({
+        id: uid(),
+        tipoNome: tipo.nome,
+        cat: tipo.cat,
+        desc,
+        obs: `MÓDULO ${i + 1}/${nModulos}${obs ? ' — ' + obs : ''}`,
+        largMm: largPorModulo, altMm, profMm,
+        qtd,
+        faces: result.faces,
+        subtotal: result.subtotal * qtd,
+        subtotalUnit: result.subtotal,
+        maoObra: (result.breakdown.maoObra || 0) * qtd,
+        itensAdicionais: JSON.parse(JSON.stringify(itensPendentesMovel))
+      });
+    }
+    itensPendentesMovel = [];
+  } else {
+    // Móvel único normal
+    const result = calcularCustoFacesMovel(tipoId, largMm, altMm, profMm);
+    orcamentoAtual.moveis.push({
+      id: uid(),
+      tipoNome: tipo.nome,
+      cat: tipo.cat,
+      desc, obs,
+      largMm, altMm, profMm,
+      qtd,
+      faces: result.faces,
+      subtotal: result.subtotal * qtd,
+      subtotalUnit: result.subtotal,
+      maoObra: (result.breakdown.maoObra || 0) * qtd,
+      itensAdicionais: JSON.parse(JSON.stringify(itensPendentesMovel))
+    });
+    itensPendentesMovel = [];
+  }
+
   document.getElementById('mov-itens-preview').innerHTML = '';
   document.getElementById('mov-desc').value = '';
   document.getElementById('mov-obs').value = '';
